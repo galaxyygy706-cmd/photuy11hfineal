@@ -397,9 +397,34 @@
 <div class="app-container">
     <!-- CỘT TRÁI: HIỂN THỊ MENU -->
     <div class="menu-column">
-        <div class="menu-header">
-            <b style="color: var(--primary); font-size: 18px;">🍜 Phở Túy 11h</b>
-        </div>
+        <div class="menu-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #fff; border-bottom: 1px solid #eee;">
+    <b style="color: var(--primary); font-size: 18px; white-space: nowrap;">🍜 Phở Túy QR Order</b>
+    
+    <!-- Cụm hiển thị và đổi bàn -->
+    <div style="display: flex; align-items: center; background: #f5f5f5; padding: 4px 4px 4px 12px; border-radius: 25px; border: 1px solid #e0e0e0;">
+        <span id="label-ban-menu" style="font-size: 13px; font-weight: bold; color: #333; margin-right: 8px;">Bàn: --</span>
+        
+        <!-- Nút đổi bàn (Kích thước to hơn, có hiệu ứng) -->
+        <button onclick="doiBanThuCong()" 
+            style="border: none; 
+                   background: var(--primary); 
+                   color: #fff; 
+                   border-radius: 50%; 
+                   width: 32px; 
+                   height: 32px; 
+                   font-size: 14px; 
+                   cursor: pointer; 
+                   display: flex; 
+                   align-items: center; 
+                   justify-content: center;
+                   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                   transition: transform 0.1s active;"
+            title="Đổi bàn">
+            🔄
+        </button>
+    </div>
+</div>
+
 
         <!-- DÁN THANH CHỌN TAB VÀO ĐÂY (Giữa Header và Danh sách món) -->
         <div style="padding: 10px 15px 0 15px;"> 
@@ -425,7 +450,8 @@
     <div class="order-column">
         <div class="order-header">
             <b style="font-size: 14px;">📑 CHI TIẾT ĐƠN</b>
-            <span id="label-ban" style="background:#eee; padding:2px 10px; border-radius:15px; font-size:12px; font-weight:bold;">Bàn 1</span>
+            <span id="label-ban-order" style="background:#eee; padding:2px 10px; border-radius:15px; font-size:12px; font-weight:bold;">Bàn 1</span>
+
         </div>
         
         <!-- Thẻ này dùng để đổ món khách đã chọn từ hàm renderOrder() -->
@@ -464,9 +490,14 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 
-    const params = new URLSearchParams(window.location.search);
-    const tableId = params.get('table') || "1";
-    document.getElementById('label-ban').innerText = "Bàn " + tableId;
+   const params = new URLSearchParams(window.location.search);
+tableId = params.get('table') || "1"; // Gán vào biến tableId dùng chung
+
+// Hiển thị ra cả 2 nơi khi vừa tải trang
+const elMenu = document.getElementById('label-ban-menu');
+const elOrder = document.getElementById('label-ban-order');
+if (elMenu) elMenu.innerText = "Bàn: " + tableId;
+if (elOrder) elOrder.innerText = "Bàn " + tableId;
 
     let gioHang = {};
 
@@ -788,8 +819,27 @@ function chuyenTabMenu(tab) {
     renderMenu(); 
 }
 renderMenu();
+function doiBanThuCong() {
+    const soBanMoi = prompt("Vui lòng nhập số bàn mới của bạn:", tableId);
+    
+    if (soBanMoi !== null && soBanMoi.trim() !== "") {
+        // 1. Cập nhật URL
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?table=' + soBanMoi;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+        
+        // 2. Cập nhật biến tableId
+        tableId = soBanMoi; 
+        
+        // 3. Cập nhật hiển thị cho CẢ HAI vị trí
+        const lbMenu = document.getElementById('label-ban-menu');
+        const lbOrder = document.getElementById('label-ban-order');
+        
+        if (lbMenu) lbMenu.innerText = "Bàn: " + tableId;
+        if (lbOrder) lbOrder.innerText = "Bàn " + tableId;
 
-
+        // --- DÒNG alert CŨ ĐÃ ĐƯỢC XÓA TẠI ĐÂY ---
+    }
+}
 
 
 </script>
