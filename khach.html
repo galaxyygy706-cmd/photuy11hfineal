@@ -640,17 +640,31 @@ body {
 .badge-vip { position: absolute; top: 5px; right: 5px; background: linear-gradient(45deg, var(--primary), #ffa000); color: #fff; font-size: 8px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
 
 /* 3. CỘT CHI TIẾT ĐƠN: Bo tròn 4 góc và tách biệt hoàn toàn */
-.order-column { 
-    flex: 5; 
-    display: flex; 
-    flex-direction: column; 
-    background: #fff; 
-    border-radius: 25px; /* Bo tròn đều giống bên trái */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-    overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.05);
+/* Cấu hình cột đơn hàng để có thể trượt */
+/* Thẻ Chi tiết đơn: Cố định chuẩn giữa màn hình */
+.order-column {
+    position: fixed !important;
+    bottom: 0;
+    /* --- BỘ BA LỆNH CĂN GIỮA --- */
+    left: 50% !important;
+    transform: translateX(-50%) translateY(0); 
+    /* --------------------------- */
+    width: 95%;
+    max-width: 500px; /* Không cho quá to trên máy tính */
+    height: 80vh;
+    z-index: 99999; /* Luôn nằm trên cùng */
+    background: #fff;
+    border-radius: 25px 25px 0 0 !important;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
 }
 
+/* TRẠNG THÁI HẠ XUỐNG: Vẫn giữ translateX(-50%) để không bị lệch */
+.order-column.collapsed {
+    transform: translateX(-50%) translateY(calc(100% - 60px)) !important;
+}
 .order-header { padding: 15px; background: #fdfdfd; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; }
 .order-list { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
 .order-item-row { padding: 12px 0; border-bottom: 1px dashed #ddd; display: flex; justify-content: space-between; }
@@ -669,40 +683,62 @@ body {
 /* HIỆU ỨNG BAY */
 .flying-item { position: fixed; width: 35px; height: 35px; background: var(--secondary); border-radius: 50%; z-index: 9999; pointer-events: none; transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
 
-/* ĐIỀU CHỈNH MOBILE */
+/* --- ĐIỀU CHỈNH RIÊNG CHO MOBILE & FIX LỖI TRÀN MÀN HÌNH --- */
 @media (max-width: 768px) {
-    /* 1. Bỏ khoảng cách wrapper để tràn màn hình cho rộng */
+    /* 1. Tràn màn hình điện thoại */
     .main-wrapper { 
         padding: 0; 
         gap: 0; 
         background: #fff;
     }
 
-    /* 2. Cột Menu chiếm toàn bộ chiều cao */
-    .menu-column { 
-        flex: 1; 
-        width: 100%; 
-        border-radius: 0; 
+    /* 2. Menu chiếm trọn màn hình dọc */
+    .menu-column {
+        flex: none;
+        width: 100%;
         height: 100vh;
+        border-radius: 0;
+        padding-bottom: 80px; /* Trừa chỗ để không bị thanh giỏ hàng che món cuối */
     }
 
-    /* 3. Cột Giỏ hàng biến thành 1 cái "Pop-up" ở đáy */
-    .order-column { 
-        position: fixed;
+    /* 3. Cột Giỏ hàng biến thành Bottom Sheet (Dạng lá sớ trượt lên) */
+    .order-column {
+        position: fixed !important;
         bottom: 0;
-        left: 0;
-        right: 0;
-        height: auto; /* Tự co giãn theo nội dung hoặc giới hạn 40% */
-        max-height: 45vh; 
-        z-index: 999;
-        border-radius: 25px 25px 0 0; /* Chỉ bo góc trên */
+        left: 50% !important; /* Căn giữa chuẩn */
+        transform: translateX(-50%) translateY(0); /* Vị trí khi đang mở */
+        width: 100%; /* Trên mobile nên để 100% cho dễ nhìn */
+        height: 80vh; 
+        z-index: 10000;
+        background: #fff;
+        border-radius: 25px 25px 0 0 !important;
         box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
-        border: 1px solid #eee;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
     }
 
-    /* Thu nhỏ bớt phần Header của giỏ hàng trên mobile */
-    .order-header { padding: 10px 15px; }
-    .order-list { max-height: 150px; } /* Khách cuộn được trong giỏ hàng nhỏ */
+    /* TRẠNG THÁI HẠ XUỐNG: Chỉ hiện thanh tiêu đề */
+    .order-column.collapsed {
+        transform: translateX(-50%) translateY(calc(100% - 65px)) !important;
+    }
+
+    /* Tối ưu Header và Danh sách món trong giỏ hàng trên Mobile */
+    .order-header { 
+        padding: 15px 20px; 
+        height: 65px; /* Cố định độ cao tiêu đề để tính toán lệnh collapsed chuẩn */
+        box-sizing: border-box;
+    }
+
+    .order-list { 
+        flex: 1; /* Tự động giãn phần danh sách */
+        max-height: none; /* Bỏ giới hạn cũ để khách cuộn thoải mái */
+    }
+
+    /* Thu nhỏ chữ chạy trên mobile để không bị rối */
+    .scroll-text {
+        font-size: 9px !important;
+    }
 }
 
     </style>
@@ -768,29 +804,45 @@ body {
         <div class="menu-scroll" id="menu-list"></div>
     </div>
 
-    <!-- CỘT PHẢI -->
-    <div class="order-column">
-        <div class="order-header">
+    <!-- CỘT PHẢI: CHI TIẾT ĐƠN -->
+<div class="order-column" id="order-column-mobile">
+    <!-- Thanh kéo (Chỉ hiện trên mobile) -->
+    <div style="width: 40px; height: 4px; background: #ddd; border-radius: 2px; margin: 8px auto -5px; display: block;" class="mobile-only-handle"></div>
+
+    <div class="order-header" onclick="toggleOrderMobile()" style="cursor: pointer; padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px;">
             <b>🛒 CHI TIẾT ĐƠN</b>
             <span id="label-ban-order" style="background:#fce4ec; color:var(--primary); padding:2px 10px; border-radius:10px; font-size:11px; font-weight:bold;">Bàn 1</span>
         </div>
-        <div class="order-list" id="order-items">
-            <div style="text-align:center; color:#ccc; margin-top:50px;">
-                <img src="https://flaticon.com" style="width: 80px; opacity: 0.2; filter: grayscale(1);">
-                <p>Chưa có món ăn</p>
-            </div>
-        </div>
-        <div class="order-footer">
-            <div style="display:flex; justify-content:space-between; font-size:13px; color:#888; margin-bottom:5px;"><span>Tiền món:</span><b id="sum-sub">0đ</b></div>
-            <div style="display:flex; justify-content:space-between; font-size:13px; color:#888; margin-bottom:12px;"><span>Thuế GTGT (2%):</span><b id="sum-vat">0đ</b></div>
-            <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid #eee; padding-top:10px;">
-                <b style="font-size: 16px;">TỔNG CỘNG:</b>
-                <b id="sum-total" style="color:var(--primary); font-size:26px;">0</b>
-            </div>
-            <button class="btn-submit-main" onclick="guiDonHang()">GỬI YÊU CẦU 🚀</button>
+        <!-- Nút bấm này sẽ tự đổi từ 🔼 sang 🔽 nhờ JS -->
+        <b id="toggle-icon" style="font-size: 20px; color: var(--primary); padding: 0 10px;">🔼</b>
+    </div>
+
+    <div class="order-list" id="order-items">
+        <div style="text-align:center; color:#ccc; margin-top:50px;">
+            <img src="https://flaticon.com" style="width: 80px; opacity: 0.2; filter: grayscale(1);">
+            <p>Chưa có món ăn</p>
         </div>
     </div>
-</div><script>
+
+    <div class="order-footer">
+        <div style="display:flex; justify-content:space-between; font-size:13px; color:#888; margin-bottom:5px;">
+            <span>Tiền món:</span><b id="sum-sub">0đ</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; color:#888; margin-bottom:12px;">
+            <span>Thuế GTGT (2%):</span><b id="sum-vat">0đ</b>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid #eee; padding-top:10px;">
+            <b style="font-size: 16px;">TỔNG CỘNG:</b>
+            <b id="sum-total" style="color:var(--primary); font-size:26px;">0</b>
+        </div>
+        <button class="btn-submit-main" onclick="guiDonHang()">GỬI YÊU CẦU 🚀</button>
+    </div>
+</div>
+
+
+
+<script>
 
 
 
@@ -1317,11 +1369,30 @@ window.onload = () => {
 
 
 
+function toggleOrderMobile() {
+    const orderCol = document.getElementById('order-column-mobile');
+    const icon = document.getElementById('toggle-icon');
+    
+    if (!orderCol) return;
 
+    // Bật/tắt class collapsed
+    orderCol.classList.toggle('collapsed');
+    
+    // Thay đổi icon mũi tên
+    if (orderCol.classList.contains('collapsed')) {
+        icon.innerText = "🔼"; // Đang đóng -> Mũi tên hướng lên
+    } else {
+        icon.innerText = "🔽"; // Đang mở -> Mũi tên hướng xuống
+    }
+}
 
-
-
-
+// Tự động hạ xuống khi vừa mở trang
+window.addEventListener('DOMContentLoaded', () => {
+    const orderCol = document.getElementById('order-column-mobile');
+    if (orderCol) {
+        orderCol.classList.add('collapsed');
+    }
+});
 
 
 
