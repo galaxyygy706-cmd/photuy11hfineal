@@ -1143,10 +1143,15 @@ function renderMenu() {
             }
             fragment.appendChild(div);
         });
-        container.innerHTML = "";
-        container.appendChild(fragment);
+       const emptySpace = document.createElement("div");
+emptySpace.style.height = "120px"; // Tạo khoảng trống bằng tay
+fragment.appendChild(emptySpace);
+
+container.innerHTML = "";
+container.appendChild(fragment);
     });
 }
+
 
 
 // Hàm hiệu ứng bay tới vị trí vừa thêm
