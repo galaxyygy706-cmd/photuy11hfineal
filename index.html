@@ -1,0 +1,3493 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phở Túy POS PRO - Full Features</title>
+
+    <style>
+
+
+
+/* 1. Hiệu ứng hiện Modal báo cáo */
+#modal-bao-cao-tong {
+    backdrop-filter: blur(4px); /* Làm mờ nền phía sau */
+}
+
+#modal-bao-cao-tong > div {
+    animation: zoomIn 0.3s ease-out;
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* 2. Hiệu ứng trượt từng Card đơn hàng */
+@keyframes slideInCard {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+
+/* 1. Hiệu ứng cho các thẻ hóa đơn (Card) */
+.report-item-card {
+    transition: all 0.3s ease !important;
+    cursor: pointer;
+    border: 1px solid #eee !important; /* Ép viền mặc định */
+    background: #fff;
+    position: relative;
+}
+
+.report-item-card:hover {
+    transform: translateY(-5px);
+    /* Dùng !important để ghi đè màu xám trong JS */
+    border: 2px solid #2e7d32 !important; 
+    box-shadow: 0 8px 20px rgba(46, 125, 50, 0.15) !important;
+    z-index: 10;
+}
+
+/* 2. Hiệu ứng cho các ô nhập liệu (Ngày, Loại khách) */
+#report-from, #report-to, #report-customer-filter {
+    transition: all 0.2s ease;
+    border: 1px solid #ddd;
+}
+
+#report-from:hover, #report-to:hover, #report-customer-filter:hover {
+    border-color: #2e7d32;
+    background-color: #f0fdf4; /* Đổi nền xanh cực nhạt khi chỉ vào */
+}
+
+#report-from:focus, #report-to:focus, #report-customer-filter:focus {
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    outline: none;
+}
+
+/* 3. Hiệu ứng cho nút LỌC */
+#modal-bao-cao-tong button {
+    transition: all 0.2s ease;
+}
+
+#modal-bao-cao-tong button:hover {
+    background-color: #1b5e20 !important; /* Xanh đậm hơn */
+    transform: scale(1.05); /* Phóng to nhẹ */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Hiệu ứng số tiền nhảy số nhẹ */
+#report-total-amount {
+    transition: all 0.5s ease;
+}
+
+
+
+
+
+/* Hiệu ứng cho nút tích V-start*/
+.btn-confirm-delivery:active {
+    transform: scale(0.8); /* Co lại một chút khi nhấn để biết đã bấm trúng */
+    background-color: #e65100 !important; /* Đổi màu đậm hơn khi nhấn */
+}
+
+/* Hiệu ứng nhấp nháy nhẹ để nhân viên chú ý bưng món */
+.table-card.waiting .btn-confirm-delivery {
+    animation: pulse-confirm 1.5s infinite;
+}
+
+@keyframes pulse-confirm {
+    0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+}
+/* Hiệu ứng cho nút tích V end */
+
+
+/* Container Menu */
+@media (max-width: 768px) {
+    .main-container {
+        flex-direction: column !important;
+    }
+
+    .left-panel,
+    .center-panel,
+    .right-panel {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+/* Container Menu */
+#menu-list {
+    padding: 10px;
+}
+
+/* Hiệu ứng hào quang phát sáng phía sau dựa theo loại món */
+.single-neon-glow { --glow-color: #2e7d32; --bg-light: #fff0f3; }
+.combo-neon-glow { --glow-color: #e65100; --bg-light: #fff8e1; }
+
+.menu-item {
+    position: relative;
+    background: #fff;
+    border-radius: 18px;
+    z-index: 1;
+    overflow: hidden; /* Cắt viền xoay theo bo góc */
+    transition: all 0.3s ease;
+    /* Đổ bóng hào quang nhẹ phía sau */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 15px var(--glow-color);
+}
+
+/* HIỆU ỨNG DẢI SÁNG XOAY LIỀN KHỐI */
+.menu-item::before {
+    content: "";
+    position: absolute;
+    top: -150%; left: -50%;
+    width: 200%; height: 400%;
+    /* Dải màu xoay mượt mà (30% vòng tròn) */
+    background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        var(--glow-color) 15%, 
+        var(--glow-color) 30%,
+        transparent 45%
+    );
+    animation: rotate-menu 2s linear infinite;
+    filter: blur(8px); /* Tạo độ lấp lánh Neon */
+    z-index: -2;
+}
+
+/* Lớp mặt bàn đè lên tạo độ dày viền */
+.menu-item::after {
+    content: "";
+    position: absolute;
+    inset: 3px; /* Độ dày viền sáng là 3px */
+    background: #fff;
+    border-radius: 15px;
+    z-index: -1;
+}
+
+/* Animation xoay viền */
+@keyframes rotate-menu {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Hover nổi bật */
+.menu-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 15px 40px var(--glow-color);
+}
+
+/* Vùng chứa chữ chạy trong từng món ăn */
+.scroll-container {
+    overflow: hidden;    /* ✂️ Ẩn chữ khi nó chạy ra ngoài vùng hiển thị của món */
+    white-space: nowrap; /* ↔️ Ép tất cả chữ nằm trên một hàng ngang */
+    width: 100%;         /* 📐 Khớp với chiều rộng của cột thông tin món */
+    margin: 2px 0;       /* ↕️ Tạo khoảng cách trên dưới (2px) cho thoáng dòng */
+}
+
+/* Nội dung chữ chạy: Siêu mảnh và nhỏ */
+.scroll-text {
+    display: inline-block;
+    padding-left: 100%;      /* 🏁 Điểm xuất phát của chữ là từ bên phải màn hình */
+    animation: marquee 15s linear infinite; /* 🏃 Chạy liên tục trôi chảy */
+    /* Ghi chú: Bạn chưa đóng ngoặc nhọn } cho phần này trong câu hỏi */
+ 
+    /* CẤU HÌNH NÉT CHỮ MẢNH */
+    color: #0f0f0f !important;       /* Màu xám nhạt hơn để tạo cảm giác mảnh */
+    font-size: 10.5px !important; /* Nhỏ hơn 11px một chút */
+    font-weight: 300 !important;  /* Ép nét siêu mảnh (Light) */
+    letter-spacing: -0.2px;       /* Co khoảng cách chữ lại cho thanh thoát */
+    font-family: sans-serif;      /* Dùng font không chân để nét mảnh đều */
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+/* Hào quang lấp lánh cho món đơn (Xanh) và Combo (Cam) */
+.single-neon-glow { box-shadow: 0 0 10px rgba(46, 125, 50, 0.15); border-left: 5px solid #2e7d32; }
+.combo-neon-glow { box-shadow: 0 0 15px rgba(230, 81, 0, 0.2); border-left: 5px solid #e65100; }
+
+.menu-item {
+    background: #fff;
+    border-radius: 15px;
+    transition: 0.3s;
+}
+.menu-item:hover { transform: scale(1.02); }
+
+/* Thẻ giá lấp lánh */
+.price-tag {
+    background: #ffeb3b;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+
+
+/* =========================
+   1. TRẠNG THÁI BÀN & BIẾN MÀU
+========================= */
+.modal-item-table.ordering { --bg: #fff0f3; --glow-color: #ff0055; }
+.modal-item-table.eating   { --bg: #fff8e1; --glow-color: #ff9800; }
+.modal-item-table.paid     { --bg: #fff5f5; --glow-color: #ff4d4d; }
+.modal-item-table.empty    { --bg: #f8f9fa; --glow-color: transparent; }
+
+/* =========================
+   2. KHUNG CHÍNH (Cập nhật background)
+========================= */
+.modal-item-table {
+    position: relative;
+    padding: 18px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: var(--bg); /* Sử dụng biến màu nền trạng thái */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1; /* Tăng z-index để lớp giả không đè lên chữ */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+}
+
+/* =========================
+   3. VIỀN RGB CHẠY ĐUỔI (Giữ nguyên logic của bạn)
+========================= */
+.modal-item-table::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 3px; /* Tăng nhẹ độ dày viền cho rõ LED */
+    border-radius: 12px;
+    background: linear-gradient(
+        90deg,
+        red, orange, yellow, lime, cyan, blue, violet, red
+    );
+    background-size: 300% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: border-run 3s linear infinite;
+    z-index: -1;
+}
+
+/* 4. HIỆU ỨNG CHỌN BÀN (ACTIVE) - NỔI LÊN & TỎA SÁNG */
+/* Class này sẽ được gán khi bạn click vào dòng trong Modal */
+.modal-item-table.active-choice {
+    transform: translateY(-5px) scale(1.03); /* Nổi lên trên và to hơn */
+    z-index: 10;
+    /* Tạo hào quang lấp lánh tỏa ra phía sau theo màu trạng thái */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 0 15px var(--glow-color);
+    background: #fff; /* Làm sáng nền để nổi bật hơn */
+}
+
+/* Tăng tốc độ LED khi bàn được chọn để trông 'năng lượng' hơn */
+.modal-item-table.active-choice::before {
+    animation-duration: 1.5s; 
+    padding: 4px; /* Viền dày hơn một chút */
+}
+
+/* =========================
+   5. HOVER & ANIMATION
+========================= */
+.modal-item-table:hover {
+    transform: translateX(10px); /* Lướt ngang khi chỉ chuột */
+    background: #fff;
+}
+
+@keyframes border-run {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
+/* Hiệu ứng NỔI LÊN khi chọn bàn trong Modal */
+.modal-item-table.active-choice {
+    transform: translateY(-5px) scale(1.03) !important;
+    z-index: 10;
+    background: #fff !important; /* Làm sáng nền */
+    /* Tỏa sáng hào quang dựa theo biến màu trạng thái */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 0 15px var(--glow-color, #2196F3) !important;
+}
+
+/* Tăng tốc độ dải LED khi được chọn để tạo cảm giác 'năng lượng' */
+.modal-item-table.active-choice::before {
+    animation-duration: 1s !important; 
+    padding: 3px !important; /* Viền dày hơn một chút */
+}
+
+/* Biến màu hào quang cho từng trạng thái */
+.modal-item-table.ordering { --glow-color: #ff0055; }
+.modal-item-table.eating   { --glow-color: #ff9800; }
+.modal-item-table.paid     { --glow-color: #ff4d4d; }
+
+/* Form của chuyền bàn, tách món*/
+ .modal-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .modal-item:hover { background: #e3f2fd; transform: translateX(5px); }
+/* Container của form nhập liệu */
+.member-form {
+    background: #fdfdfd;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    margin-bottom: 20px;
+}
+
+/* Các ô input trong tab hội viên */
+.member-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: 1px solid #eee; /* Viền rất nhạt */
+    border-radius: 6px;
+    background: #fff;
+    box-sizing: border-box;
+    outline: none;
+    font-size: 14px;
+}
+
+.member-input:focus {
+    border-color: #2e7d32; /* Đổi màu viền khi click vào */
+}
+
+/* Nút Thêm hội viên mới màu xanh lá */
+.btn-add-member {
+    width: 100%;
+    padding: 12px;
+    background-color: #2e7d32; /* Màu xanh lá đậm như ảnh */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-add-member:hover {
+    background-color: #1b5e20;
+}
+
+/* Header của danh sách phía dưới */
+.member-list-header {
+    display: flex;
+    justify-content: space-between;
+    background: #f1f3f5;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #555;
+}
+
+
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #e9ecef; /* Màu nền xám để thấy rõ lề */
+    height: 100vh;
+    display: flex;
+    align-items: center;    /* Căn giữa theo chiều dọc */
+    justify-content: center; /* Căn giữa theo chiều ngang */
+}
+
+.main-wrapper {
+    display: flex;
+    gap: 15px;             /* Khoảng cách giữa 3 khối */
+    
+    /* ĐIỀU CHỈNH ĐỘ RỘNG Ở ĐÂY */
+    width: 90%;            /* Chiếm 90% màn hình (còn dư 10% làm lề) */
+    max-width: 1300px;     /* Không cho rộng quá 1300px trên màn hình lớn */
+    
+    height: 90vh;          /* Chiều cao chiếm 90% màn hình */
+}
+
+/* Style cho từng khối để nó thành "Thẻ" */
+.left, .center, .right {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    overflow-y: auto;
+    padding: 15px;
+}
+
+/* Chia lại tỉ lệ các cột (Bạn có thể chỉnh lại số này) */
+.left { width: 33%; }   /* Cột sơ đồ bàn thu nhỏ lại */
+.center { flex: 33%; }    /* Cột menu tự giãn ở giữa */
+.right { width: 33%; }  /* Cột hóa đơn */
+
+        :root { --empty: #e0e0e0; --ordering: #ffcdd2; --eating: #fff9c4; --clear: #c8e6c9; --primary: #d32f2f; --secondary: #2e7d32; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f3f3f3; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* TABS */
+        .tab-headers { display: flex; gap: 4px; margin-bottom: 15px; position: sticky; top: 0; background: #fff; z-index: 10; }
+        .tab-btn { flex: 1; padding: 10px 2px; border: none; background: #eee; cursor: pointer; font-size: 10px; font-weight: bold; border-radius: 4px; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-content { display: none; } .tab-content.active { display: block; }
+
+        /* GRID TABLES */
+       /* Container chứa các bàn */
+#table-grid, #bar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 15px;
+    padding: 15px;
+}
+
+ /*Hiển thị bàn-start*/
+.table-card {
+    /* 1. Nền và Hình dáng */
+    background: #fff;            /* Màu nền trắng: giúp số bàn nổi bật */
+    border-radius: 14px;         /* Độ bo góc: 14px tạo sự mềm mại, hiện đại và trông gọn hơn */
+    
+    /* 2. Khoảng cách và Kích thước */
+    padding: 10px 6px;           /* Khoảng cách trong: 10px trên-dưới, 6px trái-phải (giúp ô không bị phình to) */
+    width: 90px;                 /* Chiều rộng cố định: giúp các bàn đều tăm tắp */
+    height: 50px;                /* Chiều cao cố định: tiết kiệm diện tích cho sơ đồ bàn */
+
+    /* 3. Canh chỉnh nội dung (Flexbox) */
+    display: flex;               /* Kích hoạt chế độ dàn hàng thông minh */
+    flex-direction: column;      /* Xếp nội dung (số bàn, trạng thái) theo hàng dọc */
+    justify-content: center;     /* Căn nội dung ở giữa theo chiều dọc của ô */
+    align-items: center;         /* Căn nội dung ở giữa theo chiều ngang của ô */
+    text-align: center;          /* Đảm bảo chữ bên trong luôn nằm chính giữa */
+
+    /* 4. Hiệu ứng và Tương tác */
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05); /* Đổ bóng nhẹ: tạo cảm giác ô bàn nổi lên, rất sang */
+    border: 2px solid transparent;           /* Viền 2px tàng hình: để khi chọn bàn không bị giật khung */
+    transition: all 0.2s ease;               /* Hiệu ứng mượt: đổi màu, đổi cỡ trong 0.2 giây khi nhấn */
+    cursor: pointer;                         /* Biến trỏ chuột thành bàn tay: báo hiệu đây là nút bấm được */
+    position: relative;                      /* Gốc tọa độ: để sau này gắn thêm badge thông báo ở góc bàn */
+}
+
+/* Text hiển thị */
+.table-name { font-weight: 700; color: #030c14; font-size: 15px; }
+.table-sub { font-size: 11px; color: #030c14; margin-top: 3px; }
+
+/* Các vòng tròn trạng thái */
+.status-circle {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid #eee;
+    margin: 0 auto 8px;
+}
+/* Container chính của bàn */
+.table-card {
+    position: relative;
+    overflow: hidden; /* Quan trọng để cắt dải sáng */
+    z-index: 1;
+    background: #f5f5f5; /* Màu xám cho bàn trống */
+    border-radius: 18px;
+    padding: 20px 10px;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none !important;
+}
+
+/* Hiệu ứng dải sáng xoay cho các trạng thái có khách */
+.table-card.ordering::before, 
+.table-card.eating::before, 
+.table-card.paid::before {
+    content: '';
+    position: absolute;
+    z-index: -2;
+    left: -50%; top: -50%; width: 200%; height: 200%;
+    /* Tăng tốc độ từ 4s xuống 1.5s để lấp lánh hơn */
+    animation: rotate-border 1.5s linear infinite; 
+}
+
+/* 1. MÀU SẮC & ĐỘ SÁNG HÀO QUANG */
+.table-card.ordering { --glow-color: #ff8fab; --bg-light: #fff0f3; } /* Hồng */
+.table-card.waiting  { --glow-color: #ffa726; --bg-light: #fff8e1; } /* Cam */
+.table-card.eating   { --glow-color: #66bb6a; --bg-light: #e8f5e9; } /* Xanh lá */
+.table-card.paid     { --glow-color: #ff4d4d; --bg-light: #fff5f5; } /* Đỏ */
+.table-card.empty    { --glow-color: transparent; --bg-light: #ffffff; }
+
+/* 2. HIỆU ỨNG PHÁT SÁNG LẤP LÁNH PHÍA SAU (Dùng filter để tạo chiều sâu) */
+.table-card:not(.empty) {
+    filter: drop-shadow(0 0 10px var(--glow-color));
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 3. HIỆU ỨNG XOAY VIỀN ĐA SẮC LIỀN KHỐI */
+/* Đang chọn - Giữ nguyên màu hồng/tím */
+.table-card.ordering::before { 
+    background-image: conic-gradient(transparent, #e91e63, transparent, #f48fb1, transparent); 
+}
+
+/* Chờ món - Đổi sang dải màu Cam/Vàng */
+.table-card.waiting::before { 
+    background-image: conic-gradient(transparent, #ff9800, transparent, #ffb74d, transparent); 
+}
+
+/* Đang ăn - Đổi sang dải màu Xanh lá */
+.table-card.eating::before { 
+    background-image: conic-gradient(transparent, #2e7d32, transparent, #81c784, transparent); 
+}
+
+/* Chờ dọn - Giữ nguyên màu đỏ xoay nhanh */
+.table-card.paid::before { 
+    background-image: conic-gradient(transparent, #ff0000, transparent, #ff8080, transparent); 
+    animation-duration: 0.8s !important; 
+}
+
+
+/* 4. LỚP NỀN TRẠNG THÁI (Mặt bàn bên trong viền xoay) */
+.table-card.ordering::after,
+.table-card.waiting::after,
+.table-card.eating::after,
+.table-card.paid::after { 
+    background: var(--bg-light) !important; 
+}
+/* 5. HIỆU ỨNG KHI DI CHUỘT VÀO (HOVER) */
+.table-card:hover {
+    transform: translateY(-5px);
+    filter: drop-shadow(0 0 15px var(--glow-color));
+    z-index: 5;
+}
+
+/* 6. KHI BÀN ĐƯỢC CHỌN (ACTIVE) - NỔI LÊN CAO NHẤT & BỎ OUTLINE */
+.active-table {
+    transform: translateY(-12px) scale(1.06) !important;
+    z-index: 10 !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
+    filter: drop-shadow(0 0 20px var(--glow-color)) !important;
+    outline: none !important; /* Đã bỏ viền xanh lá đậm */
+    border: none !important;
+}
+
+/* 7. GIỮ NGUYÊN CẤU TRÚC XOAY (TỐC ĐỘ 1.5S CHO BÀN THƯỜNG) */
+.table-card:not(.empty)::before {
+    content: '';
+    position: absolute;
+    z-index: -2;
+    left: -50%; top: -50%; width: 200%; height: 200%;
+    animation: rotate-border 1.5s linear infinite;
+}
+
+.table-card:not(.empty)::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 4px; top: 4px; /* Độ dày viền lấp lánh */
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
+    border-radius: 15px;
+}
+
+@keyframes rotate-border {
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Nút xác nhận phục vụ */
+.badge-check {
+    position: absolute; top: -8px; right: -8px;
+    background: #4CAF50; color: white; width: 26px; height: 26px;
+    border-radius: 50%; border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; z-index: 5;
+}
+
+
+/* Để nút ✅ bám theo góc bàn */
+.table {
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* ... giữ các style cũ của bạn ... */
+}
+ /*Hiển thị bàn-end*/
+
+/* Hiệu ứng nhấp nháy cho icon nếu muốn giống app cũ */
+.icon-blink {
+    animation: blink 1s infinite;
+}
+@keyframes blink {
+    50% { opacity: 0.5; }
+}
+
+/* Bảng kho hàng hiện đại */
+.stock-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px; /* Tạo khoảng cách giữa các hàng */
+}
+
+.stock-table td {
+    padding: 12px 10px;
+    background: #fff;
+    border: none;
+    vertical-align: middle;
+}
+
+/* Xóa viền cho tất cả Input */
+.stock-table input {
+    border: none !important;
+    background: #f1f3f5; /* Nền xám nhạt thay cho viền */
+    padding: 8px 5px;
+    border-radius: 6px;
+    outline: none;
+    font-weight: bold;
+    color: #444;
+}
+
+/* Container chứa 2 nút cộng trừ nằm ngang */
+.action-group-horizontal {
+    display: flex;
+    gap: 8px;              /* Khoảng cách giữa 2 nút */
+    justify-content: center; /* Căn giữa cột */
+    align-items: center;
+}
+
+.btn-action {
+    border: none !important;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Nút cộng xanh lá nhạt */
+.btn-plus { background: #e8f5e9; color: #2e7d32; }
+.btn-plus:hover { background: #2e7d32; color: #fff; }
+
+/* Nút trừ đỏ nhạt */
+.btn-minus { background: #ffebee; color: #d32f2f; }
+.btn-minus:hover { background: #d32f2f; color: #fff; }
+/* Con số tồn kho */
+.stock-num {
+    font-size: 16px;
+    color: #212529;
+}
+
+/* Hiệu ứng chỉ nhấp nháy chữ đỏ, không màu nền */
+.blink-red {
+    animation: blinker-text 1s linear infinite;
+    color: #d32f2f !important; /* Màu đỏ đậm */
+    background: transparent !important; /* Tắt màu nền */
+}
+
+@keyframes blinker-text { 
+    50% { opacity: 0.2; } /* Nhấp nháy bằng cách thay đổi độ trong suốt của chữ */
+}
+/* Style cho ô giới hạn */
+.input-limit {
+    width: 45px;
+    border: 1px dashed #ccc;
+    text-align: center;
+    border-radius: 4px;
+    color: #666;
+}
+
+#ds-hoi-vien-body button:hover {
+    transform: scale(1.2);
+    transition: 0.2s;
+}
+
+
+
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        
+        <!-- CỘT TRÁI (LEFT) -->
+        <div class="left">
+            <div class="tab-headers">
+                <button class="tab-btn active" onclick="switchTab('tab-so-do', this)">SƠ ĐỒ BÀN</button>
+                <button class="tab-btn" onclick="switchTab('tab-kho', this)">KHO HÀNG 📦</button>
+                <button class="tab-btn" onclick="switchTab('tab-hoi-vien', this)">HỘI VIÊN 💳</button>
+                <button class="tab-btn" onclick="switchTab('tab-chi-tieu', this)" style="background: #ffebee; color: #d32f2f;">Chi tiêu💸</button>
+            </div>
+
+            <div id="tab-so-do" class="tab-content active">
+                <h3 style="text-align:center; color:var(--primary); margin-top:0">📍 Table Map</h3>
+                <div style="font-size:11px; font-weight:bold; margin-bottom:5px">KHU BÀN</div>
+                <div class="grid-tables" id="table-grid"></div>
+                <div style="font-size:11px; font-weight:bold; margin-bottom:10px">QUẦY BAR</div>
+                <div class="grid-tables" id="bar-grid"></div>
+            </div>
+
+            <!-- TAB KHO -->
+        <div id="tab-kho" class="tab-content"> 
+            <h3 style="color:#2e7d32; margin-top:0">📦 QUẢN LÝ TỒN KHO</h3>
+            <table class="stock-table">
+                <thead><tr><th>Nguyên liệu</th><th>Tồn</th><th>Số lượng thêm</th><th>Thêm/Bớt</th><th>Giới hạn</th><th>ĐVT</th></tr></thead>
+                <tbody id="stock-body"></tbody>
+            </table>
+
+            </div>
+
+            <div id="tab-hoi-vien" class="tab-content">
+    <h3 style="color:#2e7d32; margin-top:0; display:flex; align-items:center; gap:10px;">
+        💳 QUẢN LÝ HỘI VIÊN
+    </h3>
+
+    <!-- Form Nhập Liệu -->
+    <div class="member-form">
+        <input type="text" id="hv-ten" class="member-input" placeholder="Tên khách hàng">
+        <input type="tel" id="hv-sdt" class="member-input" placeholder="Số điện thoại">
+        <input type="date" id="hv-ngaysinh" class="member-input"> <!-- Thêm ngày sinh -->
+        <input type="text" id="hv-sothich" class="member-input" placeholder="Sở thích (ví dụ: ít hành...)">
+        
+        <button class="btn-add-member" onclick="themHoiVien()">
+            + THÊM HỘI VIÊN MỚI
+        </button>
+    </div>
+
+    <!-- Tiêu đề danh sách phía dưới -->
+    <div class="member-list-header">
+        <span style="flex:1">Khách hàng</span>
+        <span style="flex:1; text-align:center">SĐT / Ngày sinh</span>
+        <span style="flex:1; text-align:right">Lịch sử</span>
+        <span style="flex:1; text-align:right">Sửa / Xóa</span>
+    </div>
+
+    <!-- Bảng danh sách hội viên -->
+    <table class="stock-table" style="width:100%; margin-top:5px;">
+        <tbody id="ds-hoi-vien-body">
+            <!-- Hội viên sẽ render ở đây -->
+        </tbody>
+    </table>
+</div>
+
+
+           <div id="tab-chi-tieu" class="tab-content" style="background: #f9f9f9; padding: 15px; border-radius: 12px;">
+    <h3 style="color:#d32f2f; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 24px;">💸</span> QUẢN LÝ CHI TIÊU
+    </h3>
+    
+    <div style="background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eee; margin-bottom: 20px;">
+        <!-- Ô Tên hàng -->
+        <div style="margin-bottom: 10px;">
+            <input type="text" id="cp-ten" list="danh-sach-hang" placeholder="🛒 Tên hàng hóa, dịch vụ..." 
+                   style="width:100%; padding:10px; border: 1px solid #ddd; border-radius: 8px; outline: none; transition: 0.3s; box-sizing: border-box;">
+        </div>
+        
+        <datalist id="danh-sach-hang">
+            <option value="🥩 Thịt bò"> <option value="🍜 Bánh phở"> <option value="🥚 Trứng"> <option value="🥖 Quẩy"> <option value="🦑Sá sùng">
+        </datalist>
+
+        <!-- Nhóm Số lượng - Tiền - Ngày -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            <input type="number" id="cp-sl" placeholder="SL" 
+                   style="width: 20%; padding:10px; border: 1px solid #ddd; border-radius: 8px; text-align: center;">
+            <input type="text" id="cp-tien" placeholder="💰 Số tiền" oninput="dinhDangTien(this)" 
+                   style="width: 45%; padding:10px; border: 1px solid #ddd; border-radius: 8px; font-weight: bold; color: #d32f2f;">
+            <input type="date" id="cp-ngay" 
+                   style="width: 35%; padding:10px; border: 1px solid #ddd; border-radius: 8px; font-size:11px; color: #666;">
+        </div>
+
+        <button onclick="themChiTieu()" 
+                style="width:100%; padding:12px; background:#d32f2f; color:white; border:none; border-radius:8px; font-weight: bold; cursor: pointer; transition: 0.2s;"
+                onmouseover="this.style.background='#b71c1c'" onmouseout="this.style.background='#d32f2f'">
+            🚀 XÁC NHẬN THÊM CHI PHÍ
+        </button>
+    </div>
+
+    <!-- Tổng chi -->
+    <div style="background: linear-gradient(135deg, #333, #555); color:#fff; padding:12px 15px; border-radius:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <span style="font-size: 14px; opacity: 0.8;">TỔNG CHI THÁNG NÀY:</span> 
+        <span id="tong-chi-thang" style="color:#ffeb3b; font-size: 18px; font-weight:bold;">0đ</span>
+    </div>
+
+    <!-- Bảng dữ liệu -->
+    <div style="background: #fff; border-radius: 10px; overflow: hidden; border: 1px solid #eee;">
+    <table class="stock-table" style="width: 100%; border-collapse: collapse;">
+        <thead style="background: #f5f5f5; color: #666; font-size: 13px;">
+            <tr>
+                <th style="padding: 10px;">Ngày</th>
+                <th style="padding: 10px;">Nội dung</th>
+                <th style="padding: 10px; width: 50px;">SL</th> <!-- Thêm cột SL -->
+                <th style="padding: 10px;">Tiền</th>
+                <th style="padding: 10px;">Xóa</th>
+            </tr>
+        </thead>
+        <tbody id="ds-chi-tieu-body" style="text-align: center; font-size: 14px;"></tbody>
+    </table>
+</div>
+</div>
+
+        </div> <!-- Đóng Left -->
+
+        <!-- CỘT GIỮA (CENTER) -->
+        <div class="center">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px double #d32f2f;padding-bottom:8px;gap:10px;">
+                <div style="display:flex;flex-direction:column;">
+                    <h2 style="margin:0;font-size:20px;">🍜 Phở Túy 11h</h2>
+                    <marquee style="font-size:11px;color:#666;">📍 Số 11 Bà Triệu - Hotline: 0999.999.888 - Mở cửa 06h-11h</marquee>
+                </div>
+                <button onclick="toggleDarkMode()" id="dark-btn" style="padding:6px 12px;border-radius:15px;border:none;background:#333;color:#fff;cursor:pointer;">🌙</button>
+                <div style="text-align:right;">
+                    <div id="clock-date" style="font-size:10px;color:#d32f2f;"></div>
+                    <div id="clock-time" style="font-size:16px;font-weight:bold;"></div>
+                </div>
+            </div>
+
+             <div id="stock-counter-section" style="margin-bottom: 20px; padding: 15px; background: #fffdf7; border: 2px dashed #ffd54f; border-radius: 12px;">
+    <h4 style="margin: 0 0 10px 0; color: #d32f2f; text-align: center; font-size: 14px;">
+        📊 SUẤT BÁN NGÀY: <span id="current-date-display" style="color: #555;">--/--/----</span>
+    </h4>
+    
+    <div id="stock-display-list"></div>
+
+    <!-- PHẦN MỚI: Dòng chữ chạy cảnh báo -->
+    <div id="stock-warning-box" class="stock-alert-container"></div>
+</div>
+
+
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <button id="btn-don" onclick="switchMenuTab('don')" style="flex:1;background:#2e7d32;color:#fff;padding:10px;border:none;border-radius:8px;cursor:pointer;">🍜Menu Đơn</button>
+                <button id="btn-combo" onclick="switchMenuTab('combo')" style="flex:1;background:#eee;padding:10px;border:none;border-radius:8px;cursor:pointer;">🍱Menu COMBO</button>
+            </div>
+
+            <div id="menu-list"></div>
+        </div> <!-- Đóng Center -->
+
+    
+        <!-- CỘT PHẢI (RIGHT) -->
+<div class="right" style="display: flex; flex-direction: column; background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%;">
+    
+    <!-- Tiêu đề & Chọn bàn -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin:0; font-size: 16px;">📋 CHI TIẾT ĐƠN</h3>
+        <span id="table-header" style="background: #f5f5f5; padding: 4px 15px; border-radius: 8px; font-weight: bold; border: 1px solid #ddd; font-size: 14px;">Chọn Bàn</span>
+    </div>
+
+    <!-- Tìm kiếm khách hàng -->
+    <div class="customer-select-box" style="margin-bottom: 10px; position: relative;">
+    <input type="text" id="order-customer-input" 
+           placeholder="🔍 Tên khách / SĐT..." 
+           oninput="searchHoiVien(this.value)"
+           onfocus="searchHoiVien(this.value)" 
+           style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #eee; outline: none; background: #fafafa;">
+    
+    <div id="customer-dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #eee; border-radius: 8px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-height: 250px; overflow-y: auto;">
+    </div>
+</div>
+     
+
+  <!-- Khu vực danh sách món ăn (Dashed border như ảnh) -->
+    <div id="order-container" style="flex: 1; overflow-y: auto; border: 2px dashed #eee; border-radius: 10px; padding: 10px; margin-bottom: 10px;">
+        <!-- Món ăn render ở đây -->
+    </div>
+
+ <!-- Chi tiết tính toán -->
+    <div style="padding: 10px 0; border-top: 1px solid #eee; font-size: 13px; color: #666; line-height: 1.6;">
+        <div style="display: flex; justify-content: space-between;"><span>Tiền món:</span> <span id="sub-total">0đ</span></div>
+        <div style="display: flex; justify-content: space-between;"><span>Giảm giá (Không):</span> <span id="discount-val">-0đ</span></div>
+        <div style="display: flex; justify-content: space-between; color: #2e7d32; font-weight: 500;"><span>Thuế GTGT (2%):</span> <span id="tax-val">0đ</span></div>
+    </div>
+
+ <!-- Tổng cộng lớn -->
+    <div style="margin: 10px 0; border-top: 2px solid #eee; padding-top: 10px;">
+        <div style="font-weight: bold; font-size: 14px; color: #333;">TỔNG CỘNG:</div>
+        <div id="total-price" style="font-size: 26px; font-weight: bold; color: #d32f2f;">0đ</div>
+    </div>
+
+ <!-- Khu vực chọn mã Voucher cho nhân viên -->
+<div style="background: #f1f8e9; border: 1px dashed #2e7d32; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+    <div style="font-size: 11px; color: #2e7d32; font-weight: bold; margin-bottom: 5px;">
+        🎁 CHỌN MÃ GIẢM GIÁ:
+    </div>
+    <div style="display: flex; gap: 5px;">
+        <!-- ID đổi thành coupon-select cho khớp với hàm JS ở trên -->
+        <select id="coupon-select" style="flex:1; font-size:12px; padding:5px; border-radius:5px; border:1px solid #ccc; outline: none; background: white;">
+            <option value="0">-- Không áp dụng --</option>
+            <option value="5">Túy Tâm (5%)</option>
+            <option value="10">Túy Thượng (10%)</option>
+            <option value="15">Phở Túy 11 (15%)</option>
+        </select>
+
+        <button onclick="apDungGiamGia()" style="background: #2e7d32; color: #fff; border: none; padding: 0 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold;">
+            Áp dụng
+        </button>
+        
+        <button onclick="xoaGiamGia()" style="background: #ddd; border: none; padding: 0 10px; border-radius: 5px; cursor: pointer; color: #666;">
+            ✕
+        </button>
+    </div>
+</div>
+            <div class="action-group" style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="step-print" onclick="chuyenBuoc('printed')" style="padding: 12px; background: #1976d2; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">🖨️ IN HÓA ĐƠN & GỬI BẾP</button>
+        <button id="step-pay" onclick="chuyenBuoc('paid')" style="padding: 12px; background: #2e7d32; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💰 THANH TOÁN (KHO)</button>
+        <button id="step-clear" onclick="chuyenBuoc('empty')" style="padding: 12px; background: #757575; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">🧹 ĐÃ DỌN BÀN</button>
+                
+                <!-- Khu vực Gộp/Tách -->
+             <div class="action-group" style="display: flex; gap: 10px; width: 100%; margin-top: 5px;">
+    <button onclick="moModalGop()" style="flex: 1; padding: 12px; background: #673ab7; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">🔗 GỘP</button>
+                     <button onclick="moModalTachMon()" style="flex: 1; padding: 12px; background: #009688; color: #fff; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">✂️ TÁCH</button>
+                </div>
+            </div>
+        </div> <!-- Đóng Right -->
+    </div> <!-- Đóng Main Wrapper -->
+
+    <!-- 🔥 PHẦN MODAL (DÁN VÀO ĐỂ HẾT LỖI) -->
+    <div id="modal-container" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+        <div style="background:white; padding:20px; border-radius:15px; width:90%; max-width:380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h3 id="modal-title" style="margin-top:0; color:#1976d2; border-bottom:2px solid #f0f0f0; padding-bottom:10px;">Tiêu đề</h3>
+            <div id="modal-body" style="max-height:350px; overflow-y:auto; margin:15px 0;">
+                <!-- Dữ liệu JS đổ vào đây -->
+            </div>
+            <button onclick="dongModal()" style="width:100%; padding:12px; background:#f5f5f5; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:#666;">ĐÓNG</button>
+        </div>
+    </div>
+</body>
+
+
+
+	
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+
+
+<script>
+
+let dangSuaId = null;
+let currentDiscountPercent = 0;
+// 1. KHAI BÁO DỮ LIỆU KHO MẶC ĐỊNH (Để đẩy lên Firebase lần đầu)
+const KHO_MASTER = [
+    { id: "thit_bo", ten: "🥩 Thịt bò", ton: 10, limit: 5, dvt: "kg" },
+    { id: "banh_pho", ten: "🍜 Bánh phở", ton: 20, limit: 5, dvt: "kg" },
+    { id: "nuoc_dung", ten: "🍲 Nước dùng", ton: 50, limit: 10, dvt: "lít" },
+    { id: "trung", ten: "🥚 Trứng", ton: 100, limit: 20, dvt: "quả" },
+    { id: "quay", ten: "🥖 Quẩy", ton: 200, limit: 30, dvt: "cái" },
+    { id: "sa_sung", ten: "🦑 Sá sùng", ton: 5, limit: 1, dvt: "kg" }
+];
+
+// 2.KHAI BÁO ĐỊNH LƯỢNG MENU
+const RECIPES = {
+    // --- MÓN ĐƠN ---
+    tuy_tam: { banh_pho: 150, thit_bo: 65, nuoc_dung: 350 },
+    tuy_thuong: { banh_pho: 200, thit_bo: 65, nuoc_dung: 350 },
+    hoa_chau: { trung: 1 },
+    tiem_thuy: { trung: 1 },
+    quay: { quay: 4 },
+
+    // --- COMBO ---
+    combo_thuong_thuy: { 
+        banh_pho: 200, thit_bo: 65, nuoc_dung: 350,
+        trung: 1 
+    },
+    combo_tam_chau: { 
+        banh_pho: 150, thit_bo: 65, nuoc_dung: 350,
+        trung: 1 
+    },
+    combo_song_long: { 
+        banh_pho: 400, thit_bo: 130, nuoc_dung: 700,
+        trung: 2, quay: 4 
+    }
+};
+
+// 3.KHAI BÁO MENU
+const MENU_MASTER = [
+    // --- MENU ĐƠN ---
+    { id: "tuy_tam", ten: 'Túy Tâm', gia: 50000, loai: 'don', desc: 'Phở Thường', soldToday: 0, limit: 100, img: "" },
+    { id: "tuy_thuong", ten: 'Túy Thượng', gia: 80000, loai: 'don', desc: 'Phở Đặc Biệt', soldToday: 0, limit: 50, img: "" },
+    
+    // Tôi đã thêm link ảnh vào dòng Hỏa Châu bên dưới:
+    { id: "hoa_chau", ten: 'Túy Long Hỏa Châu', gia: 10000, loai: 'don', desc: 'Trứng Chần', soldToday: 0, limit: 30, img: "https://i.postimg.cc/cCGKGGNR/Hoa-chau.png" },
+    
+    { id: "tiem_thuy", ten: 'Túy Long Tiềm Thủy', gia: 20000, loai: 'don', desc: 'Trứng Hấp', soldToday: 0, limit: 30, img: "" },
+    { id: "quay", ten: 'Quẩy', gia: 10000, loai: 'don', desc: '4 chiếc', soldToday: 0, limit: 200, img: "" },
+
+    // --- COMBO ---
+    { id: "combo_thuong_thuy", ten: 'Combo Thượng Thủy', gia: 89000, loai: 'combo', desc: 'Túy Thượng + Túy Long Tiềm Thủy', soldToday: 0, limit: 20, img: "" },
+    { id: "combo_tam_chau", ten: 'Combo Tâm Châu', gia: 55000, loai: 'combo', desc: 'Túy Tâm + Túy Long Hỏa Châu', soldToday: 0, limit: 25, img: "" },
+    { id: "combo_song_long", ten: 'Combo Song Long Hội Tụ', gia: 175000, loai: 'combo', desc: '2 Túy Thượng + 2 Túy Long Tiềm Thủy + quẩy', soldToday: 0, limit: 10, img: "" }
+];
+
+
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAtwr87l4pjnInOvL_9TMkBRi-xzkp2YGA",
+  authDomain: "pho-tuy.firebaseapp.com",
+  databaseURL: "https://pho-tuy-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "pho-tuy",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let TABLES = [], MENU = [], KHO = [], HOIVIEN = [], CHITIEU = [], currentTableId = null;
+
+// LOAD REALTIME
+// 🔥 SYNC KHO -> FIREBASE (Kiểm tra nếu kho trống thì đẩy KHO_MASTER lên)
+db.ref("kho").once("value").then(s => {
+    const data = s.val();
+    // Nếu kho chưa có hoặc số lượng món ít hơn 6, thì ép cập nhật KHO_MASTER
+    if (!data || Object.keys(data).length < 6) { 
+        db.ref("kho").set(KHO_MASTER);
+        console.log("📦 Đã ép cập nhật 6 món kho lên Firebase!");
+    }
+});
+
+// LOAD REALTIME
+// 🔥 SYNC MENU CODE -> FIREBASE
+db.ref("menu").once("value").then(s => {
+    const firebaseMenu = s.val();
+    if (!firebaseMenu) {
+        db.ref("menu").set(MENU_MASTER);
+        return;
+    }
+
+    let updates = {};
+
+    Object.keys(firebaseMenu).forEach(key => {
+        let item = firebaseMenu[key];
+
+        // nếu thiếu field thì thêm, KHÔNG reset soldToday
+        if (item.limit === undefined) updates[`${key}/limit`] = 100;
+        if (item.gia === undefined) updates[`${key}/gia`] = 0;
+    });
+
+    if (Object.keys(updates).length > 0) {
+        db.ref("menu").update(updates);
+    }
+});
+// 4.KHAI BÁO TABLE
+db.ref("tables").on("value", s => {
+    if (!s.val()) {
+        const defaultTables = [
+            // BÀN (ID 1-8)
+            {id:1,name:"Bàn 1",status:"empty",type:"table"},
+            {id:2,name:"Bàn 2",status:"empty",type:"table"},
+            {id:3,name:"Bàn 3",status:"empty",type:"table"},
+            {id:4,name:"Bàn 4",status:"empty",type:"table"},
+            {id:5,name:"Bàn 5",status:"empty",type:"table"},
+            {id:6,name:"Bàn 6",status:"empty",type:"table"},
+            {id:7,name:"Bàn 7",status:"empty",type:"table"},
+            {id:8,name:"Bàn 8",status:"empty",type:"table"},
+
+            // BAR (ID 9-13)
+            {id:9,name:"Bar 1",status:"empty",type:"bar"},
+            {id:10,name:"Bar 2",status:"empty",type:"bar"},
+            {id:11,name:"Bar 3",status:"empty",type:"bar"},
+            {id:12,name:"Bar 4",status:"empty",type:"bar"},
+            {id:13,name:"Bar 5",status:"empty",type:"bar"},
+        ];
+        db.ref("tables").set(defaultTables);
+        TABLES = defaultTables;
+    } else {
+        TABLES = s.val();
+    }
+
+    // 1. Vẽ lại sơ đồ bàn (Để cập nhật màu sắc)
+    renderTables();
+
+    // 2. CẬP NHẬT LẠI NÚT BẤM (CỰC KỲ QUAN TRỌNG)
+    // Mỗi khi dữ liệu bàn trên Firebase thay đổi, ta phải kiểm tra lại
+    // bàn đang chọn để hiện nút đúng với trạng thái mới nhất.
+    if (currentTableId) {
+        capNhatNut();
+    }
+});
+db.ref("menu").on("value", s => { MENU = s.val() || []; renderMenu(); });
+db.ref("kho").on("value", s => { KHO = s.val() || []; renderKho(); });
+db.ref("hoivien").on("value", s => { HOIVIEN = []; s.forEach(c => { HOIVIEN.push({id:c.key, ...c.val()}) }); renderHoiVien(); });
+db.ref("chitieu").on("value", s => { CHITIEU = []; s.forEach(c => { CHITIEU.push({id:c.key, ...c.val()}) }); renderChiTieu(); });
+
+// TABS
+
+/* 6.CHUYỂN TAB*/
+
+function switchTab(id, btn) {
+    // 1. Ẩn tất cả các tab và gỡ bỏ class active ở nút
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    // 2. Hiển thị tab được chọn
+    const targetTab = document.getElementById(id);
+    if (targetTab) {
+        targetTab.style.display = 'block';
+    }
+    if (btn) btn.classList.add('active');
+
+    // --- QUAN TRỌNG: Nếu mở tab báo cáo thì phải chạy hàm lấy dữ liệu ---
+    if (id === 'tab-bao-cao') {
+        // Tự động điền ngày hôm nay vào ô lọc nếu đang trống
+        const today = new Date().toISOString().split('T')[0];
+        if (!document.getElementById("report-from").value) {
+            document.getElementById("report-from").value = today;
+            document.getElementById("report-to").value = today;
+        }
+        
+        // Chạy hàm lấy dữ liệu
+        taiBaoCaoDoanhThu();
+    }
+}
+
+/* 5.📦 VẼ KHO */
+function renderKho() {
+    let h = ""; 
+    KHO.forEach((k, i) => {
+        const isLow = k.ton <= (k.limit || 0);
+        const warningClass = isLow ? "blink-red" : "";
+
+        h += `<tr>
+                <td style="text-align:left; font-weight:500; padding-left:15px;">${k.ten}</td>
+                <td class="${warningClass}"><b>${Number(k.ton).toFixed(1)}</b></td>
+                
+                <!-- Số lượng thêm -->
+                <td>
+                    <input type="number" id="input-kho-${i}" value="0" 
+                           style="width:45px; text-align:center; border:none; background:#f1f3f5; border-radius:6px; padding:6px 0;">
+                </td>
+                
+                <!-- NÚT NẰM NGANG TẠI ĐÂY -->
+                <td>
+                    <div class="action-group-horizontal">
+                        <button class="btn-action btn-plus" onclick="changeKho(${i}, 1)">+</button>
+                        <button class="btn-action btn-minus" onclick="changeKho(${i}, -1)">-</button>
+                    </div>
+                </td>
+                
+                <!-- Giới hạn -->
+                <td>
+                    <input type="number" value="${k.limit || 0}" 
+                           style="width:40px; text-align:center; border:none; background:transparent; color:#bbb;"
+                           onchange="updateLimit(${i}, this.value)">
+                </td>
+                
+                <td style="color:#ccc; font-size:12px;">${k.dvt}</td>
+              </tr>`; 
+    });
+    document.getElementById("stock-body").innerHTML = h;
+}
+/* 🛠 CẬP NHẬT KHO LÊN FIREBASE */
+/* 🛠 HÀM CẬP NHẬT KHO MỚI (Lấy dữ liệu từ ô Input) */
+/* 🛠 HÀM CẬP NHẬT KHO CÓ XÁC NHẬN */
+
+/* 7.CHANGE KHO */
+function changeKho(index, direction) {
+    const inputElement = document.getElementById(`input-kho-${index}`);
+    const amount = parseFloat(inputElement.value); // Dùng parseFloat để nhập được số lẻ (ví dụ 0.5kg thịt)
+    const item = KHO[index];
+
+    if (isNaN(amount) || amount <= 0) {
+        alert("Vui lòng nhập số lượng!");
+        return;
+    }
+
+    if (!confirm(`Bạn muốn thay đổi kho cho ${item.ten}?`)) return;
+
+    // Tính toán và ép về kiểu số có 1 chữ số thập phân
+    let newTon = parseFloat((item.ton + (amount * direction)).toFixed(1));
+
+    if (newTon < 0) {
+        alert("Kho không đủ!");
+        return;
+    }
+
+    db.ref("kho/" + index).update({ ton: newTon }).then(() => {
+        inputElement.value = 0;
+    });
+}
+
+/* 8.HÀM CẬP NHẬT GIỚI HẠN */
+function updateLimit(index, value) {
+    const newLimit = parseInt(value);
+    if (isNaN(newLimit)) return;
+
+    db.ref("kho/" + index).update({ limit: newLimit })
+      .then(() => console.log("Đã cập nhật mức giới hạn mới"));
+}
+/* 9. Vẽ hội viên - Giữ nguyên logic & Bổ sung hiển thị Sở thích */
+function renderHoiVien() {
+    // 1. Lắng nghe dữ liệu thực tế từ Firebase thay vì dùng mảng HOIVIEN
+    db.ref("members").on("value", (snapshot) => {
+        const data = snapshot.val();
+        let h = "";
+        
+        if (!data) {
+            document.getElementById("ds-hoi-vien-body").innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>Chưa có hội viên nào</td></tr>";
+            return;
+        }
+
+        // 2. Duyệt qua từng khách hàng trên Firebase
+        Object.keys(data).forEach((id) => {
+            const v = data[id];
+            
+            // Lấy đúng tên thuộc tính đã lưu
+            const tenKhach = v.ten || "Khách hàng";
+            const soDT = v.sdt || "---";
+            const ngaySinh = v.ngaysinh || "-";
+            
+            // --- BỔ SUNG: Lấy dữ liệu sở thích ---
+            const soThich = v.sothich ? `<div style="font-size: 11px; color: #666; font-style: italic; margin-top: 2px;">💡 Sở thích: ${v.sothich}</div>` : "";
+
+            // Lấy điểm theo tên biến bạn dùng trong hàm addItem
+            const tam = Number(v.tuy_tam_count) || 0;
+            const thuong = Number(v.tuy_thuong_count) || 0;
+            const tongDiem = tam + thuong;
+            
+            const progress = `${tongDiem}/10`;
+            const colorProgress = tongDiem >= 10 ? "#d32f2f" : "#2e7d32"; 
+
+           h += `
+    <tr style="border-bottom: 1px solid #eee;">
+        <!-- Cột 1 & 2 giữ nguyên -->
+        <td style="padding: 12px 0; width: 45%; text-align: left;">
+            <b style="color: #d32f2f; font-size: 15px;">${tenKhach}</b>
+            ${soThich}
+            <div style="font-size: 11px; margin-top: 4px; line-height: 1.4;">
+                <span style="color: ${colorProgress}; font-weight: bold;">🥣 Tích lũy: ${progress} bát</span><br>
+                <small style="color:#888">(Tâm: ${tam} | Thượng: ${thuong})</small>
+            </div>
+        </td>
+        <td style="text-align: center; width: 35%; font-size: 13px; color: #444;">
+            <b>${soDT}</b><br>
+            <small style="color:#aaa">🎂 ${ngaySinh}</small>
+        </td>
+
+        <!-- CỘT 3: THÊM NÚT LỊCH SỬ 📜 -->
+        <td style="text-align: right; width: 20%;">
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="xemLichSuKhach('${id}', '${tenKhach}')" title="Xem lịch sử" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">📜</button>
+                <button onclick="chuanBiSua('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">📝</button>
+                <button onclick="xoaHoiVien('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">🗑️</button>
+            </div>
+        </td>
+    </tr>
+`;
+        });
+        document.getElementById("ds-hoi-vien-body").innerHTML = h;
+    });
+}
+
+// Gọi hàm khởi động
+renderHoiVien();
+
+
+/* 10.xóa hội viên*/
+function xoaHoiVien(id) {
+    if (!id) return;
+
+    // 1. Lấy tên khách để xác nhận xóa cho chắc chắn
+    db.ref("members/" + id).once("value").then(snap => {
+        const v = snap.val();
+        const tenKhach = v ? v.ten : "hội viên này";
+
+        // 2. Hiện bảng xác nhận trước khi xóa hẳn
+        if (confirm(`Bạn có chắc chắn muốn xóa "${tenKhach.toUpperCase()}" khỏi danh sách không?`)) {
+            
+            // 3. Thực hiện lệnh xóa trên Firebase
+            db.ref("members/" + id).remove()
+                .then(() => {
+                    alert("✅ Đã xóa hội viên thành công!");
+                    
+                    // Nếu đang lỡ bấm sửa khách này thì reset luôn biến sửa
+                    if (dangSuaId === id) {
+                        dangSuaId = null;
+                        if(typeof resetFormHoiVien === "function") resetFormHoiVien();
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi xóa:", err);
+                    alert("❌ Không thể xóa. Vui lòng kiểm tra lại kết nối!");
+                });
+        }
+    });
+}
+/* 11.cộng điểm hội viên*/
+function cộngĐiểmHộiViên(sdtKhach, soBatAn) {
+    // 1. Tìm hội viên có số điện thoại tương ứng
+    const hv = HOIVIEN.find(h => h.sdt === sdtKhach);
+    if (hv) {
+        const newDiem = (hv.diem_tich_luy || 0) + soBatAn;
+        
+        // 2. Cập nhật lên Firebase
+        db.ref("members/" + hv.id).update({
+            diem_tich_luy: newDiem
+        }).then(() => {
+            if (newDiem >= 10) {
+                alert(`Khách ${hv.ten} đã đủ 10 bát! Hãy tặng khách 1 bát miễn phí nhé.`);
+            }
+        });
+    }
+}
+
+/*12. vẽ chi tiêu*/
+function renderChiTieu() {
+    let h = "", total = 0;
+    CHITIEU.sort((a,b)=> new Date(b.ngay) - new Date(a.ngay)).forEach(c => {
+        total += parseInt(c.tien.replace(/\D/g,''));
+        h += `<tr><td>${c.ngay.split('-').reverse().join('/')}</td><td>${c.ten}</td><td>${c.tien}</td><td><button onclick="xoaChiTieu('${c.id}')">X</button></td></tr>`;
+    });
+    document.getElementById("ds-chi-tieu-body").innerHTML = h;
+    document.getElementById("tong-chi-thang").innerText = total.toLocaleString() + "đ";
+}
+
+// LOGIC FUNCTIONS
+let orderListener = null;
+
+
+/*13. Chọn bàn */
+function selectTable(id) {
+    currentTableId = id;
+    const currentTable = TABLES.find(t => String(t.id) === String(id));
+    if (!currentTable) return;
+
+    // 1. Lấy mã giảm giá đã lưu của bàn này
+    currentDiscountPercent = currentTable.discount || 0; 
+    
+    // 2. Cập nhật lại thanh Select cho đúng số đã lưu
+    const couponSelect = document.getElementById("coupon-select");
+    if (couponSelect) couponSelect.value = currentDiscountPercent.toString();
+
+    document.getElementById("table-header").innerText = currentTable.name;
+
+    capNhatNut();
+
+    if (orderListener) orderListener.off();
+    orderListener = db.ref("orders/" + id);
+    orderListener.on("value", s => {
+        // 3. Khi vẽ đơn hàng, renderOrder sẽ lấy currentDiscountPercent vừa nạp ở trên
+        renderOrder(s.val() || []);
+        capNhatNut();
+    });
+
+    renderTables();
+}
+
+
+
+/*14.Thêm móm*/
+function addItem(index) { 
+    if (!currentTableId) return alert("Vui lòng chọn bàn!");
+
+    db.ref("orders/" + currentTableId).once("value").then(s => {
+        let items = s.val() || [];
+        const monDangBam = MENU_MASTER[index];
+        if (!monDangBam) return;
+
+        // 1. CHECK HẾT HÀNG
+        let conLai = (Number(monDangBam.limit) || 0) - (Number(monDangBam.soldToday) || 0);
+        if (monDangBam.limit > 0 && conLai <= 0) {
+            return alert(`❌ HẾT HÀNG: [${monDangBam.ten.toUpperCase()}]`);
+        }
+
+        const currentTable = TABLES.find(t => t.id == currentTableId);
+        const customerId = currentTable ? currentTable.customerId : null;
+
+        // 👉 Nếu không có hội viên → add bình thường
+        if (!customerId) {
+            let itemTonTai = items.find(i => i.id_mon === monDangBam.id && !i.isReward);
+            if (itemTonTai) itemTonTai.sl += 1;
+            else items.push({ ...monDangBam, id_mon: monDangBam.id, id: Date.now(), sl: 1 });
+
+            return db.ref("orders/" + currentTableId).set(items).then(() => hoanTatAddItem(items));
+        }
+
+        // 👉 Có hội viên → xử lý điểm + quà
+        db.ref(`members/${customerId}`).once('value').then(snap => {
+            let kh = snap.val() || { tuy_tam_count: 0, tuy_thuong_count: 0 };
+
+            let plusTam = 0, plusThuong = 0;
+            if (monDangBam.id === "tuy_tam" || monDangBam.id === "combo_tam_chau") plusTam = 1;
+            else if (monDangBam.id === "tuy_thuong" || monDangBam.id === "combo_thuong_thuy") plusThuong = 1;
+            else if (monDangBam.id === "combo_song_long") plusThuong = 2;
+
+            let tongTruoc = (Number(kh.tuy_tam_count) || 0) + (Number(kh.tuy_thuong_count) || 0);
+
+            // =====================================================
+            // 🔥 CASE 1: ĐỦ 10 → CHỈ ADD FREE (KHÔNG ADD BÌNH THƯỜNG)
+            // =====================================================
+            if (tongTruoc >= 10 && (plusTam > 0 || plusThuong > 0)) {
+
+                let giaUuDai = (kh.tuy_thuong_count >= kh.tuy_tam_count) ? 0 : 50000;
+
+                items.push({
+                    id_mon: "tuy_thuong",
+                    ten: "Túy Thượng (Ưu đãi mốc 10)",
+                    gia: giaUuDai,
+                    sl: 1,
+                    id: Date.now(),
+                    isReward: true
+                });
+
+                // reset điểm
+                kh.tuy_tam_count = 0;
+                kh.tuy_thuong_count = 0;
+
+                alert(`🎁 Đã áp dụng bát miễn phí / nâng cấp!`);
+
+            } else {
+
+                // =====================================================
+                // ✅ CASE 2: ADD BÌNH THƯỜNG
+                // =====================================================
+                let itemTonTai = items.find(i => i.id_mon === monDangBam.id && !i.isReward);
+                if (itemTonTai) itemTonTai.sl += 1;
+                else items.push({ ...monDangBam, id_mon: monDangBam.id, id: Date.now(), sl: 1 });
+
+                // cộng điểm
+                kh.tuy_tam_count = (Number(kh.tuy_tam_count) || 0) + plusTam;
+                kh.tuy_thuong_count = (Number(kh.tuy_thuong_count) || 0) + plusThuong;
+
+                let tongSau = kh.tuy_tam_count + kh.tuy_thuong_count;
+
+                // 🎁 Mốc 5
+                if (tongSau === 5) {
+                    items.push({
+                        id_mon: "quay",
+                        ten: "Quẩy (Quà tặng 5 bát)",
+                        gia: 0,
+                        sl: 1,
+                        id: Date.now() + 1,
+                        isReward: true
+                    });
+                    alert(`🎯 Tặng Quẩy mốc 5 bát!`);
+                }
+
+                // 🔔 Thông báo mốc 10
+                if (tongSau === 10) {
+                    alert(kh.tuy_thuong_count >= kh.tuy_tam_count
+                        ? "🔥 Bát tiếp theo sẽ MIỄN PHÍ!"
+                        : "🌟 Bát tiếp theo sẽ được Nâng cấp!");
+                }
+            }
+
+            // Lưu tất cả
+            db.ref(`members/${customerId}`).update(kh);
+            return db.ref("orders/" + currentTableId).set(items);
+
+        }).then(() => {
+            hoanTatAddItem(items);
+        });
+    });
+}
+// Hàm phụ để đỡ phải viết lặp lại lệnh render
+function hoanTatAddItem(items) {
+    updateStatus(currentTableId, "ordering");
+    if (typeof renderOrder === "function") renderOrder(items);
+    if (typeof renderMembers === "function") renderMembers();
+}
+
+
+
+/*15.Vẽ order*/
+function renderOrder(items) {
+    const orderItems = items || [];
+    let h = "";
+    let sub = 0;
+
+    // 1. VẼ DANH SÁCH MÓN
+    orderItems.forEach((item, index) => {
+        const sl = item.sl || 1;
+        const gia = item.gia || 0;
+        sub += (gia * sl);
+
+     // --- PHẦN LOGIC GHI CHÚ 1 DÒNG ---
+const dsHienGhiChu = ['tuy_tam', 'tuy_thuong', 'combo_thuong_thuy', 'combo_tam_chau', 'combo_song_long'];
+const idMon = item.id_mon || item.id;
+let ghiChuHTML = "";
+
+if (dsHienGhiChu.includes(idMon)) {
+    ghiChuHTML = `
+        <div style="font-size:11px; margin-top:2px;">
+            <div style="color:#999; font-style: italic; margin-bottom: 2px;">(${item.desc || ''})</div>
+            
+            <div style="display: flex; align-items: center; white-space: nowrap; overflow: hidden;">
+                <span style="color: #d32f2f; font-weight: bold; margin-right: 5px; flex-shrink: 0;">Ghi chú:</span>
+                <div style="position: relative; flex-grow: 1; display: flex; align-items: center;">
+                    <input type="text" 
+                           value="${item.note || ''}" 
+                           onchange="suaNote(${index}, this.value)"
+                           style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; z-index: 2; padding: 0;">
+                    <div style="position: absolute; left: 0; bottom: 2px; width: 100%; border-bottom: 1px dashed #ccc; z-index: 1;"></div>
+                </div>
+            </div>
+        </div>`;
+}
+
+// --- PHẦN HTML HIỂN THỊ TRÊN GIAO DIỆN ---
+h += `
+<div style="padding:10px; border-bottom:1px dashed #eee;">
+    <div style="display:flex; justify-content:space-between; align-items:start;">
+        <div>
+    <b style="font-size: 15px;">${item.ten}</b> 
+    ${sl > 1 ? `
+        <span style="background: #d32f2f; color: #fff; border-radius: 50%; 
+                     padding: 0 6px; font-size: 10px; margin-left: 5px; 
+                     display: inline-flex; align-items: center; justify-content: center;
+                     min-width: 18px; height: 18px; vertical-align: middle; font-weight: bold;">
+            <span style="font-size: 8px; margin-right: 1px; font-weight: normal;">x</span>${sl}
+        </span>` : ""}
+    ${ghiChuHTML}
+</div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <b>${(gia * sl).toLocaleString()}đ</b>
+            <button onclick="xoaMon(${index})" style="background:#ff5252; color:#fff; border:none; border-radius:4px; padding:2px 6px; cursor:pointer;">X</button>
+        </div>
+    </div>
+</div>`;
+
+    });
+
+    document.getElementById("order-container").innerHTML = h || `<div style="text-align:center;color:#ccc;margin-top:20px;">Chưa có món ăn</div>`;
+
+    // 2. TÍNH TOÁN TIỀN (BAO GỒM GIẢM GIÁ & THUẾ)
+    const discountAmount = Math.round(sub * (currentDiscountPercent / 100));
+    const subAfterDiscount = sub - discountAmount;
+    const tax = Math.round(subAfterDiscount * 0.02); // Thuế 2% tính sau giảm giá
+    const total = subAfterDiscount + tax;
+
+    // Hiển thị ra các ô ID tương ứng trong HTML mới
+    if(document.getElementById("sub-total")) document.getElementById("sub-total").innerText = sub.toLocaleString() + "đ";
+    if(document.getElementById("discount-val")) document.getElementById("discount-val").innerText = "-" + discountAmount.toLocaleString() + "đ";
+    if(document.getElementById("tax-val")) document.getElementById("tax-val").innerText = tax.toLocaleString() + "đ";
+    if(document.getElementById("total-price")) document.getElementById("total-price").innerText = total.toLocaleString();
+
+    // 3. ĐIỀU KHIỂN NÚT (Giữ nguyên logic của bạn)
+    const btnPrint = document.getElementById('step-print');
+    const btnPay = document.getElementById('step-pay');
+    const btnClear = document.getElementById('step-clear');
+    const extra = document.getElementById('extra-actions');
+
+    [btnPrint, btnPay, btnClear, extra].forEach(el => { if(el) el.style.display = 'none'; });
+
+    if (orderItems.length > 0) {
+        if(extra) extra.style.display = 'flex'; // Chỉnh lại flex cho nằm ngang
+        const table = TABLES.find(t => t.id === currentTableId);
+        if (table?.status === 'ordering') btnPrint.style.display = 'block';
+        else if (['printed', 'eating'].includes(table?.status)) btnPay.style.display = 'block';
+    } else {
+        const table = TABLES.find(t => t.id === currentTableId);
+        if (table?.status === 'paid') btnClear.style.display = 'block';
+    }
+}
+
+/*16.sửa ghi chú*/
+function suaNote(index, value) {
+    if (!currentTableId) return;
+
+    db.ref("orders/" + currentTableId).once("value").then(s => {
+        let items = s.val() || [];
+
+        if (items[index]) {
+            items[index].note = value;
+        }
+
+        db.ref("orders/" + currentTableId).set(items);
+    });
+}
+
+/*17.Tặng quà*/
+/*18.CHUYỂN BƯỚC - ĐÃ SỬA LỖI TÍNH GIÁ VÀ VOUCHER*/
+function chuyenBuoc(st) {
+    if (!currentTableId) return;
+
+    db.ref("orders/" + currentTableId).once("value")
+    .then(snapshot => {
+        let items = snapshot.val() || [];
+
+        // =========================
+        // 1. IN BẾP (Giữ nguyên logic của bạn)
+        // =========================
+        if (st === "printed") {
+            if (!confirm("Xác nhận in bếp & Trừ suất ăn?")) return Promise.reject("cancel");
+
+            return db.ref("menu").once("value")
+            .then(menuSnap => {
+                let menuFromServer = menuSnap.val();
+                if (!menuFromServer) throw "Không có menu!";
+
+                const updateSold = (targetId, quantity) => {
+                    for (let key in menuFromServer) {
+                        if (menuFromServer[key].id === targetId) {
+                            let hienTai = Number(menuFromServer[key].soldToday) || 0;
+                            menuFromServer[key].soldToday = hienTai + Number(quantity);
+                        }
+                    }
+                };
+
+                items.forEach(item => {
+                    const idGoc = item.id_mon || item.id;
+                    if (idGoc === "tuy_tam" || idGoc === "tuy_thuong") updateSold(idGoc, item.sl);
+                    if (idGoc === "combo_tam_chau") updateSold("tuy_tam", item.sl);
+                    if (idGoc === "combo_thuong_thuy") updateSold("tuy_thuong", item.sl);
+                    if (idGoc === "combo_song_long") updateSold("tuy_thuong", item.sl * 2);
+                });
+
+                return db.ref("menu").set(menuFromServer);
+            })
+            .then(() => updateStatus(currentTableId, "waiting"))
+            .then(() => {
+                alert("✅ Đã gửi đơn xuống bếp!");
+                if (typeof renderStockStatus === "function") renderStockStatus();
+                capNhatNut();
+            });
+        }
+
+        // =========================
+        // 2. THANH TOÁN (SỬA LẠI ĐỂ TÍNH VOUCHER)
+        // =========================
+        else if (st === "paid") {
+            // Lấy thông tin bàn hiện tại để xem mức giảm giá
+            const currentTable = TABLES.find(t => String(t.id) === String(currentTableId));
+            
+            // A. TÍNH TOÁN TIỀN
+            let subTotal = items.reduce((s, i) => s + (i.gia * i.sl), 0);
+            let vatPercent = 0.02; // 2%
+            let discountPercent = (currentTable && currentTable.discount) ? Number(currentTable.discount) : 0;
+
+            let tienVAT = Math.round(subTotal * vatPercent);
+            let tienGiamGia = Math.round(subTotal * (discountPercent / 100));
+            
+            // TỔNG CUỐI CÙNG = Gốc + VAT - Giảm giá
+            let finalTotal = subTotal + tienVAT - tienGiamGia;
+
+            if (!confirm(`Xác nhận thanh toán: ${finalTotal.toLocaleString()}đ?\n(Gốc: ${subTotal.toLocaleString()} + VAT 2% - Giảm: ${discountPercent}%)`)) {
+                return Promise.reject("cancel");
+            }
+
+            let soBat = 0;
+            // B. TÍNH ĐIỂM HỘI VIÊN
+            if (currentTable && currentTable.customerId) {
+                soBat = items.reduce((sum, i) => {
+                    const idGoc = i.id_mon || i.id;
+                    let heSo = (idGoc === 'combo_song_long') ? 2 : (i.isReward ? 0 : 1);
+                    return sum + (i.sl * heSo);
+                }, 0);
+                if (soBat > 0) cộngĐiểmHộiViên(currentTable.customerId, soBat);
+            }
+
+            // C. LẤY SĐT VÀ LƯU LỊCH SỬ
+            let promiseLaySDT = Promise.resolve(""); 
+            if (currentTable && currentTable.customerId) {
+                promiseLaySDT = db.ref("members/" + currentTable.customerId + "/sdt").once("value").then(s => s.val() || "");
+            }
+
+            return promiseLaySDT.then(phoneFound => {
+                const historyData = {
+                    customerId: (currentTable && currentTable.customerId) ? currentTable.customerId : null,
+                    customerName: (currentTable && currentTable.customerName) ? currentTable.customerName : "Khách vãng lai",
+                    customerPhone: phoneFound,
+                    tableName: (currentTable && currentTable.name) ? currentTable.name : "Không rõ",
+                    subTotal: subTotal,       // Lưu thêm giá gốc để đối soát
+                    discount: tienGiamGia,    // Lưu số tiền đã giảm
+                    total: finalTotal,        // CON SỐ THỰC THU (Dùng cho báo cáo)
+                    totalBowls: soBat,
+                    timestamp: Date.now(),
+                    items: items 
+                };
+                
+                return db.ref("history_orders").push(historyData);
+            })
+            .then(() => {
+                // D. TRỪ KHO
+                items.forEach(i => {
+                    const idThucTe = i.id_mon || i.id;
+                    if (idThucTe && !String(idThucTe).includes(Date.now().toString().substring(0,6))) {
+                        truKhoMoi(idThucTe, i.sl);
+                    } else if (i.ten.includes("Hỏa Châu")) {
+                        truKhoMoi("hoa_chau", i.sl);
+                    }
+                });
+
+                // E. RESET & CẬP NHẬT TRẠNG THÁI
+                let input = document.getElementById('order-customer-input');
+                if (input) input.value = "";
+
+                return updateStatus(currentTableId, "paid", true);
+            })
+            .then(() => {
+                alert("✅ Thanh toán xong & Đã lưu lịch sử!");
+                capNhatNut();
+            });
+        }
+       
+        // =========================
+        // 3. DỌN BÀN (Giữ nguyên logic của bạn)
+        // =========================
+        else if (st === "empty") {
+            if (!confirm("Đã dọn bàn?")) return Promise.reject("cancel");
+
+            const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+
+            return db.ref("orders/" + currentTableId).remove()
+            .then(() => {
+                if (tableIdx !== -1) {
+                    return Promise.all([
+                        db.ref(`tables/${tableIdx}/discount`).set(0),
+                        db.ref(`tables/${tableIdx}/customerName`).set(""),
+                        db.ref(`tables/${tableIdx}/customerId`).set("") // Xóa luôn ID khách để bàn sạch hoàn toàn
+                    ]);
+                }
+            })
+            .then(() => {
+                if (typeof renderOrder === "function") renderOrder([]);
+                document.getElementById("total-price").innerText = "0";
+                currentDiscountPercent = 0;
+                return updateStatus(currentTableId, "empty", true);
+            })
+            .then(() => {
+                capNhatNut();
+            });
+        }
+    })
+    .catch(err => {
+        if (err !== "cancel") {
+            console.error("Lỗi:", err);
+            alert("❌ Có lỗi xảy ra!");
+        }
+    });
+}
+
+// 19.Cập nhật hàm updateStatus để xóa tên khách trên Firebase
+function updateStatus(id, st, clearCustomer = false) {
+    const idx = TABLES.findIndex(t => t.id == id);
+    if (idx === -1) return Promise.resolve(); // Nếu không thấy bàn thì thôi
+
+    let updateData = { status: st };
+    if (clearCustomer) {
+        updateData.customerName = "";
+        updateData.customerId = "";
+    }
+
+    // Trả về một "lời hứa" (Promise) để hàm chuyenBuoc có thể đợi
+    return db.ref("tables/" + idx).update(updateData);
+}
+
+/*20.CẬP NHẬT NÚT*/
+function capNhatNut() {
+    if (!currentTableId) return;
+
+    // Ép cả 2 về String để so sánh chuẩn 100%
+    const table = TABLES.find(t => String(t.id) === String(currentTableId));
+    
+    if (!table) {
+        console.log("❌ Không tìm thấy bàn ID:", currentTableId);
+        return;
+    }
+
+    const st = table.status;
+
+    // Truy cập trực tiếp vào style
+    const btnPrint = document.getElementById("step-print");
+    const btnPay = document.getElementById("step-pay");
+    const btnClear = document.getElementById("step-clear");
+
+    if(!btnPrint || !btnPay || !btnClear) return;
+
+    // Ẩn tất cả trước
+    btnPrint.style.display = "none";
+    btnPay.style.display = "none";
+    btnClear.style.display = "none";
+
+    // Hiện theo trạng thái
+   if (st === "ordering") {
+    btnPrint.style.display = "block"; 
+} else if (st === "eating") {
+    btnPay.style.display = "block"; // CHỈ HIỆN KHI ĐANG ĂN
+} else if (st === "paid") {
+    btnClear.style.display = "block";
+}
+    
+    console.log("🔄 Đã cập nhật nút cho bàn:", currentTableId, "Trạng thái:", st);
+}
+
+/*21.PAY*/
+function pay() {
+    if(!currentTableId) return;
+    updateStatus(currentTableId, "clear");
+    setTimeout(() => { db.ref("orders/" + currentTableId).remove(); updateStatus(currentTableId, "empty"); alert("Xong!"); }, 1000);
+}
+
+/*22.ĐỊNH DẠNG TIỀN*/
+function dinhDangTien(el) {
+    let v = el.value.replace(/\D/g, "");
+    el.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+/*23.Thêm chi tiêu*/
+function themChiTieu() {
+    const ten = document.getElementById('cp-ten').value;
+    const sl = document.getElementById('cp-sl').value;
+    const tienRaw = document.getElementById('cp-tien').value;
+    const ngay = document.getElementById('cp-ngay').value;
+
+    // Kiểm tra dữ liệu
+    if (!ten || !tienRaw) {
+        alert("Vui lòng nhập tên hàng và số tiền!");
+        return;
+    }
+
+    // Chuyển định dạng tiền từ chuỗi "5.000.000" về số 5000000
+    const tien = parseInt(tienRaw.replace(/\./g, '')) || 0;
+
+    const data = {
+        ten: ten,
+        sl: sl || 1,
+        tien: tien,
+        ngay: ngay || new Date().toISOString().split('T')[0], // Mặc định là ngày hôm nay nếu trống
+        timestamp: Date.now()
+    };
+
+    // Gửi lên Firebase
+    db.ref("expenses").push(data).then(() => {
+        // --- BƯỚC QUAN TRỌNG: XÓA DỮ LIỆU CŨ ---
+        document.getElementById('cp-ten').value = "";
+        document.getElementById('cp-sl').value = "";
+        document.getElementById('cp-tien').value = "";
+        // Giữ lại ngày để nếu nhập nhiều món cùng lúc không phải chọn lại ngày
+        
+        console.log("Đã thêm chi phí!");
+    }).catch(e => alert("Lỗi: " + e.message));
+}
+
+/*23.1 load lịch sử chi tiêu*/
+function loadLichSuChiTieu() {
+    // Lắng nghe nhánh 'expenses' trên Firebase
+    db.ref("expenses").on("value", (snapshot) => {
+        const data = snapshot.val();
+        const tbody = document.getElementById("ds-chi-tieu-body");
+        if (!tbody) return;
+
+        tbody.innerHTML = ""; // Xóa dữ liệu cũ trước khi vẽ mới
+        let tongTien = 0;
+
+        if (data) {
+            // Chuyển đối tượng Firebase thành mảng và sắp xếp theo thời gian mới nhất lên đầu
+            const list = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            })).reverse();
+
+            list.forEach((item) => {
+    const soTien = Number(item.tien) || 0;
+    const soLuong = item.sl || 1;
+    const donVi = layDonVi(item.ten); // Gọi hàm lấy đơn vị ở trên
+
+    tbody.innerHTML += `
+        <tr style="border-bottom: 1px solid #f9f9f9;">
+            <td style="padding:10px; font-size:11px;">${item.ngay.split('-').reverse().join('/')}</td>
+            <td style="padding:10px; text-align:left; font-weight:500;">${item.ten}</td>
+            
+            <!-- Ô SỐ LƯỢNG KÈM ĐƠN VỊ -->
+            <td style="padding:10px; color:#555; font-size:13px;">
+                ${soLuong} <span style="font-size:10px; color:#999;">${donVi}</span>
+            </td>
+            
+            <td style="padding:10px; font-weight:bold; color:#d32f2f;">${soTien.toLocaleString()}đ</td>
+            <td style="padding:10px;">
+                <button onclick="xoaChiTieu('${item.id}')" style="..." >❌</button>
+            </td>
+        </tr>`;
+});
+        }
+
+        // Cập nhật con số Tổng Chi màu vàng
+        const tongChiEl = document.getElementById("tong-chi-thang");
+        if (tongChiEl) tongChiEl.innerText = tongTien.toLocaleString() + "đ";
+    });
+}
+
+// Gọi hàm này ngay khi trang web vừa load xong
+loadLichSuChiTieu();
+
+
+/*23.2 xóa chi tiêu*/
+function xoaChiTieu(id) {
+    if (confirm("Bạn có chắc chắn muốn xóa khoản chi này?")) {
+        db.ref("expenses/" + id).remove();
+    }
+}
+/*23.3 lấy đơn vị hàng trong chi tiêu*/
+function layDonVi(tenMon) {
+    const ten = tenMon.toLowerCase();
+    if (ten.includes("thịt bò") || ten.includes("bánh phở") || ten.includes("sá sùng")) {
+        return "kg";
+    }
+    if (ten.includes("trứng")) {
+        return "quả";
+    }
+    if (ten.includes("quẩy")) {
+        return "cái";
+    }
+    return ""; // Các món khác không có đơn vị thì để trống hoặc "suất"
+}
+
+
+
+
+/*24.SỬA HÔI VIÊN*/
+function chuanBiSua(id) {
+    if (!id) return;
+
+    // Lấy dữ liệu trực tiếp từ Firebase theo ID của khách
+    db.ref("members/" + id).once("value").then(snap => {
+        const hv = snap.val();
+        if (!hv) return alert("Không tìm thấy dữ liệu hội viên!");
+
+        // Đổ dữ liệu vào các ô input (Dùng đúng ID của các ô nhập liệu)
+        document.getElementById('hv-ten').value = hv.ten || "";
+        document.getElementById('hv-sdt').value = hv.sdt || "";
+        document.getElementById('hv-ngaysinh').value = hv.ngaysinh || "";
+        document.getElementById('hv-sothich').value = hv.sothich || "";
+
+        // Lưu ID vào biến đang sửa
+        dangSuaId = id;
+
+        // Đổi trạng thái nút bấm (Đảm bảo class .btn-add-member là chính xác)
+        const btn = document.querySelector('.btn-add-member');
+        if (btn) {
+            btn.innerHTML = "💾 CẬP NHẬT THÔNG TIN";
+            btn.style.backgroundColor = "#1976d2";
+        }
+        
+        // Cuộn lên form nhập liệu
+        const form = document.querySelector('.member-form');
+        if (form) {
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+    }).catch(err => {
+        console.error("Lỗi khi lấy dữ liệu sửa:", err);
+    });
+}
+
+// 2. Sửa lại hàm themHoiVien để xử lý cả "Thêm" và "Lưu"
+function themHoiVien() {
+    const ten = document.getElementById('hv-ten').value;
+    const sdt = document.getElementById('hv-sdt').value;
+    const ngaySinh = document.getElementById('hv-ngaysinh').value;
+    const soThich = document.getElementById('hv-sothich').value;
+
+    if (!ten || !sdt) return alert("Vui lòng nhập tên và SĐT!");
+
+    const data = {
+        ten: ten,
+        sdt: sdt,
+        ngaysinh: ngaySinh,
+        sothich: soThich
+    };
+
+    if (dangSuaId) {
+        // --- LOGIC SỬA ---
+        db.ref("members/" + dangSuaId).update(data).then(() => {
+            alert("Đã cập nhật thông tin!");
+            dangSuaId = null; // Reset về null sau khi sửa xong
+            resetFormHoiVien();
+        });
+    } else {
+        // --- LOGIC THÊM MỚI ---
+        // Khởi tạo điểm bằng 0 cho khách mới
+        data.tuy_tam_count = 0;
+        data.tuy_thuong_count = 0;
+        data.diem_tich_luy = 0;
+        
+        db.ref("members").push(data).then(() => {
+            alert("Đã thêm hội viên mới!");
+            resetFormHoiVien();
+        });
+    }
+}
+
+
+//25.Hàm xóa trắng form sau khi làm xong
+function resetFormHoiVien() {
+    document.getElementById('hv-ten').value = "";
+    document.getElementById('hv-sdt').value = "";
+    document.getElementById('hv-ngaysinh').value = "";
+    document.getElementById('hv-sothich').value = "";
+    
+    dangSuaId = null;
+    const btn = document.querySelector('.btn-add-member');
+    btn.innerHTML = "+ THÊM HỘI VIÊN MỚI";
+    btn.style.backgroundColor = "#2e7d32"; // Trả về màu xanh lá
+}
+//26.Hàm tìm kiếm hội viên khi gõ
+function searchHoiVien(keyword) {
+    const val = keyword.toLowerCase().trim();
+    const dropdown = document.getElementById("customer-dropdown");
+    if (!dropdown) return;
+
+    // PHẢI LẤY TỪ FIREBASE ĐỂ CÓ SỐ MỚI NHẤT
+    db.ref("members").once("value").then(snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        let h = "";
+        Object.keys(data).forEach(id => {
+            const v = data[id];
+            const ten = (v.ten || "").toLowerCase();
+            const sdt = (v.sdt || "");
+
+            // Lọc theo tên hoặc số điện thoại
+            if (val === "" || ten.includes(val) || sdt.includes(val)) {
+                
+                // --- PHẦN QUAN TRỌNG: GỌI ĐÚNG TÊN BIẾN FIREBASE ---
+               const tam = Number(v.tuy_tam_count) || 0; 
+               const thuong = Number(v.tuy_thuong_count) || 0;
+                const tong = Number(v.diem_tich_luy) || (tam + thuong);
+                const soThich = v.sothich ? `<div style="font-size: 10px; color: #666; font-style: italic;">💡 ${v.sothich}</div>` : "";
+
+                h += `
+                <div onclick="chonKhachVaoBan('${id}', '${v.ten}')" 
+                     style="padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
+                     onmouseover="this.style.background='#fff5f5'" 
+                     onmouseout="this.style.background='white'">
+                    <div>
+                        <b style="color:#333;">${v.ten}</b><br>
+                        <small style="color:#888;">📱 ${v.sdt || ''}</small>
+                        ${soThich}
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 13px; color: #d32f2f; font-weight: bold;">
+                             🥣 ${tong} bát
+                        </span>
+                        <div style="font-size: 9px; color: #999;">
+                            (Tâm: ${tam} | Thượng: ${thuong})
+                        </div>
+                    </div>
+                </div>`;
+            }
+        });
+
+        if (h) {
+            dropdown.innerHTML = h;
+            dropdown.style.display = "block";
+        } else {
+            dropdown.style.display = "none";
+        }
+    });
+}
+
+// Đóng danh sách khi nhấn ra ngoài
+document.addEventListener("click", function(e) {
+    const dropdown = document.getElementById("customer-dropdown");
+    const input = document.getElementById("order-customer-input");
+    if (dropdown && e.target !== input && !dropdown.contains(e.target)) {
+        dropdown.style.display = "none";
+    }
+});
+
+
+/*26.1 gợi ý tìm hội viên */
+function goiYTimKhach(val) {
+    const resultsDiv = document.getElementById("search-results-dropdown");
+    if (!val || val.trim().length === 0) {
+        resultsDiv.style.display = "none";
+        return;
+    }
+
+    db.ref("members").once("value").then(snap => {
+        const members = snap.val();
+        if (!members) return;
+
+        let h = "";
+        const keyword = val.toLowerCase();
+        
+        Object.keys(members).forEach(id => {
+            const m = members[id];
+            if (m.ten.toLowerCase().includes(keyword) || m.sdt.includes(keyword)) {
+                h += `
+                <div onclick="chonKhachVaoBan('${id}', '${m.ten}')" 
+                     style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;"
+                     onmouseover="this.style.background='#f5f5f5'" 
+                     onmouseout="this.style.background='white'">
+                    <b>${m.ten}</b> - ${m.sdt}
+                </div>`;
+            }
+        });
+
+        if (h !== "") {
+            resultsDiv.innerHTML = h;
+            resultsDiv.style.display = "block";
+        } else {
+            resultsDiv.style.display = "none";
+        }
+    });
+}
+
+
+
+
+//27.Hàm gắn khách vào bàn đang chọn
+// Thêm onchange="ganKhachVaoBan(this.value)" vào thẻ input ở Bước 1
+function chonKhachVaoBan(id, ten) {
+    if (!currentTableId) return alert("Vui lòng chọn bàn!");
+
+    const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+    if (tableIdx !== -1) {
+        TABLES[tableIdx].customerId = id;
+        TABLES[tableIdx].customerName = ten;
+
+        db.ref(`tables/${tableIdx}`).update({ customerId: id, customerName: ten }).then(() => {
+            document.getElementById("order-customer-input").value = ten;
+            document.getElementById("customer-dropdown").style.display = "none";
+            // Hiển thị tên khách lên vùng "CHI TIẾT ĐƠN" cho rõ ràng
+            alert("✅ Đã nhận diện: " + ten);
+        });
+    }
+}
+
+/*29.xóa hội viên*/
+function xoaHV(id) { if(confirm("Xóa?")) db.ref("hoivien/"+id).remove(); }
+
+/*30.Sửa kho*/
+function editKho(i, v) { KHO[i].ton += v; db.ref("kho").set(KHO); }
+
+
+/*31.Cập nhật giờ*/
+function updateClock(){
+    const now = new Date();
+
+    document.getElementById("clock-time").innerText =
+        now.toLocaleTimeString("vi-VN");
+
+    document.getElementById("clock-date").innerText =
+        now.toLocaleDateString("vi-VN");
+}
+
+setInterval(updateClock,1000);
+updateClock();
+
+/*32.vẽ stock*/
+function renderStock(){
+    let h = "";
+    let warning = "";
+
+    MENU.forEach(m => {
+        const con = m.limit - (m.soldToday || 0);
+
+        h += `<div>${m.ten}: ${con}/${m.limit}</div>`;
+
+        if(con <= 5){
+            warning += `⚠️ ${m.ten} sắp hết<br>`;
+        }
+    });
+
+    document.getElementById("stock-display-list").innerHTML = h;
+    document.getElementById("stock-warning-box").innerHTML = warning;
+}
+let currentMenuTab = 'don'; // Mặc định tab đầu tiên
+
+
+/*33.switchMenuTab*/
+function switchMenuTab(loai) {
+    currentMenuTab = loai;
+
+    // Lấy 2 nút bằng ID của bạn
+    const btnDon = document.getElementById("btn-don");
+    const btnCombo = document.getElementById("btn-combo");
+
+    if (loai === 'don') {
+        btnDon.style.background = "#2e7d32"; btnDon.style.color = "#fff";
+        btnCombo.style.background = "#eee"; btnCombo.style.color = "#333";
+    } else {
+        btnCombo.style.background = "#2e7d32"; btnCombo.style.color = "#fff";
+        btnDon.style.background = "#eee"; btnDon.style.color = "#333";
+    }
+
+    renderMenu(); // Vẽ lại danh sách món
+}
+
+/*34. Vẽ menu đồng bộ App Chính & Phụ*/
+function renderMenu() {
+    const container = document.getElementById('menu-list');
+    if (!container) return;
+
+    const fragment = document.createDocumentFragment();
+
+    // Lọc món theo Tab hiện tại (Đơn/Combo)
+    const filtered = MENU.filter(mon => (mon.loai || 'don') === currentMenuTab);
+
+    filtered.forEach((mon, index) => {
+        const isHet = (Number(mon.limit || 0) - Number(mon.soldToday || 0)) <= 0;
+
+        const div = document.createElement("div");
+        div.className = `menu-item ${mon.loai === 'combo' ? 'combo-neon-glow' : 'single-neon-glow'}`;
+        div.style.cssText = `
+            display:flex; align-items:center; gap:12px;
+            padding:12px; margin-bottom:12px;
+            position:relative; border-radius:15px;
+            background:#fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            ${isHet ? 'opacity:0.5;' : ''}
+        `;
+
+        // Lấy mô tả từ hàm helper (đã sửa lỗi slogan)
+        const { moTa, tenLoai } = getMoTa(mon);
+
+        // Nút quà tặng ⭐ (Chỉ hiện ở App chính hoặc cho nhân viên)
+        const dsMonDuocTang = ['hoa_chau', 'tiem_thuy', 'quay'];
+        const nutQuaTang = (dsMonDuocTang.includes(mon.id) && !isHet)
+            ? `<span onclick="event.stopPropagation(); themQuaTangTrucTiep(${index})"
+                style="cursor:pointer;font-size:18px;margin-left:8px;" title="Tặng quà">⭐</span>`
+            : "";
+
+        const laMauDo = mon.ten.includes('Thượng') || mon.ten.includes('Tiềm Thủy');
+        const mauGia = laMauDo ? '#d32f2f' : '#000';
+
+        div.innerHTML = `
+            <div style="width:75px;height:75px;flex-shrink:0;overflow:hidden;border-radius:12px;background:#f0f0f0;border:1px solid #eee;">
+                <img src="${mon.img || 'https://placeholder.com'}"
+                     style="width:100%;height:100%;object-fit:cover;">
+            </div>
+
+            <div style="flex:1;min-width:0;">
+                <div style="font-weight:bold;font-size:15px;color:#333;display:flex;align-items:center;">
+                    ${mon.ten}
+                    ${tenLoai ? `<span style="font-size:10px;color:#888;margin-left:4px;font-weight:normal;">(${tenLoai})</span>` : ''}
+                    ${nutQuaTang}
+                </div>
+
+                ${moTa}
+
+                <div style="margin-top:6px;">
+                    <span style="background:#ffeb3b;border-radius:20px;font-size:12px;padding:3px 12px;color:${mauGia};font-weight:900;border:1px solid rgba(0,0,0,0.05);">
+                        ${(mon.gia || 0).toLocaleString()}đ
+                    </span>
+                </div>
+            </div>
+
+            <button ${isHet ? 'disabled' : ''}
+                style="position:absolute;bottom:10px;right:10px;width:32px;height:32px;border-radius:50%;border:none;color:#fff;font-size:20px;font-weight:bold;cursor:pointer;transition:0.2s;
+                ${isHet ? "background:#ccc;" : (currentMenuTab === 'don' ? "background:#2e7d32;" : "background:#e65100;")}">
+                ${isHet ? "✕" : "+"}
+            </button>
+        `;
+
+        // Gán sự kiện click cho nút thêm món
+        const btn = div.querySelector("button");
+        if (!isHet) {
+            btn.addEventListener("click", () => {
+                // Nếu là App Phụ, cần truyền ID thật thay vì index mảng
+                addItem(index); 
+            });
+        }
+
+        fragment.appendChild(div);
+    });
+
+    container.innerHTML = "";
+    container.appendChild(fragment);
+}
+
+
+
+function getMoTa(mon) {
+    let moTa = "";
+    let tenLoai = "";
+
+    // Gán loại tên phụ
+    if (mon.ten.includes('Túy Tâm')) tenLoai = "Phở thường";
+    else if (mon.ten.includes('Túy Thượng')) tenLoai = "Phở đặc biệt";
+    else if (mon.ten.includes('Hỏa Châu')) tenLoai = "Trứng chần";
+    else if (mon.ten.includes('Tiềm Thủy')) tenLoai = "Trứng hấp";
+
+    // Logic xử lý mô tả
+    if (mon.ten.includes('Túy Tâm')) {
+        moTa = `<div class="scroll-container"><div class="scroll-text">Nước dùng thanh ngọt, thịt bò tươi thơm ngon, đậm đà vị truyền thống ✨</div></div>`;
+    } else if (mon.ten.includes('Túy Thượng')) {
+        moTa = `<div class="scroll-container"><div class="scroll-text">Thưởng thức tinh túy từ phần thịt lõi rùa quý hiếm, mềm tan trong thực quản 💎</div></div>`;
+    } else if (mon.ten.includes('Hỏa Châu') || mon.ten.includes('Tiềm Thủy')) {
+        let text = mon.ten.includes('Hỏa Châu') ? "Trứng gà tươi chần trong nước dùng thanh ngọt ✨" : "Ngâm trong nước cốt sá sùng quý giá, hấp cách thủy tinh hoa 🥚";
+        moTa = `<div class="scroll-container"><div class="scroll-text">${text}</div></div>`;
+    } else if (mon.ten.includes('Quẩy')) {
+        moTa = `<div style="font-size:11px;color:#666;font-style:italic;">Giòn rụm (4 cái)</div>`;
+    } else if (mon.loai === 'combo') {
+        let slogan = mon.ten.includes('Thượng')
+            ? 'Bậc quân tử thưởng thức tinh hoa ✨'
+            : mon.ten.includes('Tâm')
+               ? 'Năng lượng cho ngày mới ☀️'
+               : 'Chiêu đãi bậc Đế Vương 👑';
+
+        moTa = `
+        <div style="font-size:11px;color:#666;margin-bottom:2px;">${mon.desc || ''}</div>
+        <div class="scroll-container">
+            <div class="scroll-text" style="font-weight:bold; color: inherit;">${slogan}</div>
+        </div>`;
+    }
+
+    return { moTa, tenLoai };
+}
+
+
+/*35.Xóa món*/
+function xoaMon(index) {
+    if (!currentTableId) return;
+
+    db.ref("orders/" + currentTableId).once("value").then(s => {
+        let items = s.val() || [];
+        if (!items[index]) return;
+
+        const itemHienTai = items[index];
+        if (!confirm(`Xác nhận giảm/xóa món: ${itemHienTai.ten}?`)) return;
+
+        const currentTable = TABLES.find(t => t.id == currentTableId);
+        const customerId = currentTable ? currentTable.customerId : null;
+
+        // TẠO MỘT PROMISE ĐỂ XỬ LÝ ĐIỂM TRƯỚC
+        const updatePointsPromise = new Promise((resolve) => {
+            if (customerId && !itemHienTai.isReward) {
+                let truTam = 0, truThuong = 0;
+
+                if (itemHienTai.id_mon === "tuy_tam" || itemHienTai.id_mon === "combo_tam_chau") truTam = 1;
+                else if (itemHienTai.id_mon === "tuy_thuong" || itemHienTai.id_mon === "combo_thuong_thuy") truThuong = 1;
+                else if (itemHienTai.id_mon === "combo_song_long") truThuong = 2;
+
+               if (truTam > 0 || truThuong > 0) {
+    db.ref(`members/${customerId}`).once('value').then(snap => {
+        let kh = snap.val() || {};
+
+        kh.tuy_tam_count = Math.max(0, (Number(kh.tuy_tam_count) || 0) - truTam);
+        kh.tuy_thuong_count = Math.max(0, (Number(kh.tuy_thuong_count) || 0) - truThuong);
+
+        db.ref(`members/${customerId}`).update({
+            tuy_tam_count: kh.tuy_tam_count,
+            tuy_thuong_count: kh.tuy_thuong_count
+        }).then(() => resolve());
+    });
+} else { resolve(); }
+            } else { resolve(); }
+        });
+
+        // SAU KHI XỬ LÝ ĐIỂM XONG THÌ MỚI XỬ LÝ ĐƠN HÀNG
+        updatePointsPromise.then(() => {
+            if (itemHienTai.sl > 1) {
+                itemHienTai.sl -= 1;
+            } else {
+                items.splice(index, 1);
+            }
+
+            return db.ref("orders/" + currentTableId).set(items);
+        }).then(() => {
+            // Cập nhật trạng thái bàn nếu đơn trống
+            if (items.length === 0) {
+                updateStatus(currentTableId, "empty");
+                const tableIdx = TABLES.findIndex(t => t.id == currentTableId);
+                if (tableIdx !== -1) db.ref(`tables/${tableIdx}/customerName`).remove();
+            }
+            // Vẽ lại giao diện
+            if (typeof renderOrder === "function") renderOrder(items);
+            if (typeof renderHoiVien === "function") renderHoiVien();
+        });
+    });
+}
+
+
+/*36.Vẽ bàn*/
+function renderTables() {
+    let tH = "", bH = "";
+
+    TABLES.forEach(t => {
+        const isActive = t.id === currentTableId ? 'active-table' : '';
+        
+        let statusClass = "empty"; 
+        let statusText = "Trống";
+        let statusIcon = `<div class="status-circle color-empty"></div>`;
+        let confirmBtn = ""; // Nút xác nhận giao món
+
+        if (t.status === "ordering") {
+            statusClass = "ordering"; 
+            statusText = "Đang chọn";
+            statusIcon = `<div class="status-circle color-ordering"></div>`;
+        } 
+        // --- TRẠNG THÁI MỚI: CHỜ MÓN ---
+        else if (t.status === "waiting") {
+            statusClass = "waiting"; 
+            statusText = "Chờ món";
+            statusIcon = `<div style="font-size:20px; margin-bottom:5px;">📄</div>`; // Icon hóa đơn
+            // Nút dấu tích xác nhận bưng ra
+          confirmBtn = `
+    <div onclick="event.stopPropagation(); xacNhanGiaoMon(${t.id})" 
+         class="btn-confirm-delivery"
+         style="position:absolute; top:-10px; right:-10px; background:#ff9800; color:#fff; 
+                border-radius:50%; width:32px; height:32px; display:flex; 
+                align-items:center; justify-content:center; font-size:18px; 
+                font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.3); 
+                z-index:100; cursor:pointer; border:2px solid #fff;">
+        ✓
+    </div>`;
+        }
+        else if (t.status === "eating") {
+            statusClass = "eating"; 
+            statusText = "Đang ăn";
+            statusIcon = `<div style="font-size:24px; margin-bottom:5px;">🍜</div>`;
+        }
+
+        else if (t.status === "paid") {
+            statusClass = "paid"; 
+            statusText = "Chờ dọn";
+            statusIcon = `<div style="font-size:24px; margin-bottom:5px;">💰</div>`;
+        }
+
+        const html = `
+        <div class="table-card ${statusClass} ${isActive}" onclick="selectTable(${t.id})" style="position:relative;">
+            ${confirmBtn}
+            <div class="icon-box">${statusIcon}</div>
+            <div class="table-name">${t.name}</div>
+            <div class="table-sub">${t.customerName || statusText}</div>
+        </div>`;
+
+        if (t.type === 'bar' || t.id > 100) bH += html;
+        else tH += html;
+    });
+
+    document.getElementById("table-grid").innerHTML = tH;
+    document.getElementById("bar-grid").innerHTML = bH;
+}
+
+/*37.Xác nhận phục vụ*/
+function xacNhanPhucVu(event, tableId) {
+    // Ngăn việc nhấn vào nút ✅ bị tính là nhấn vào chọn bàn
+    event.stopPropagation();
+
+    // Tìm bàn trong mảng TABLES hiện tại
+    const tableIndex = TABLES.findIndex(t => t.id === tableId);
+    
+    if (tableIndex !== -1) {
+        // Cập nhật trạng thái cục bộ
+        TABLES[tableIndex].status = "eating";
+
+        // Lưu lên Firebase để đồng bộ tất cả các máy khác
+      db.ref("tables/" + id).update({ status: "eating" }).then(() => {
+            console.log("Đã chuyển sang trạng thái Đang ăn 😋");
+        });
+    }
+}
+
+
+/*38.Trừ kho*/
+function truKhoMoi(itemId, sl) {
+    // 1. Kiểm tra xem biến RECIPES có tồn tại không
+    if (typeof RECIPES === 'undefined') {
+        console.error("❌ Lỗi: Biến RECIPES chưa được khai báo ở đầu file!");
+        return;
+    }
+
+    const recipe = RECIPES[itemId];
+    
+    // 2. Debug để xem recipe lấy ra là gì
+    console.log("ID nhận được:", itemId, "Recipe tìm thấy:", recipe);
+
+    if (!recipe) {
+        console.error("❌ Không tìm thấy Công thức cho ID:", itemId);
+        return;
+    }
+
+    db.ref("kho").once("value").then(s => {
+        let khoData = s.val() || [];
+        let updates = {};
+
+        Object.keys(recipe).forEach(idNL => {
+            const dinhMuc = recipe[idNL];
+            const idx = khoData.findIndex(k => k.id === idNL);
+
+            if (idx !== -1) {
+                let tonHienTai = parseFloat(khoData[idx].ton) || 0;
+                let giaTriTru = (khoData[idx].dvt === "kg" || khoData[idx].dvt === "lít") 
+                                ? (dinhMuc * sl) / 1000 
+                                : (dinhMuc * sl);
+
+                updates[`${idx}/ton`] = parseFloat(Math.max(0, tonHienTai - giaTriTru).toFixed(2));
+            }
+        });
+
+        if (Object.keys(updates).length > 0) {
+            db.ref("kho").update(updates);
+        }
+    });
+}
+
+let mónĐangTách = null;
+
+//39.HÀM GỘP BÀN ---
+function moModalGop() {
+    if (!currentTableId) return alert("Vui lòng chọn bàn!");
+    
+    db.ref("orders/" + currentTableId).once("value").then(s => {
+        const items = s.val() || [];
+        if (items.length === 0) return alert("Bàn này không có món để gộp!");
+
+        document.getElementById('modal-title').innerText = `Gộp bàn ${currentTableId} đi đâu?`;
+        const body = document.getElementById('modal-body');
+        
+       body.innerHTML = TABLES.filter(t => t.id != currentTableId).map(t => {
+    // 1. Xác định class trạng thái để lấy màu (ordering, eating, paid, empty)
+    let statusClass = t.status || "empty"; 
+    
+    // 2. Gán class đó vào div
+    return `
+        <div class="modal-item-table ${statusClass}" onclick="thucHienGopBan(${t.id})">
+            <span style="font-weight:bold; position:relative; z-index:2;">
+                ➡️ Gộp vào ${t.name}
+            </span>
+            <small style="position:relative; z-index:2; opacity:0.8;">
+                (${t.status === 'empty' ? 'Trống' : 'Có khách'})
+            </small>
+        </div>
+    `;
+}).join('');
+        document.getElementById('modal-container').style.display = 'flex';
+    });
+}
+
+/*40.GỘP BÀN*/
+function thucHienGopBan(targetId) {
+    if(!confirm(`Chuyển tất cả món sang bàn ${targetId}?`)) return;
+
+    const refGoc = db.ref("orders/" + currentTableId);
+    const refDich = db.ref("orders/" + targetId);
+
+    Promise.all([refGoc.once("value"), refDich.once("value")]).then(results => {
+        let iGoc = results[0].val() || [];
+        let iDich = results[1].val() || [];
+
+        // Gộp mảng món ăn
+        iGoc.forEach(ig => {
+            let existing = iDich.find(id => id.id_mon === ig.id_mon && !id.isReward);
+            if (existing) existing.sl += ig.sl;
+            else iDich.push(ig);
+        });
+
+        let updates = {};
+        updates[`orders/${targetId}`] = iDich;
+        updates[`orders/${currentTableId}`] = null;
+
+        // Cập nhật trạng thái bàn
+        const bGoc = TABLES.find(t => t.id == currentTableId);
+        const bDich = TABLES.find(t => t.id == targetId);
+        if(bGoc) {
+            updates[`tables/${TABLES.indexOf(bGoc)}/status`] = "empty";
+            updates[`tables/${TABLES.indexOf(bGoc)}/customerName`] = "";
+        }
+        if(bDich && bDich.status === 'empty') updates[`tables/${TABLES.indexOf(bDich)}/status`] = "ordering";
+
+        db.ref().update(updates).then(() => {
+            dongModal();
+            selectTable(targetId);
+        });
+    });
+}
+
+/*41.TÁCH MÓN*/
+function moModalTachMon() { // Sửa tên hàm bỏ dấu sắc để khớp HTML của bạn
+    if (!currentTableId) return alert("Vui lòng chọn bàn!");
+    
+    db.ref("orders/" + currentTableId).once("value").then(s => {
+        const items = s.val() || [];
+        if (items.length === 0) return;
+
+        document.getElementById('modal-title').innerText = `Chọn món muốn tách`;
+        const body = document.getElementById('modal-body');
+        
+        body.innerHTML = items.map((item, index) => `
+            <div class="modal-item" onclick="moModalChonBanDichTach(${index})">
+                <span>${item.ten} (SL: ${item.sl})</span>
+                <button style="padding:2px 8px">Chọn</button>
+            </div>
+        `).join('');
+        document.getElementById('modal-container').style.display = 'flex';
+    });
+}
+/*42.CHỌN BÀN ĐÍCH TÁCH*/
+function moModalChonBanDichTach(idx) {
+    mónĐangTách = idx;
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+
+    if (title) title.innerText = `Tách món đến bàn nào?`;
+
+    if (body) {
+        body.innerHTML = TABLES.filter(t => t.id != currentTableId).map(t => {
+            const statusClass = t.status || "empty";
+            const statusText = (t.status === 'empty') ? "Trống" : "Có khách";
+
+            // Thêm hàm xử lý Click để tạo hiệu ứng Active ngay lập tức
+            return `
+                <div class="modal-item-table ${statusClass}" 
+                     onclick="setActiveChoice(this); setTimeout(() => thucHienTach(${t.id}), 200)">
+                    <span style="font-weight:bold; position:relative; z-index:2;">
+                        ➡️ Chuyển đến ${t.name}
+                    </span>
+                    <small style="position:relative; z-index:2; opacity:0.8; font-weight:bold;">
+                        [${statusText.toUpperCase()}]
+                    </small>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+/*43.TẠO HIỆU ỨNG NỐI LÊN KHI CHỌN*/
+function setActiveChoice(el) {
+    // Xóa trạng thái active của các bàn khác trong modal
+    document.querySelectorAll('.modal-item-table').forEach(item => item.classList.remove('active-choice'));
+    // Thêm class active cho bàn vừa nhấn
+    el.classList.add('active-choice');
+}
+/*44.THỰC HIỆN TÁCH*/
+function thucHienTach(targetId) {
+    const refGoc = db.ref("orders/" + currentTableId);
+    const refDich = db.ref("orders/" + targetId);
+
+    Promise.all([refGoc.once("value"), refDich.once("value")]).then(results => {
+        let iGoc = results[0].val() || [];
+        let iDich = results[1].val() || [];
+        let item = iGoc[mónĐangTách];
+
+        if (item.sl > 1) item.sl -= 1; 
+        else iGoc.splice(mónĐangTách, 1);
+
+        let itemChuyen = {...item, sl: 1, id: Date.now()};
+        let existing = iDich.find(id => id.id_mon === itemChuyen.id_mon && !id.isReward);
+        if (existing) existing.sl += 1;
+        else iDich.push(itemChuyen);
+
+        let updates = {};
+        updates[`orders/${currentTableId}`] = iGoc;
+        updates[`orders/${targetId}`] = iDich;
+
+        // Reset trạng thái nếu bàn gốc hết món
+        if(iGoc.length === 0) {
+            const bGoc = TABLES.find(t => t.id == currentTableId);
+            updates[`tables/${TABLES.indexOf(bGoc)}/status`] = "empty";
+        }
+        // Đổi màu bàn đích
+        const bDich = TABLES.find(t => t.id == targetId);
+        if(bDich && bDich.status === 'empty') updates[`tables/${TABLES.indexOf(bDich)}/status`] = "ordering";
+
+        db.ref().update(updates).then(() => {
+            dongModal();
+        });
+    });
+}
+/*45. ĐÓNG MÓN*/
+function dongModal() {
+    document.getElementById('modal-container').style.display = 'none';
+}
+
+/*46.Giảm giá*/
+function apDungGiamGia() {
+    if (!currentTableId) return alert("Vui lòng chọn bàn!");
+    
+    const select = document.getElementById("coupon-select");
+    const percent = parseInt(select.value) || 0;
+
+    const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+    if (tableIdx !== -1) {
+        // 1. Lưu lên Firebase
+        db.ref(`tables/${tableIdx}/discount`).set(percent).then(() => {
+            // 2. Cập nhật biến cục bộ ngay lập tức
+            currentDiscountPercent = percent;
+            
+            // 3. Lấy lại items và vẽ lại đơn hàng để nhảy số tiền ngay
+            db.ref("orders/" + currentTableId).once("value").then(s => {
+                renderOrder(s.val() || []);
+                alert(`✅ Đã áp dụng giảm giá ${percent}%`);
+            });
+        });
+    }
+}
+/*47.XÓA GIẢM GIÁ*/
+function xoaGiamGia() {
+    currentDiscountPercent = 0;
+    document.getElementById("coupon-select").value = "0";
+    db.ref("orders/" + currentTableId).once("value").then(s => {
+        renderOrder(s.val() || []);
+    });
+}
+	
+
+
+/*48.Đếm Ngược số lượng*/
+function renderStockStatus() {
+    const displayList = document.getElementById('stock-display-list');
+    const warningBox = document.getElementById('stock-warning-box');
+    if (!displayList || typeof MENU === 'undefined') return;
+
+    // 1. Cập nhật ngày tháng
+    const dateEl = document.getElementById('current-date-display');
+    if (dateEl) {
+        const now = new Date();
+        dateEl.innerText = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`;
+    }
+    
+    displayList.innerHTML = ''; 
+    let alertMsg = ""; 
+
+    MENU.forEach((mon, index) => { 
+        const tenMon = (mon.ten || "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+        if (tenMon.includes('tuy tam') || tenMon.includes('tuy thuong')) {
+
+            let limit = Number(mon.limit) || 0;
+            let sold = Number(mon.soldToday) || 0;
+            let conLai = Math.max(0, limit - sold);
+
+            let bgColor = '#4caf50'; 
+            if (conLai <= (tenMon.includes('tuy tam') ? 25 : 15)) bgColor = '#ffa000';
+            if (conLai <= 0) bgColor = '#d32f2f';
+
+            // UI hiển thị
+            displayList.innerHTML += `
+                <div class="stock-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee; font-weight:bold;">
+                    <span style="color: #333;">🍜 ${mon.ten}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="background: ${bgColor}; color:white; padding:5px 15px; border-radius:20px; font-size:13px; min-width:110px; text-align:center;">
+                            ${conLai} / ${limit}
+                        </span>
+                        <button onclick="congLaiSuat(${index})" style="width:28px; height:28px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; font-weight:bold;">+</button>
+                    </div>
+                </div>`;
+
+            // 🔥 CẢNH BÁO
+            let nguong = 10;
+
+            if (tenMon.includes('tuy tam')) nguong = 25;
+            if (tenMon.includes('tuy thuong')) nguong = 15;
+
+            if (conLai <= 0) {
+                alertMsg += `🏮 Món ${mon.ten} đã hết! --- `;
+            } 
+            else if (conLai <= nguong) {
+                alertMsg += `
+✨ Món 
+<span style="color:red; font-weight:bold;">${mon.ten}</span> 
+chỉ còn 
+<span style="color:red; font-weight:bold;">${conLai}</span> suất! --- `;
+            }
+
+        } // ✅ ĐÓNG IF Ở ĐÂY
+    });
+
+    if (alertMsg && warningBox) {
+        warningBox.style.display = "block";
+        warningBox.innerHTML = `
+<marquee style="color:black; font-weight:bold;">
+    ${alertMsg}
+</marquee>`;
+    }
+}
+// GỌI HÀM ĐỂ CHẠY
+db.ref("menu").on("value", s => {
+    MENU = s.val() || [];
+    renderMenu();
+    renderStockStatus(); // 🔥 thêm dòng này
+});
+
+/*48.tặng quà*/
+/* Hàm thêm quà tặng 0đ khi nhấn vào ngôi sao - Đã thêm xác nhận */
+function themQuaTangTrucTiep(index) {
+    if (!currentTableId) return alert("Vui lòng chọn bàn!");
+
+    const monGoc = MENU[index];
+    if (!monGoc) return;
+
+    // --- BƯỚC XÁC NHẬN ---
+    const check = confirm(`Xác nhận TẶNG MIỄN PHÍ món [${monGoc.ten.toUpperCase()}] cho khách?`);
+    if (!check) return; // Nếu nhấn Hủy thì dừng lại
+
+    db.ref("orders/" + currentTableId).once("value").then(s => {
+        let items = s.val() || [];
+
+        // Tạo món quà tặng
+        const monQua = {
+            ...monGoc,
+            id: Date.now(),      // ID duy nhất để không bị gộp vào món tính tiền
+            id_mon: monGoc.id,
+            gia: 0,              // GIÁ VỀ 0
+            sl: 1,
+            isReward: true,      // Đánh dấu là hàng tặng
+            note: "Quà tặng ⭐"
+        };
+
+        items.push(monQua);
+        return db.ref("orders/" + currentTableId).set(items);
+    }).then(() => {
+        // Cập nhật lại giao diện đơn hàng
+        if (typeof renderOrder === "function") {
+             db.ref("orders/" + currentTableId).once("value").then(s => renderOrder(s.val() || []));
+        }
+        alert(`✅ Đã thêm món tặng: ${monGoc.ten}`);
+    });
+}
+
+/*49.cộng lại suất*/
+function congLaiSuat(index) {
+    if (!MENU || !MENU[index]) return;
+
+    // Tăng số lượng đã bán
+    MENU[index].soldToday = (Number(MENU[index].soldToday) || 0) - 1;
+
+    // Không cho âm
+    if (MENU[index].soldToday < 0) {
+        MENU[index].soldToday = 0;
+    }
+
+    // Lưu lại Firebase
+    db.ref("menu").set(MENU).then(() => {
+        renderStockStatus();
+        renderMenu();
+    });
+}
+
+/*50.xác nhận giao món*/
+function xacNhanGiaoMon(tableId) {
+    // 1. Tìm index của bàn trong mảng TABLES
+    const tableIdx = TABLES.findIndex(t => t.id == tableId);
+    if (tableIdx === -1) return;
+
+    if (!confirm(`Xác nhận đã bưng món ra cho ${TABLES[tableIdx].name}?`)) return;
+
+    // 2. Cập nhật trạng thái lên Firebase
+    db.ref(`tables/${tableIdx}`).update({
+        status: "eating"
+    }).then(() => {
+        // Cập nhật lại nút nếu đang mở đúng bàn này
+        if (currentTableId == tableId) {
+            capNhatNut();
+        }
+    });
+}
+
+
+/*51.lịch sử ăn của hội viên*/
+function xemLichSuKhach(cid, name) {
+    const modal = document.getElementById("modal-lich-su-khach");
+    const content = document.getElementById("content-lich-su-khach");
+    document.getElementById("title-lich-su-khach").innerText = "📜 Lịch sử: " + name;
+    
+    content.innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>Đang tải dữ liệu...</p>";
+    modal.style.display = "flex";
+
+    // Lấy dữ liệu từ history_orders
+    db.ref("history_orders").once("value").then(snap => {
+        const orders = snap.val();
+        if (!orders) {
+            content.innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>Chưa có lịch sử giao dịch.</p>";
+            return;
+        }
+
+        // Lọc đơn theo customerId và sắp xếp mới nhất lên đầu
+        const list = Object.keys(orders)
+            .map(k => orders[k])
+            .filter(o => o.customerId === cid)
+            .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        if (list.length === 0) {
+            content.innerHTML = "<p style='text-align:center; color:#999; padding:20px;'>Khách chưa có đơn hàng nào.</p>";
+            return;
+        }
+
+        let html = "";
+        list.forEach(o => {
+            const d = new Date(o.timestamp);
+            const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')} - ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+
+            // 1. VẼ DANH SÁCH MÓN ĂN CHI TIẾT (Giống Bill)
+            let itemsHTML = "";
+            if (o.items && Array.isArray(o.items)) {
+                o.items.forEach(m => {
+                    itemsHTML += `
+                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#555; padding:4px 0; border-bottom:1px solid #f9f9f9;">
+                        <span>• ${m.ten} <b style="color:#d32f2f;">x${m.sl}</b></span>
+                        <span style="color:#333;">${(m.gia * m.sl).toLocaleString()}đ</span>
+                    </div>`;
+                });
+            }
+
+            // 2. VẼ KHUNG CARD (Y hệt hình mẫu bạn gửi)
+            html += `
+            <div style="background:#fff; border-radius:15px; border:1px solid #eee; margin-bottom:15px; box-shadow:0 4px 12px rgba(0,0,0,0.05); overflow:hidden;">
+                <!-- Header: Giờ & Bàn -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 15px; background:#fcfcfc;">
+                    <span style="font-size:12px; font-weight:bold; color:#3f51b5;">🕒 ${timeStr}</span>
+                    <span style="background:#fff1f0; color:#cf1322; padding:2px 12px; border-radius:15px; font-size:11px; font-weight:bold; border:1px solid #ffa39e;">${o.tableName}</span>
+                </div>
+
+                <!-- Body: Danh sách món -->
+                <div style="padding:10px 15px;">
+                    ${itemsHTML}
+                </div>
+
+                <!-- Footer: Khách & Tổng cộng -->
+                <div style="background:#f9f9f9; padding:12px 15px; display:flex; justify-content:space-between; align-items:flex-end; border-top:1px solid #f0f0f0;">
+                    <div style="font-size:12px;">
+                         <div style="color:#888;">
+        👤 Khách: <b style="color:#555;">${o.customerName}</b> 
+        ${o.customerPhone ? `<span style="color:#999; font-weight:normal; margin-left:5px;">(${o.customerPhone})</span>` : ""}
+    </div>
+                        <div style="color:#1e88e5; font-weight:bold; display:flex; align-items:center; gap:4px;">
+                            <span style="font-size:14px;">🥣</span> +${o.totalBowls || 0} điểm bát
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:10px; color:#aaa; font-weight:bold; text-transform:uppercase; letter-spacing:0.5px;">Tổng cộng</div>
+                        <div style="font-size:20px; font-weight:900; color:#d32f2f; line-height:1;">${Number(o.total).toLocaleString()}đ</div>
+                    </div>
+                </div>
+            </div>`;
+        });
+        
+        content.innerHTML = `<div style="padding:5px;">${html}</div>`;
+    }).catch(err => {
+        console.error(err);
+        content.innerHTML = "<p style='text-align:center; color:red;'>Lỗi tải dữ liệu!</p>";
+    });
+}
+
+
+/*52.modle báo cáo*/
+function moModalBaoCao() {
+    document.getElementById('modal-bao-cao-tong').style.display = 'flex';
+    
+    // Tự động chọn ngày hôm nay nếu chưa chọn
+    const today = new Date().toISOString().split('T')[0];
+    if(!document.getElementById("report-from").value) {
+        document.getElementById("report-from").value = today;
+        document.getElementById("report-to").value = today;
+    }
+    taiBaoCaoDoanhThu();
+}
+
+
+/*52.báo cáo doanh thu*/
+let myChart = null; 
+
+function taiBaoCaoDoanhThu() {
+    const fromDate = document.getElementById("report-from").value;
+    const toDate = document.getElementById("report-to").value;
+    const customerFilter = document.getElementById("report-customer-filter").value;
+    
+    const container = document.getElementById("report-body-list");
+    const totalEl = document.getElementById("report-total-amount");
+    const legendEl = document.getElementById("chart-legend-detail");
+
+    if (!container) return;
+    
+    container.innerHTML = "<p style='text-align:center; padding:20px; color:#888;'>Đang tải dữ liệu...</p>";
+
+    db.ref("history_orders").once("value").then(snap => {
+        const data = snap.val();
+        if (!data) {
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Chưa có dữ liệu.</p>";
+            totalEl.innerText = "0đ";
+            return;
+        }
+
+        let list = Object.keys(data).map(k => data[k]);
+        list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+        let tongDoanhThu = 0;
+        let thuHoiVien = 0;
+        let thuVangLai = 0;
+        let html = "";
+        let displayedCount = 0;
+
+        const start = fromDate ? new Date(fromDate + "T00:00:00").getTime() : 0;
+        const end = toDate ? new Date(toDate + "T23:59:59").getTime() : Infinity;
+
+        list.forEach((o) => {
+            const time = o.timestamp || 0;
+            let matchDate = (time >= start && time <= end);
+            let matchCustomer = true;
+            if (customerFilter === "member") matchCustomer = !!o.customerId;
+            else if (customerFilter === "guest") matchCustomer = !o.customerId;
+
+            if (matchDate) {
+                const total = Number(o.total) || 0;
+                const discountAmount = Number(o.discount) || 0; // Lấy số tiền giảm giá từ database
+
+                if (o.customerId) { thuHoiVien += total; } 
+                else { thuVangLai += total; }
+
+                if (matchCustomer) {
+                    tongDoanhThu += total;
+                    const delay = displayedCount * 0.05;
+                    displayedCount++;
+
+                    const d = new Date(time);
+                    const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')} - ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+
+                    // Vẽ danh sách món
+                    let chiTietMonHTML = "";
+                    if (o.items && Array.isArray(o.items)) {
+                        o.items.forEach(m => {
+                            chiTietMonHTML += `
+                            <div style="display:flex; justify-content:space-between; font-size:11px; color:#555; padding:2px 0; border-bottom:1px dashed #eee;">
+                                <span>• ${m.ten} <b style="color:#d32f2f">x${m.sl}</b></span>
+                                <span>${(m.gia * m.sl).toLocaleString()}đ</span>
+                            </div>`;
+                        });
+                    }
+
+                    // --- LOGIC HIỂN THỊ VOUCHER ---
+                    let discountTag = "";
+                    let discountDetail = "";
+                    if (discountAmount > 0) {
+                        // Hiện icon quà tặng ở Header bàn
+                        discountTag = `<span style="background:#e8f5e9; color:#2e7d32; padding:2px 8px; border-radius:10px; font-size:10px; margin-left:5px; border:1px solid #a5d6a7;">🎁 Voucher</span>`;
+                        // Hiện số tiền đã giảm ở Footer
+                        discountDetail = `<div style="color:#2e7d32; font-size:11px; font-weight:bold; margin-bottom:2px;">Giảm giá: -${discountAmount.toLocaleString()}đ</div>`;
+                    }
+
+                    html += `
+                    <div class="report-item-card" style="animation-delay: ${delay}s; background:#fff; padding:15px; border-radius:15px; border:1px solid #eee; margin-bottom:15px; box-shadow:0 4px 10px rgba(0,0,0,0.03);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #f0f0f0; padding-bottom:8px;">
+                            <span style="font-size:12px; font-weight:bold; color:#1a237e;">🕒 ${timeStr}</span>
+                            <div>
+                                ${discountTag}
+                                <span style="background:#fef3f2; color:#cf1322; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:bold; border:1px solid #ffa39e;">${o.tableName}</span>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:12px;">${chiTietMonHTML}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end; background:#fafafa; padding:10px; border-radius:10px;">
+                            <div style="font-size:11px;">
+                                <div style="color:#888;">👤 Khách: <b style="color:#1a237e; cursor:pointer; text-decoration:underline;" onclick="denHoiVien('${o.customerId}', '${o.customerPhone}')">${o.customerName || 'Khách vãng lai'}</b></div>
+                                ${o.customerPhone ? `<div style="color:#d32f2f; font-size:10px; margin-top:2px;">📞 ${o.customerPhone}</div>` : ''}
+                            </div>
+                            <div style="text-align:right;">
+                                ${discountDetail}
+                                <div style="font-size:10px; color:#aaa; font-weight:bold;">THỰC THU</div>
+                                <div style="font-size:18px; font-weight:900; color:#d32f2f;">${total.toLocaleString()}đ</div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            }
+        });
+
+        // (Giữ nguyên phần cập nhật Chart và Legend như code cũ của bạn)
+        container.innerHTML = html || "<p style='text-align:center; padding:20px;'>Không tìm thấy dữ liệu phù hợp.</p>";
+        totalEl.innerText = tongDoanhThu.toLocaleString() + "đ";
+
+        const tongTiLe = thuHoiVien + thuVangLai;
+        const pctHV = tongTiLe > 0 ? ((thuHoiVien / tongTiLe) * 100).toFixed(1) : 0;
+        const pctVL = tongTiLe > 0 ? ((thuVangLai / tongTiLe) * 100).toFixed(1) : 0;
+
+        if (legendEl) {
+            legendEl.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;">
+                    <span style="color:#2e7d32;">● Hội viên (${pctHV}%)</span>
+                    <b>${thuHoiVien.toLocaleString()}đ</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:11px;">
+                    <span style="color:#ffa726;">● Vãng lai (${pctVL}%)</span>
+                    <b>${thuVangLai.toLocaleString()}đ</b>
+                </div>
+            `;
+        }
+
+        const chartCanvas = document.getElementById('revenueRatioChart');
+        if (chartCanvas) {
+            const ctx = chartCanvas.getContext('2d');
+            if (myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Hội viên', 'Vãng lai'],
+                    datasets: [{
+                        data: [thuHoiVien, thuVangLai],
+                        backgroundColor: ['#2e7d32', '#ffa726'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    cutout: '70%',
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+    });
+}
+
+/*53.chuyển tới tab hội viên từ lịch sử */
+function denHoiVien(customerId, phone) {
+    if (!customerId || customerId === "undefined" || customerId === "null") {
+        alert("Đây là khách vãng lai, không có dữ liệu hội viên.");
+        return;
+    }
+
+    // 1. Đóng modal báo cáo (Dùng ID modal-bao-cao-tong bạn đã gửi)
+    const modalBaoCao = document.getElementById('modal-bao-cao-tong');
+    if (modalBaoCao) {
+        modalBaoCao.style.display = 'none';
+    }
+
+    // 2. Chuyển sang tab Hội viên bằng hàm switchTab của bạn
+    // Chúng ta tìm nút bấm Menu Hội viên để truyền vào tham số 'btn' giúp nó sáng lên
+    const btnMenuHoiVien = document.querySelector("button[onclick*='tab-hoi-vien']");
+    switchTab('tab-hoi-vien', btnMenuHoiVien); 
+
+    // 3. Tự động điền số điện thoại tìm kiếm khách hàng
+    setTimeout(() => {
+        // Hãy kiểm tra ID ô tìm kiếm hội viên của bạn là gì (ví dụ bên dưới là 'search-hoi-vien')
+        const searchInput = document.getElementById('search-hoi-vien'); 
+        if (searchInput) {
+            searchInput.value = phone;
+            // Kích hoạt sự kiện tìm kiếm để danh sách tự lọc ngay lập tức
+            searchInput.dispatchEvent(new Event('input'));
+        }
+    }, 200);
+}
+
+// Lắng nghe số lượng đơn chờ để hiện Badge (số thông báo)
+let soLuongDonCu = 0; // Biến để theo dõi số lượng đơn
+
+function khoiTaoLangNgheQR() {
+    db.ref("pending_qr_orders").on("value", (snap) => {
+        const data = snap.val();
+        const count = data ? Object.keys(data).length : 0;
+        const badge = document.getElementById("qr-count-badge");
+        const btnChuong = document.getElementById("btn-open-qr-list");
+        
+        if (count > 0) {
+            badge.innerText = count;
+            badge.style.display = "flex";
+            
+            // CHỈ PHÁT NHẠC VÀ RUNG KHI CÓ ĐƠN MỚI THÊM VÀO
+            if (count > soLuongDonCu) {
+                // Rung nút chuông (sử dụng class CSS has-new-order đã tạo ở bước trước)
+                btnChuong.classList.add("has-new-order");
+                
+                // Phát âm thanh Ting Ting
+                const sound = new Audio('https://mixkit.co');
+                sound.play().catch(e => console.log("Trình duyệt chặn tự động phát âm thanh"));
+            }
+        } else {
+            badge.style.display = "none";
+            btnChuong.classList.remove("has-new-order");
+        }
+        
+        // Cập nhật lại số lượng để so sánh lần sau
+        soLuongDonCu = count;
+
+        // Nếu đang mở modal thì vẽ lại danh sách ngay lập tức
+        if (document.getElementById("modal-qr-list").style.display === "flex") {
+            veDanhSachChoQR(data);
+        }
+    });
+}
+
+
+function moDanhSachChoQR() {
+    document.getElementById("modal-qr-list").style.display = "flex";
+    db.ref("pending_qr_orders").once("value", (snap) => {
+        veDanhSachChoQR(snap.val());
+    });
+}
+
+function veDanhSachChoQR(data) {
+    const container = document.getElementById("qr-pending-container");
+    if (!data) {
+        container.innerHTML = `<p style="text-align:center; color:#999; margin-top:30px;">Không có đơn hàng nào đang chờ.</p>`;
+        return;
+    }
+
+    let html = "";
+    Object.keys(data).forEach(id => {
+        const order = data[id];
+        const itemsStr = order.items.map(i => `• ${i.ten} x${i.sl} ${i.note ? `<br><i>- Ghi chú: ${i.note}</i>` : ''}`).join("<br>");
+        
+        html += `
+        <div style="background:#fff; border-radius:10px; padding:15px; margin-bottom:15px; border:1px solid #eee; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid #f0f0f0; padding-bottom:5px;">
+                <b style="color:#d32f2f;">BÀN: ${order.tableId}</b>
+                <small style="color:#999;">${new Date(order.timestamp).toLocaleTimeString()}</small>
+            </div>
+            <div style="font-size:13px; line-height:1.5; color:#333;">${itemsStr}</div>
+            <div style="display:flex; gap:10px; margin-top:12px;">
+                <button onclick="xuLyDonQR('${id}', 'cancel')" style="flex:1; padding:8px; border-radius:5px; border:1px solid #ccc; background:none; cursor:pointer;">HỦY</button>
+                <button onclick="xuLyDonQR('${id}', 'accept')" style="flex:1; padding:8px; border-radius:5px; border:none; background:#2e7d32; color:#fff; font-weight:bold; cursor:pointer;">XÁC NHẬN</button>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+function xuLyDonQR(orderId, action) {
+    db.ref("pending_qr_orders/" + orderId).once("value").then(snap => {
+        const data = snap.val();
+        if (!data) return;
+
+        if (action === 'cancel') {
+            if (confirm("Hủy đơn hàng của Bàn " + data.tableId + "?")) {
+                db.ref("pending_qr_orders/" + orderId).remove();
+            }
+        } else {
+            Promise.all([
+                db.ref("menu").once("value"),
+                db.ref("orders/" + data.tableId).once("value")
+            ]).then(results => {
+                const menuGoc = results[0].val();
+                let itemsHienTai = results[1].val() || [];
+                
+                data.items.forEach(newItem => {
+                    let idChuan = newItem.id;
+                    let moTaChuan = ""; 
+
+                    if (menuGoc) {
+                        for (let key in menuGoc) {
+                            if (menuGoc[key].ten === newItem.ten) {
+                                idChuan = menuGoc[key].id;
+                                moTaChuan = menuGoc[key].desc || "";
+                                break;
+                            }
+                        }
+                    }
+
+                    let found = itemsHienTai.find(old => 
+                        (old.ten === newItem.ten) && ((old.note || "") === (newItem.note || ""))
+                    );
+
+                    if (found) {
+                        found.sl = Number(found.sl) + Number(newItem.sl);
+                        found.desc = moTaChuan;
+                    } else {
+                        itemsHienTai.push({
+                            id_mon: idChuan,
+                            id: idChuan,
+                            ten: newItem.ten,
+                            gia: newItem.gia,
+                            sl: newItem.sl,
+                            note: newItem.note || "",
+                            desc: moTaChuan
+                        });
+                    }
+                });
+
+                // 2. Lưu lại vào bàn và XÓA đơn chờ
+                return Promise.all([
+                    db.ref("orders/" + data.tableId).set(itemsHienTai),
+                    db.ref("pending_qr_orders/" + orderId).remove()
+                ]);
+            }).then(() => {
+                // --- BỔ SUNG: CHUYỂN TRẠNG THÁI BÀN SANG 'ordering' (Đang chọn) ---
+                // Việc này giúp bàn đổi màu đỏ/cam và hiện nút "In Bếp"
+                if (typeof updateStatus === "function") {
+                    updateStatus(data.tableId, "ordering");
+                }
+
+                // 3. Cập nhật giao diện chi tiết nếu đang mở bàn đó
+                if (typeof currentTableId !== 'undefined' && currentTableId === data.tableId) {
+                    db.ref("orders/" + data.tableId).once("value", s => renderOrder(s.val()));
+                }
+                
+                alert("✅ Xác nhận thành công & Bàn đã chuyển sang Đang chọn!");
+            });
+        }
+    });
+}
+
+
+function dongModalQRList() {
+    document.getElementById("modal-qr-list").style.display = "none";
+}
+
+// Gọi khởi tạo
+khoiTaoLangNgheQR();
+
+
+
+function syncMenuToFirebase() {
+    const updates = {};
+    
+    MENU_MASTER.forEach(mon => {
+        updates[mon.id] = mon;
+    });
+
+    db.ref("menu").set(updates)
+        .then(() => console.log("✅ Menu đã sync Firebase"))
+        .catch(err => console.error(err));
+}
+
+
+
+
+
+
+
+</script>
+
+<!-- 1. Lịch sử ăn uống cá nhân khách hàng (Modal) -->
+<div id="modal-lich-su-khach" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:#fff; width:90%; max-width:400px; padding:20px; border-radius:15px; position:relative; max-height:75vh; overflow-y:auto;">
+        <span onclick="document.getElementById('modal-lich-su-khach').style.display='none'" style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:24px; color:#999;">&times;</span>
+        <h3 id="title-lich-su-khach" style="color:#d32f2f; margin-top:0; font-size:18px; border-bottom:1px solid #eee; padding-bottom:10px;"></h3>
+        <div id="content-lich-su-khach"></div>
+    </div>
+</div>
+
+<!-- 2. Nút lịch sử nổi (Floating Button) -->
+<style>
+   /* Nút Lịch sử nằm trên nút Chuông khoảng 70px */
+.floating-history-btn {
+    position: fixed;
+    bottom: 90px; /* Nút chuông ở 20px + 60px chiều cao + 10px khoảng cách */
+    right: 20px;
+    background: #1a237e; /* Màu xanh đậm cho khác biệt với nút chuông đỏ */
+    color: #fff;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 9999;
+    border: none;
+    font-size: 24px;
+}
+
+.floating-history-btn:hover {
+    background: #0d47a1;
+}
+
+/* Hiệu ứng rung nhẹ cho nút chuông khi có đơn mới */
+@keyframes ring {
+    0% { transform: rotate(0); }
+    10% { transform: rotate(15deg); }
+    20% { transform: rotate(-15deg); }
+    30% { transform: rotate(10deg); }
+    40% { transform: rotate(-10deg); }
+    100% { transform: rotate(0); }
+}
+.has-new-order {
+    animation: ring 0.5s ease infinite;
+}
+
+</style>
+
+
+<!-- NÚT 1: LỊCH SỬ (Nằm trên) -->
+<button onclick="moModalBaoCao()" class="floating-history-btn" title="Xem báo cáo">📊</button>
+
+<!-- NÚT 2: THÔNG BÁO QR (Nằm dưới) -->
+<div id="btn-open-qr-list" onclick="moDanhSachChoQR()" style="position:fixed; bottom:20px; right:20px; background:#d32f2f; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:9999;">
+    <span style="font-size:24px;">🔔</span>
+    <span id="qr-count-badge" style="position:absolute; top:0; right:0; background:#ffeb3b; color:#000; border-radius:50%; width:22px; height:22px; font-size:12px; font-weight:bold; display:none; align-items:center; justify-content:center; border:2px solid #d32f2f;">0</span>
+</div>
+
+
+<div id="modal-bao-cao-tong" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
+    <!-- Khung chính Modal: Đặt display flex và hướng dọc -->
+    <div style="background:#fff; width:95%; max-width:600px; border-radius:15px; position:relative; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        
+        <!-- PHẦN CỐ ĐỊNH (HEADER + FILTER + TOTAL) -->
+        <div style="padding: 20px 20px 0 20px; flex-shrink: 0; background: #fff;">
+            <span onclick="document.getElementById('modal-bao-cao-tong').style.display='none'" 
+                  style="position:absolute; top:10px; right:15px; cursor:pointer; font-size:24px; color:#999; z-index: 10;">&times;</span>
+            
+            <h3 style="color:#d32f2f; margin-top:0; margin-bottom:15px;">📊 BÁO CÁO DOANH THU</h3>
+            
+            <!-- Bộ lọc -->
+            <div style="background:#f9f9f9; padding:12px; border-radius:12px; margin-bottom:12px; display:flex; gap:8px; align-items:flex-end; border:1px solid #eee;">
+                <div style="flex:1">
+                    <label style="font-size:10px; color:#888; display:block; margin-bottom:2px;">Từ ngày:</label>
+                    <input type="date" id="report-from" style="width:100%; padding:6px; border-radius:6px; border:1px solid #ddd; font-size:12px;">
+                </div>
+                <div style="flex:1">
+                    <label style="font-size:10px; color:#888; display:block; margin-bottom:2px;">Đến ngày:</label>
+                    <input type="date" id="report-to" style="width:100%; padding:6px; border-radius:6px; border:1px solid #ddd; font-size:12px;">
+                </div>
+                <div style="flex:1">
+                    <label style="font-size:10px; color:#888; display:block; margin-bottom:2px;">Loại khách:</label>
+                    <select id="report-customer-filter" style="width:100%; padding:6px; border-radius:6px; border:1px solid #ddd; background:#fff; font-size:12px; height:31px;">
+                        <option value="all">Tất cả khách</option>
+                        <option value="member">Hội viên 💳</option>
+                        <option value="guest">Khách vãng lai 👤</option>
+                    </select>
+                </div>
+                <button onclick="taiBaoCaoDoanhThu()" style="background:#2e7d32; color:#fff; border:none; padding:0 15px; border-radius:6px; cursor:pointer; font-weight:bold; height:31px; font-size:12px;">LỌC</button>
+            </div>
+
+            <!-- Tổng tiền cố định -->
+            <div style="background: #333; color:#fff; padding:12px 15px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size: 13px; opacity: 0.8;">TỔNG THU:</span>
+                <span id="report-total-amount" style="color:#ffeb3b; font-size:18px; font-weight:bold;">0đ</span>
+            </div>
+        </div>
+<!-- Ô biểu đồ tỉ lệ -->
+<div id="report-chart-box" style="background:#fff; padding:15px; border-radius:15px; border:1px solid #eee; margin-bottom:15px; display:flex; align-items:center; gap:20px; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+    <div style="width: 120px; height: 120px; flex-shrink: 0;">
+        <canvas id="revenueRatioChart"></canvas>
+    </div>
+    <div style="flex:1;">
+        <div style="font-size:12px; font-weight:bold; color:#555; margin-bottom:10px;">📊 TỈ LỆ DOANH THU</div>
+        <div id="chart-legend-detail">
+            <!-- Phần trăm sẽ đổ vào đây -->
+        </div>
+    </div>
+</div>
+        <!-- PHẦN CUỘN (DANH SÁCH ĐƠN HÀNG) -->
+        <div style="padding: 0 20px 20px 20px; overflow-y: auto; flex: 1;" id="report-scroll-container">
+            <div id="report-body-list">
+                <!-- Dữ liệu sẽ đổ vào đây -->
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Nút chuông thông báo (Đặt ở góc màn hình hoặc thanh menu) -->
+<div id="btn-open-qr-list" onclick="moDanhSachChoQR()" style="position:fixed; bottom:20px; right:20px; background:#d32f2f; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:9999;">
+    <span style="font-size:24px;">🔔</span>
+    <span id="qr-count-badge" style="position:absolute; top:0; right:0; background:#ffeb3b; color:#000; border-radius:50%; width:22px; height:22px; font-size:12px; font-weight:bold; display:none; align-items:center; justify-content:center; border:2px solid #d32f2f;">0</span>
+</div>
+
+<!-- Modal Danh sách đơn chờ -->
+<div id="modal-qr-list" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:#fff; width:95%; max-width:500px; border-radius:15px; max-height:80vh; display:flex; flex-direction:column; overflow:hidden;">
+        <div style="background:#2e7d32; color:#fff; padding:15px; text-align:center; font-weight:bold; position:relative;">
+            DANH SÁCH ĐƠN CHỜ XÁC NHẬN
+            <span onclick="dongModalQRList()" style="position:absolute; right:15px; cursor:pointer; font-size:20px;">&times;</span>
+        </div>
+        <div id="qr-pending-container" style="flex:1; overflow-y:auto; padding:15px; background:#f9f9f9;">
+            <!-- Các đơn chờ sẽ đổ vào đây -->
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

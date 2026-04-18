@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phở Túy - QR Order</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+
+
+
+/* Container Menu */
+#menu-list { padding: 10px; }
+
+/* Định nghĩa màu sắc cho từng loại món */
+.single-neon-glow { --glow-color: #2e7d32; }
+.combo-neon-glow { --glow-color: #e65100; }
+
+.menu-item {
+    position: relative;
+    background: #fff;
+    border-radius: 18px;
+    z-index: 1;
+    overflow: hidden; /* Cắt viền xoay theo bo góc */
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* HIỆU ỨNG DẢI SÁNG XOAY LIỀN KHỐI (Neon Border) */
+.menu-item::before {
+    content: "";
+    position: absolute;
+    top: -150%; left: -50%;
+    width: 200%; height: 400%;
+    background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        var(--glow-color) 15%, 
+        var(--glow-color) 30%,
+        transparent 45%
+    );
+    animation: rotate-menu 3s linear infinite;
+    filter: blur(10px);
+    z-index: -2;
+}
+
+/* Lớp nền trắng đè lên để lộ ra viền sáng 3px */
+.menu-item::after {
+    content: "";
+    position: absolute;
+    inset: 3px; 
+    background: #fff;
+    border-radius: 15px;
+    z-index: -1;
+}
+
+@keyframes rotate-menu {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Hiệu ứng chữ chạy siêu mảnh */
+.scroll-container {
+    overflow: hidden;
+    white-space: nowrap;
+    width: 100%;
+    margin: 2px 0;
+}
+
+.scroll-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 15s linear infinite;
+    color: #333 !important;
+    font-size: 10.5px !important;
+    font-weight: 300 !important;
+    letter-spacing: -0.1px;
+    font-family: sans-serif;
+}
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+
+/* Thẻ giá lấp lánh */
+.price-tag-neon {
+    background: #ffeb3b;
+    border-radius: 20px;
+    font-size: 12px;
+    padding: 3px 12px;
+    color: #000;
+    font-weight: 900;
+    display: inline-block;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(255, 235, 59, 0.5);
+}
+
+/* Style cho vật thể bay */
+.flying-item {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    background: var(--glow-color);
+    border-radius: 50%;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 0 15px var(--glow-color);
+    transition: all 2s cubic-bezier(0.19, 1, 0.22, 1);
+    pointer-events: none;
+}
+
+/* Màu sắc phát sáng theo loại món */
+.single-neon-glow { --glow-color: #2e7d32; }
+.combo-neon-glow { --glow-color: #e65100; }
+
+/* Hiệu ứng viền xoay phát sáng */
+.menu-item {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+}
+.menu-item::before {
+    content: "";
+    position: absolute;
+    top: -150%; left: -50%;
+    width: 200%; height: 400%;
+    background: conic-gradient(from 0deg, transparent 0%, var(--glow-color) 15%, var(--glow-color) 30%, transparent 45%);
+    animation: rotate-menu 3s linear infinite;
+    filter: blur(10px);
+    z-index: -2;
+}
+.menu-item::after {
+    content: "";
+    position: absolute;
+    inset: 3px; 
+    background: #fff;
+    border-radius: 15px;
+    z-index: -1;
+}
+
+@keyframes rotate-menu {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Hiệu ứng xe hàng bay */
+.flying-item {
+    position: fixed;
+    width: 35px;
+    height: 35px;
+    background: var(--glow-color);
+    border-radius: 50%;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 0 15px var(--glow-color);
+    pointer-events: none;
+    /* 0.6s là tốc độ vừa phải, cubic-bezier giúp hiệu ứng bay có độ "vút" */
+    transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+
+
+
+/* Hiệu ứng nhịp thở phát sáng nút xe hàng*/
+@keyframes pulse-invite {
+    0% {
+        box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); /* Màu xanh mặc định */
+        transform: scale(1);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(46, 125, 50, 0);
+        transform: scale(1.05); /* Hơi nở nhẹ ra */
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(46, 125, 50, 0);
+        transform: scale(1);
+    }
+}
+
+/* Hiệu ứng dành riêng cho tab Combo (Màu cam) */
+@keyframes pulse-invite-combo {
+    0% {
+        box-shadow: 0 0 0 0 rgba(230, 81, 0, 0.7);
+        transform: scale(1);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(230, 81, 0, 0);
+        transform: scale(1.05);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(230, 81, 0, 0);
+        transform: scale(1);
+    }
+}
+
+.btn-invite-glow {
+    animation: pulse-invite 2s infinite;
+}
+
+.btn-invite-glow-combo {
+    animation: pulse-invite-combo 2s infinite;
+}
+
+
+
+/* Hiệu ứng VIP cho siêu phẩm món ăn */
+.vip-item-glow {
+    --glow-color: #ff0000 !important;
+    border: 2px solid #ffeb3b !important; /* Viền vàng hoàng gia */
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4) !important;
+}
+
+/* Hiệu ứng phát sáng mời gọi VIP (Màu đỏ chói) */
+@keyframes pulse-vip {
+    0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.8); transform: scale(1.05); }
+    70% { box-shadow: 0 0 0 15px rgba(211, 47, 47, 0); transform: scale(1.1); }
+    100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); transform: scale(1.05); }
+}
+
+.btn-vip-red {
+    animation: pulse-vip 1.5s infinite !important;
+    background: #d32f2f !important;
+    width: 32px !important;
+    height: 32px !important;
+}
+
+/* Nhãn VIP đặc biệt */
+.vip-badge {
+    position: absolute;
+    top: 5px;   /* Lui xuống một chút so với mép trên */
+    right: 5px; /* Chuyển sang bên phải */
+    background: linear-gradient(45deg, #d32f2f, #ffeb3b);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 3px 10px; /* Tăng padding để chữ hiển thị thoáng hơn */
+    border-radius: 8px;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    white-space: nowrap; /* Đảm bảo không bị xuống dòng */
+}
+
+
+/* Hiệu ứng mặc định cho món ăn */
+.menu-item {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+/* Hiệu ứng HOVER: Nổi lên và Phát sáng hào quang */
+.menu-item:hover {
+    transform: translateY(-5px) scale(1.02); /* Nổi lên trên 5px và to nhẹ 2% */
+    z-index: 10; /* Đảm bảo món đang chọn hiện lên trên cùng */
+    
+    /* Phát sáng hào quang dựa theo biến màu --glow-color đã có */
+    box-shadow: 0 15px 45px rgba(0,0,0,0.1), 0 0 30px var(--glow-color);
+}
+
+/* Làm cho hào quang của món VIP sáng mạnh hơn khi hover */
+.vip-item-glow:hover {
+    box-shadow: 0 15px 50px rgba(211, 47, 47, 0.3), 0 0 40px #ff0000 !important;
+    border-color: #ffeb3b !important;
+}
+
+/* Hiệu ứng mượt cho các thành phần bên trong khi hover */
+.menu-item:hover .item-img-box img {
+    transform: scale(1.1);
+    transition: transform 0.5s ease;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Container bao quanh danh sách */
+.order-list-box {
+    background: #fff;
+    padding: 10px 0;
+}
+
+/* Dòng món ăn */
+.order-item-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0; /* Đường kẻ liền mờ theo ảnh */
+}
+
+/* Tên món x Số lượng */
+.item-name-area b {
+    font-size: 15px;
+    color: #000;
+}
+
+/* Ghi chú đỏ phía dưới */
+.item-note-text {
+    font-size: 12px;
+    color: #d32f2f;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Khu vực giá và nút xóa */
+.item-right-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.item-right-area b {
+    font-size: 15px;
+    color: #000;
+}
+
+/* Nút xóa đúng như ảnh app chính */
+.btn-delete-red {
+    background: #d32f2f;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+
+        :root { --primary: #d32f2f; --secondary: #2e7d32; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); height: 100vh; overflow: hidden; }
+        
+        .app-container { display: flex; height: 100vh; max-width: 1200px; margin: 0 auto; background: #fff; }
+
+        /* CỘT TRÁI: MENU (60%) */
+        .menu-column { flex: 6; display: flex; flex-direction: column; border-right: 1px solid #eee; background: var(--bg); }
+        .menu-header { padding: 15px; background: #fff; border-bottom: 1px solid #eee; }
+        .menu-scroll { flex: 1; overflow-y: auto; padding: 15px; }
+        
+        .menu-card { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 12px; display: flex; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-items: center; }
+        .menu-info { flex: 1; }
+        .menu-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; display: block; }
+        .menu-price { color: var(--primary); font-weight: 900; font-size: 14px; background: #fff3f3; padding: 2px 8px; border-radius: 5px; }
+        .btn-add-circle { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--secondary); color: #fff; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* CỘT PHẢI: ĐƠN HÀNG (40%) */
+        .order-column { flex: 4; display: flex; flex-direction: column; background: #fff; }
+        .order-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fafafa; }
+        .order-list { flex: 1; overflow-y: auto; padding: 15px; }
+        
+        .order-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px dashed #eee; }
+        .order-item-info b { font-size: 14px; display: block; }
+        .order-item-info i { font-size: 11px; color: var(--secondary); }
+        .btn-del { color: #fff; background: var(--primary); border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 10px; margin-left: 10px; }
+
+        .order-summary { padding: 15px; background: #fff; border-top: 1px solid #eee; }
+        .summary-line { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 5px; }
+        .total-line { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 2px solid #eee; }
+        
+        .btn-submit { width: 100%; padding: 15px; background: var(--secondary); color: #fff; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        
+        .note-mini { width: 100%; border: 1px solid #eee; border-radius: 4px; padding: 4px; font-size: 11px; margin-top: 5px; background: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- CỘT TRÁI: HIỂN THỊ MENU -->
+    <div class="menu-column">
+        <div class="menu-header">
+            <b style="color: var(--primary); font-size: 18px;">🍜 Phở Túy 11h</b>
+        </div>
+
+        <!-- DÁN THANH CHỌN TAB VÀO ĐÂY (Giữa Header và Danh sách món) -->
+        <div style="padding: 10px 15px 0 15px;"> 
+            <div style="display: flex; background: #eee; padding: 5px; border-radius: 12px; gap: 5px;">
+                <button id="btn-menu-don" onclick="chuyenTabMenu('don')" 
+                    style="flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; background: #2e7d32; color: #fff;">
+                    🥗 Menu Đơn
+                </button>
+                <button id="btn-menu-combo" onclick="chuyenTabMenu('combo')" 
+                    style="flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; background: transparent; color: #666;">
+                    🍱 Menu COMBO
+                </button>
+            </div>
+        </div>
+
+        <!-- Thẻ này dùng để đổ danh sách món ăn từ hàm renderMenu() -->
+        <div class="menu-scroll" id="menu-list">
+            <p style="text-align:center; color:#999; padding-top:20px;">Đang tải menu...</p>
+        </div>
+    </div>
+
+    <!-- CỘT PHẢI: CHI TIẾT GIỎ HÀNG -->
+    <div class="order-column">
+        <div class="order-header">
+            <b style="font-size: 14px;">📑 CHI TIẾT ĐƠN</b>
+            <span id="label-ban" style="background:#eee; padding:2px 10px; border-radius:15px; font-size:12px; font-weight:bold;">Bàn 1</span>
+        </div>
+        
+        <!-- Thẻ này dùng để đổ món khách đã chọn từ hàm renderOrder() -->
+        <div class="order-list" id="order-items">
+            <p style="text-align:center; color:#ccc; margin-top:30px;">Chưa có món ăn</p>
+        </div>
+
+        <div class="order-summary">
+            <!-- Đổi ID để khớp với hàm updateSummary: sum-sub, sum-vat, sum-total -->
+            <div class="summary-line"><span>Tiền món:</span> <span id="sum-sub">0đ</span></div>
+            <div class="summary-line"><span>Thuế GTGT (2%):</span> <span id="sum-vat">0đ</span></div>
+            <div class="total-line">
+                <b style="font-size: 16px;">TỔNG CỘNG:</b>
+                <b id="sum-total" style="color: var(--primary); font-size: 22px;">0</b>
+            </div>
+            <button class="btn-submit" onclick="guiDonHang()">GỬI YÊU CẦU 🚀</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+
+
+let currentMenuTab = 'don'; 
+
+
+   const firebaseConfig = {
+  apiKey: "AIzaSyAtwr87l4pjnInOvL_9TMkBRi-xzkp2YGA",
+  authDomain: "pho-tuy.firebaseapp.com",
+  databaseURL: "https://pho-tuy-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "pho-tuy",
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+
+    const params = new URLSearchParams(window.location.search);
+    const tableId = params.get('table') || "1";
+    document.getElementById('label-ban').innerText = "Bàn " + tableId;
+
+    let gioHang = {};
+
+
+function themMon(ten, gia, id, desc) {
+    // Luôn tạo món mới với ghi chú trống, khách sẽ tự nhập trong giỏ hàng sau
+    const note = ""; 
+    const key = id + "_" + note;
+
+    if (gioHang[key]) {
+        gioHang[key].sl += 1;
+    } else {
+        gioHang[key] = { 
+            ten: ten, 
+            gia: gia, 
+            id: id, 
+            sl: 1, 
+            note: note,
+            desc: desc 
+        };
+    }
+    renderOrder();
+}
+    // 3. VẼ CHI TIẾT ĐƠN
+   function renderOrder() {
+    const container = document.getElementById("order-items");
+    let html = "";
+    let subTotal = 0;
+
+    // Lấy danh sách món từ Object gioHang
+    const items = Object.values(gioHang);
+
+    if (items.length === 0) {
+        container.innerHTML = `<div style="text-align:center;color:#ccc;margin-top:20px;">Chưa có món ăn</div>`;
+        updateSummary(0);
+        return;
+    }
+
+    items.forEach((item, index) => {
+        const sl = item.sl || 1;
+        const gia = item.gia || 0;
+        const thanhTien = gia * sl;
+        subTotal += thanhTien;
+
+        // --- LOGIC GHI CHÚ GIỐNG APP CHÍNH ---
+        // (Khách quét QR có thể sửa ghi chú trực tiếp trong giỏ hàng)
+        let ghiChuHTML = `
+            <div style="font-size:11px; margin-top:2px;">
+                ${item.desc ? `<div style="color:#999; font-style: italic; margin-bottom: 2px;">(${item.desc})</div>` : ''}
+                <div class="note-container">
+                    <span style="color: #d32f2f; font-weight: bold; flex-shrink: 0;">Ghi chú:</span>
+                    <div class="note-line">
+                        <input type="text" 
+                               value="${item.note || ''}" 
+                               onchange="suaGhiChuKhach('${Object.keys(gioHang)[index]}', this.value)"
+                               style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; z-index: 2; padding: 0;">
+                    </div>
+                </div>
+            </div>`;
+
+        html += `
+        <div style="padding:10px; border-bottom:1px dashed #eee; background:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div style="flex:1;">
+                    <b style="font-size: 15px;">${item.ten}</b> 
+                    ${sl > 1 ? `<span class="badge-sl"><small style="font-weight:normal; font-size:8px;">x</small>${sl}</span>` : ""}
+                    ${ghiChuHTML}
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; margin-left:10px;">
+                    <b style="font-size:14px;">${thanhTien.toLocaleString()}đ</b>
+                    <button onclick="xoaMon('${Object.keys(gioHang)[index]}')" 
+                            style="background:#ff5252; color:#fff; border:none; border-radius:4px; padding:2px 8px; cursor:pointer; font-weight:bold;">✕</button>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+    updateSummary(subTotal);
+}
+
+
+// Hàm bổ trợ để khách sửa ghi chú ngay trong giỏ hàng điện thoại
+function suaGhiChuKhach(key, val) {
+    if (gioHang[key]) {
+        gioHang[key].note = val;
+    }
+}
+
+
+    function updateSummary(sub) {
+        const vat = Math.round(sub * 0.02);
+        document.getElementById("sum-sub").innerText = sub.toLocaleString() + "đ";
+        document.getElementById("sum-vat").innerText = vat.toLocaleString() + "đ";
+        document.getElementById("sum-total").innerText = (sub + vat).toLocaleString();
+    }
+
+    function xoaMon(key) {
+        delete gioHang[key];
+        renderOrder();
+    }
+
+    // 4. GỬI ĐƠN
+   function guiDonHang() {
+    const danhSach = Object.values(gioHang);
+
+    if (danhSach.length === 0) {
+        alert("Vui lòng chọn món!");
+        return;
+    }
+
+    const pendingData = {
+        tableId: tableId,
+        items: danhSach,
+        timestamp: Date.now(),
+        status: "waiting"
+    };
+
+    console.log("DATA GỬI:", pendingData); // debug
+
+    db.ref("pending_qr_orders").push(pendingData)
+    .then(() => {
+        alert("🚀 Đã gửi yêu cầu!");
+        gioHang = {};
+        renderOrder();
+    })
+    .catch(err => {
+        console.error("LỖI FIREBASE:", err);
+        alert("Lỗi gửi đơn: " + err.message);
+    });
+}
+
+function getMoTa(mon) {
+    let moTa = ""; 
+    let tenLoai = "";
+
+    // Phân loại tên phụ
+    if (mon.ten.includes('Túy Tâm')) tenLoai = "Phở thường";
+    else if (mon.ten.includes('Túy Thượng')) tenLoai = "Phở đặc biệt";
+    else if (mon.ten.includes('Hỏa Châu')) tenLoai = "Trứng chần";
+    else if (mon.ten.includes('Tiềm Thủy')) tenLoai = "Trứng hấp";
+
+    // Nội dung mô tả chi tiết
+    if (mon.ten.includes('Túy Tâm')) {
+        moTa = `<div class="scroll-container"><div class="scroll-text">Nước dùng thanh ngọt, thịt bò tươi thơm ngon, đậm đà vị truyền thống ✨</div></div>`;
+    } else if (mon.ten.includes('Túy Thượng')) {
+        moTa = `<div class="scroll-container"><div class="scroll-text">Thưởng thức tinh túy từ phần thịt lõi rùa quý hiếm, mềm tan trong thực quản 💎</div></div>`;
+    } else if (mon.ten.includes('Hỏa Châu') || mon.ten.includes('Tiềm Thủy')) {
+        let txt = mon.ten.includes('Hỏa Châu') ? "Trứng gà tươi chần trong nước dùng thanh ngọt ✨" : "Ngâm trong cốt sá sùng quý giá, hấp cách thủy tinh hoa 🥚";
+        moTa = `<div class="scroll-container"><div class="scroll-text">${txt}</div></div>`;
+    } else if (mon.ten.includes('Quẩy')) {
+        moTa = `<div style="font-size:11px;color:#666;font-style:italic;">Giòn rụm, thơm ngon (4 cái)</div>`;
+    } else if (mon.loai === 'combo') {
+        let slogan = mon.ten.includes('Thượng') ? 'Bậc quân tử thưởng thức tinh hoa ✨' : (mon.ten.includes('Tâm') ? 'Năng lượng cho ngày mới ☀️' : 'Chiêu đãi bậc Đế Vương 👑');
+        moTa = `<div style="font-size: 11px; color: #666; margin-bottom:2px;">${mon.desc || ''}</div>
+                <div class="scroll-container"><div class="scroll-text" style="font-weight:bold;">${slogan}</div></div>`;
+    }
+    return { moTa, tenLoai };
+}
+
+function renderMenu() {
+    const container = document.getElementById('menu-list');
+    if (!container) return;
+
+    db.ref("menu").on("value", snap => {
+        container.innerHTML = ""; 
+        const menuData = snap.val();
+        if (!menuData) return;
+
+        const fragment = document.createDocumentFragment();
+
+        Object.entries(menuData).forEach(([id, mon]) => {
+            const loaiMon = mon.loai || 'don'; 
+            if (loaiMon !== currentMenuTab) return;
+
+            const listVIP = ['Túy Thượng', 'Tiềm Thủy', 'Song Long Hội Tụ'];
+            const laVIP = listVIP.some(v => mon.ten.includes(v));
+
+            const info = getMoTa(mon);
+            const isHet = (Number(mon.limit || 0) - Number(mon.soldToday || 0)) <= 0;
+            
+            // Xác định màu sắc chủ đạo để làm hào quang phát sáng
+            let mainGlowColor = laVIP ? "#ff0000" : (loaiMon === 'combo' ? "#e65100" : "#2e7d32");
+            const mauNut = currentMenuTab === 'combo' ? "#e65100" : "#2e7d32";
+
+            const div = document.createElement("div");
+            div.className = `menu-item ${loaiMon === 'combo' ? 'combo-neon-glow' : 'single-neon-glow'} ${laVIP ? 'vip-item-glow' : ''}`;
+            
+            // Thêm biến --glow-color vào style inline để CSS Hover sử dụng
+            div.style.cssText = `
+                display:flex; align-items:center; gap:12px; padding:12px; margin-bottom:15px; 
+                position:relative; border-radius:18px; background:#fff; 
+                ${isHet ? 'opacity:0.5;' : ''}
+                --glow-color: ${mainGlowColor};
+            `;
+
+            const vipBadgeHTML = laVIP ? `<div class="vip-badge">SIÊU PHẨM 💎</div>` : "";
+
+            div.innerHTML = `
+                ${vipBadgeHTML}
+                <div class="item-img-box" style="width:75px;height:75px;flex-shrink:0;overflow:hidden;border-radius:12px;background:#f0f0f0;z-index:2;">
+                    <img src="${mon.img || ''}" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div style="flex:1;min-width:0;z-index:2;">
+                    <div style="font-weight:bold;font-size:15px;color:#333;display:flex;align-items:center;">
+                        ${mon.ten}
+                        ${info.tenLoai ? `<span style="font-size:10px;color:#888;margin-left:4px;font-weight:normal;">(${info.tenLoai})</span>` : ''}
+                    </div>
+                    ${info.moTa}
+                    <div style="margin-top:6px;">
+                        <span class="price-tag-neon" style="color:${laVIP ? '#d32f2f' : '#000'}">
+                            ${(mon.gia || 0).toLocaleString()}đ
+                        </span>
+                    </div>
+                </div>
+                
+                <button class="btn-target ${laVIP ? 'btn-vip-red' : (isHet ? '' : (currentMenuTab === 'combo' ? 'btn-invite-glow-combo' : 'btn-invite-glow'))}" 
+                    ${isHet ? 'disabled' : ''} 
+                    style="
+                        position:absolute; bottom:10px; right:10px; 
+                        width:28px; height:28px; 
+                        border-radius:8px; border:none; 
+                        color:#fff; font-size:16px; font-weight:bold; 
+                        cursor:pointer; z-index:3; 
+                        background: ${isHet ? "#ccc" : (laVIP ? '#d32f2f' : mauNut)};
+                        display: flex; align-items: center; justify-content: center;
+                        padding: 0; transition: all 0.3s ease;
+                    ">
+                    ${isHet ? "✕" : "🛒"}
+                </button>
+            `;
+
+            const btn = div.querySelector(".btn-target");
+            if (!isHet) {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation(); // Ngăn sự kiện click lan ra thẻ div menu-item
+                    themMon(mon.ten, mon.gia, id, mon.desc || "");
+                    hieuUngBay(e); 
+                });
+            }
+            fragment.appendChild(div);
+        });
+        container.innerHTML = "";
+        container.appendChild(fragment);
+    });
+}
+
+
+// Hàm hiệu ứng bay tới vị trí vừa thêm
+function hieuUngBay(e) {
+    const flyer = document.createElement('div');
+    flyer.className = 'flying-item';
+    flyer.innerHTML = '🛒';
+    
+    // Lấy màu theo tab
+    const color = currentMenuTab === 'combo' ? '#e65100' : '#2e7d32';
+    flyer.style.backgroundColor = color;
+    flyer.style.setProperty('--glow-color', color);
+    
+    // Tọa độ bắt đầu (nút bấm - sử dụng currentTarget để chuẩn xác)
+    const rect = e.currentTarget.getBoundingClientRect();
+    flyer.style.left = rect.left + 'px';
+    flyer.style.top = rect.top + 'px';
+    document.body.appendChild(flyer);
+
+    // Đợi một chút để renderOrder vẽ xong HTML
+    setTimeout(() => {
+        // Tìm tất cả các dòng món ăn trong giỏ hàng (giả sử nằm trong #order-items)
+        const orderRows = document.querySelectorAll("#order-items > div"); 
+        const lastRow = orderRows[orderRows.length - 1]; // Lấy dòng cuối cùng (món vừa thêm)
+
+        let targetX, targetY;
+
+        if (lastRow) {
+            const rowRect = lastRow.getBoundingClientRect();
+            // Bay về phía bên trái của dòng món ăn (thường là chỗ hiện tên món)
+            targetX = rowRect.left + 20; 
+            targetY = rowRect.top + (rowRect.height / 2);
+        } else {
+            // Phòng hờ nếu ko tìm thấy dòng thì bay về khung tổng
+            const cart = document.getElementById('order-items');
+            const cartRect = cart.getBoundingClientRect();
+            targetX = cartRect.left + 50;
+            targetY = cartRect.top + 100;
+        }
+
+        // Thực hiện bay
+        flyer.style.left = targetX + 'px';
+        flyer.style.top = targetY + 'px';
+        flyer.style.transform = 'scale(0.1) rotate(360deg)';
+        flyer.style.opacity = '0';
+    }, 50);
+
+    // Xóa vật thể sau 700ms (khớp với transition CSS)
+    setTimeout(() => { flyer.remove(); }, 700); 
+}
+
+
+
+
+
+// Hàm xử lý khi ấn nút chuyển Tab
+function chuyenTabMenu(tab) {
+    currentMenuTab = tab; // Cập nhật tab hiện tại
+    
+    // 1. Cập nhật giao diện nút bấm (Active/Inactive)
+    const btnDon = document.getElementById('btn-menu-don');
+    const btnCombo = document.getElementById('btn-menu-combo');
+    
+    if (tab === 'don') {
+        btnDon.style.background = "#2e7d32"; btnDon.style.color = "#fff";
+        btnCombo.style.background = "transparent"; btnCombo.style.color = "#666";
+    } else {
+        btnCombo.style.background = "#e65100"; btnCombo.style.color = "#fff";
+        btnDon.style.background = "transparent"; btnDon.style.color = "#666";
+    }
+    
+    // 2. QUAN TRỌNG: Vẽ lại menu để thực hiện lọc món theo tab
+    renderMenu(); 
+}
+renderMenu();
+
+
+
+
+</script>
+</body>
+</html>
+
