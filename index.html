@@ -9,6 +9,52 @@
 
 
 
+/* Ép Modal lịch sử nổi lên trên cùng */
+#modal-lich-su-khach {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.7) !important; /* Nền tối hơn lớp dưới */
+    z-index: 999999 !important; /* Đặt z-index cực lớn (ví dụ 1 triệu) */
+    display: none; /* Mặc định ẩn */
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px) !important; /* Làm mờ Modal Hội viên ở phía sau */
+}
+
+/* Khung nội dung trắng bên trong */
+#modal-lich-su-khach > div {
+    background: #fff;
+    width: 95%;
+    max-width: 480px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    z-index: 1000000 !important;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+
+
+
+
+
+
+#hv-ten {
+    text-transform: capitalize;
+}
+
+/* Ép nội dung hội viên luôn hiển thị khi nằm trong Modal */
+#modal-hoivien .tab-content {
+    display: block !important;
+}
+
 /* 1. Hiệu ứng hiện Modal báo cáo */
 #modal-bao-cao-tong {
     backdrop-filter: blur(4px); /* Làm mờ nền phía sau */
@@ -379,19 +425,19 @@
     background-color: #1b5e20;
 }
 
-/* Header của danh sách phía dưới */
-.member-list-header {
-    display: flex;
-    justify-content: space-between;
-    background: #f1f3f5;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 13px;
-    font-weight: bold;
-    color: #555;
+/* Tiêu đề danh sách và từng dòng hội viên */
+.member-list-header, .member-row {
+    display: flex !important;
+    align-items: center;
+    width: 100%;
+    padding: 10px 0;
 }
 
-
+/* Định nghĩa độ rộng cho từng cột */
+.col-name { width: 40%; text-align: left; padding-left: 10px; }
+.col-info { width: 30%; text-align: center; }
+.col-history { width: 15%; text-align: center; }
+.col-action { width: 15%; text-align: right; padding-right: 10px; }
 
 body {
     margin: 0;
@@ -717,8 +763,8 @@ body {
         <div class="left">
             <div class="tab-headers">
                 <button class="tab-btn active" onclick="switchTab('tab-so-do', this)">SƠ ĐỒ BÀN</button>
-                <button class="tab-btn" onclick="switchTab('tab-kho', this)">KHO HÀNG 📦</button>
-                <button class="tab-btn" onclick="switchTab('tab-hoi-vien', this)">HỘI VIÊN 💳</button>
+               
+
                 <button class="tab-btn" onclick="switchTab('tab-chi-tieu', this)" style="background: #ffebee; color: #d32f2f;">Chi tiêu💸</button>
             </div>
 
@@ -730,48 +776,67 @@ body {
                 <div class="grid-tables" id="bar-grid"></div>
             </div>
 
-            <!-- TAB KHO -->
-        <div id="tab-kho" class="tab-content"> 
-            <h3 style="color:#2e7d32; margin-top:0">📦 QUẢN LÝ TỒN KHO</h3>
-            <table class="stock-table">
-                <thead><tr><th>Nguyên liệu</th><th>Tồn</th><th>Số lượng thêm</th><th>Thêm/Bớt</th><th>Giới hạn</th><th>ĐVT</th></tr></thead>
-                <tbody id="stock-body"></tbody>
-            </table>
 
+           <!-- MODAL QUẢN LÝ HỘI VIÊN -->
+<div id="modal-hoivien" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    
+    <div style="background:white; padding:20px; border-radius:15px; width:95%; max-width:800px; max-height:95vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position:relative; display:flex; flex-direction:column;">
+        
+        <!-- Nút đóng góc trên -->
+        <button onclick="dongHoiVien()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:25px; cursor:pointer; color:#666; z-index:10;">&times;</button>
+
+        <div id="tab-hoi-vien" class="tab-content" style="display:block !important; overflow-y:auto; flex:1;">
+            <h3 style="color:#2e7d32; margin-top:0; display:flex; align-items:center; gap:10px;">
+                💳 QUẢN LÝ HỘI VIÊN
+            </h3>
+
+            <!-- Form Nhập Liệu (Giữ nguyên ID của bạn) -->
+            <div class="member-form" style="background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <input type="text" id="hv-ten" class="member-input" placeholder="Tên khách hàng" style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd;">
+
+                    <input type="tel" id="hv-sdt" class="member-input" 
+       placeholder="Số điện thoại" 
+       oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3');"
+       pattern="[0-9]*" 
+       inputmode="numeric"
+       maxlength="12">
+
+                    <input type="date" id="hv-ngaysinh" class="member-input" style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd;">
+                    <input type="text" id="hv-sothich" class="member-input" placeholder="Sở thích..." style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd;">
+                </div>
+                <button class="btn-add-member" onclick="themHoiVien()" style="width:100%; padding:10px; background:#2e7d32; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+                    + THÊM HỘI VIÊN MỚI
+                </button>
             </div>
 
-            <div id="tab-hoi-vien" class="tab-content">
-    <h3 style="color:#2e7d32; margin-top:0; display:flex; align-items:center; gap:10px;">
-        💳 QUẢN LÝ HỘI VIÊN
-    </h3>
-
-    <!-- Form Nhập Liệu -->
-    <div class="member-form">
-        <input type="text" id="hv-ten" class="member-input" placeholder="Tên khách hàng">
-        <input type="tel" id="hv-sdt" class="member-input" placeholder="Số điện thoại">
-        <input type="date" id="hv-ngaysinh" class="member-input"> <!-- Thêm ngày sinh -->
-        <input type="text" id="hv-sothich" class="member-input" placeholder="Sở thích (ví dụ: ít hành...)">
-        
-        <button class="btn-add-member" onclick="themHoiVien()">
-            + THÊM HỘI VIÊN MỚI
-        </button>
-    </div>
-
-    <!-- Tiêu đề danh sách phía dưới -->
-    <div class="member-list-header">
-        <span style="flex:1">Khách hàng</span>
-        <span style="flex:1; text-align:center">SĐT / Ngày sinh</span>
-        <span style="flex:1; text-align:right">Lịch sử</span>
-        <span style="flex:1; text-align:right">Sửa / Xóa</span>
-    </div>
-
-    <!-- Bảng danh sách hội viên -->
-    <table class="stock-table" style="width:100%; margin-top:5px;">
-        <tbody id="ds-hoi-vien-body">
-            <!-- Hội viên sẽ render ở đây -->
-        </tbody>
-    </table>
+            <!-- Header danh sách (Giữ style của bạn) -->
+           <div class="member-list-header" style="background:#eee; font-weight:bold; border-radius:5px;">
+    <table style="width: 100%; border-collapse: collapse; background: #eee; border-radius: 5px 5px 0 0;">
+    <thead>
+        <tr style="font-weight: bold; font-size: 13px; color: #333;">
+            <td style="width: 45%; padding: 12px 15px; text-align: left;">Khách hàng</td>
+            <td style="width: 30%; padding: 12px 0; text-align: center;">SĐT / Ngày sinh</td>
+            <td style="width: 12%; padding: 12px 0; text-align: center;">Lịch sử</td>
+            <td style="width: 13%; padding: 12px 15px; text-align: right;">Sửa/Xóa</td>
+        </tr>
+    </thead>
+</table>
 </div>
+
+            <!-- Bảng danh sách hội viên (Giữ đúng ID ds-hoi-vien-body) -->
+            <table class="stock-table" style="width:100%; margin-top:5px; border-collapse: collapse;">
+                <tbody id="ds-hoi-vien-body">
+                    <!-- Hội viên sẽ render ở đây -->
+                </tbody>
+            </table>
+        </div>
+
+        <button onclick="dongHoiVien()" style="width:100%; margin-top:15px; padding:12px; background:#f5f5f5; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:#666;">ĐÓNG</button>
+    </div>
+</div>
+
+
 
 
            <div id="tab-chi-tieu" class="tab-content" style="background: #f9f9f9; padding: 15px; border-radius: 12px;">
@@ -867,12 +932,12 @@ body {
         </div> <!-- Đóng Center -->
 
     
-        <!-- CỘT PHẢI (RIGHT) -->
-<div class="right" style="display: flex; flex-direction: column; background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%;">
+        <!-- CỘT PHẢI (RIGHT) - Đã thêm ID để trượt -->
+<div id="order-column" class="right" tabindex="0" style="display: flex; flex-direction: column; background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%; outline: none;">
     
-    <!-- Tiêu đề & Chọn bàn -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-        <h3 style="margin:0; font-size: 16px;">📋 CHI TIẾT ĐƠN</h3>
+    <!-- Tiêu đề -->
+    <div id="order-trigger" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; cursor: pointer;">
+    <h3 style="margin:0; font-size: 16px;">📋 CHI TIẾT ĐƠN</h3>
         <span id="table-header" style="background: #f5f5f5; padding: 4px 15px; border-radius: 8px; font-weight: bold; border: 1px solid #ddd; font-size: 14px;">Chọn Bàn</span>
     </div>
 
@@ -1034,14 +1099,24 @@ const db = firebase.database();
 
 let TABLES = [], MENU = [], KHO = [], HOIVIEN = [], CHITIEU = [], currentTableId = null;
 
-// LOAD REALTIME
-// 🔥 SYNC KHO -> FIREBASE (Kiểm tra nếu kho trống thì đẩy KHO_MASTER lên)
-db.ref("kho").once("value").then(s => {
+// 🔥 LẮNG NGHE KHO REALTIME
+db.ref("kho").on("value", s => {
     const data = s.val();
-    // Nếu kho chưa có hoặc số lượng món ít hơn 6, thì ép cập nhật KHO_MASTER
-    if (!data || Object.keys(data).length < 6) { 
+    
+    // Kiểm tra nếu kho trống thì mới đẩy KHO_MASTER lên lần đầu
+    if (!data || data.length < 6) { 
         db.ref("kho").set(KHO_MASTER);
-        console.log("📦 Đã ép cập nhật 6 món kho lên Firebase!");
+        console.log("📦 Đã khởi tạo dữ liệu kho MASTER!");
+    } else {
+        // CẬP NHẬT DỮ LIỆU VÀO BIẾN KHO TOÀN CỤC
+        KHO = data; 
+        console.log("⚡ Kho đã cập nhật số mới từ Server!");
+
+        // TỰ ĐỘNG VẼ LẠI NẾU MODAL ĐANG MỞ
+        const modal = document.getElementById('modal-kho-hang');
+        if (modal && modal.style.display === 'flex') {
+            renderKho(); 
+        }
     }
 });
 
@@ -1106,17 +1181,32 @@ db.ref("tables").on("value", s => {
     }
 });
 db.ref("menu").on("value", s => { MENU = s.val() || []; renderMenu(); });
-db.ref("kho").on("value", s => { KHO = s.val() || []; renderKho(); });
+
+db.ref("kho").on("value", s => { 
+    KHO = s.val() || []; 
+    // Chỉ render lại nếu cái bảng Kho đang hiện trên màn hình
+    const modal = document.getElementById('modal-kho-hang');
+    if (modal && modal.style.display === 'flex') {
+        renderKho(); 
+    }
+});
+
+
+
 db.ref("hoivien").on("value", s => { HOIVIEN = []; s.forEach(c => { HOIVIEN.push({id:c.key, ...c.val()}) }); renderHoiVien(); });
 db.ref("chitieu").on("value", s => { CHITIEU = []; s.forEach(c => { CHITIEU.push({id:c.key, ...c.val()}) }); renderChiTieu(); });
 
 // TABS
 
-/* 6.CHUYỂN TAB*/
-
 function switchTab(id, btn) {
-    // 1. Ẩn tất cả các tab và gỡ bỏ class active ở nút
-    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    // 1. Ẩn tất cả các tab, NHƯNG trừ những tab đang nằm trong Modal
+    document.querySelectorAll('.tab-content').forEach(c => {
+        // Nếu tab-content không nằm trong modal-hoivien thì mới ẩn
+        if (!c.closest('#modal-hoivien')) {
+            c.style.display = 'none';
+        }
+    });
+
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
     // 2. Hiển thị tab được chọn
@@ -1126,16 +1216,13 @@ function switchTab(id, btn) {
     }
     if (btn) btn.classList.add('active');
 
-    // --- QUAN TRỌNG: Nếu mở tab báo cáo thì phải chạy hàm lấy dữ liệu ---
+    // Logic báo cáo giữ nguyên của bạn
     if (id === 'tab-bao-cao') {
-        // Tự động điền ngày hôm nay vào ô lọc nếu đang trống
         const today = new Date().toISOString().split('T')[0];
         if (!document.getElementById("report-from").value) {
             document.getElementById("report-from").value = today;
             document.getElementById("report-to").value = today;
         }
-        
-        // Chạy hàm lấy dữ liệu
         taiBaoCaoDoanhThu();
     }
 }
@@ -1143,39 +1230,40 @@ function switchTab(id, btn) {
 /* 5.📦 VẼ KHO */
 function renderKho() {
     let h = ""; 
+    // Sử dụng đúng mảng KHO của bạn
     KHO.forEach((k, i) => {
         const isLow = k.ton <= (k.limit || 0);
         const warningClass = isLow ? "blink-red" : "";
 
         h += `<tr>
-                <td style="text-align:left; font-weight:500; padding-left:15px;">${k.ten}</td>
-                <td class="${warningClass}"><b>${Number(k.ton).toFixed(1)}</b></td>
+                <td style="text-align:left; font-weight:500; padding:10px; padding-left:15px; border-bottom:1px solid #eee;">${k.ten}</td>
+                <td class="${warningClass}" style="text-align:center; border-bottom:1px solid #eee;"><b>${Number(k.ton).toFixed(1)}</b></td>
                 
                 <!-- Số lượng thêm -->
-                <td>
+                <td style="text-align:center; border-bottom:1px solid #eee;">
                     <input type="number" id="input-kho-${i}" value="0" 
-                           style="width:45px; text-align:center; border:none; background:#f1f3f5; border-radius:6px; padding:6px 0;">
+                           style="width:50px; text-align:center; border:none; background:#f1f3f5; border-radius:6px; padding:6px 0;">
                 </td>
                 
-                <!-- NÚT NẰM NGANG TẠI ĐÂY -->
-                <td>
-                    <div class="action-group-horizontal">
-                        <button class="btn-action btn-plus" onclick="changeKho(${i}, 1)">+</button>
-                        <button class="btn-action btn-minus" onclick="changeKho(${i}, -1)">-</button>
+                <!-- Nút bấm ngang -->
+                <td style="text-align:center; border-bottom:1px solid #eee;">
+                    <div style="display:flex; gap:5px; justify-content:center;">
+                        <button onclick="changeKho(${i}, 1)" style="background:#2e7d32; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">+</button>
+                        <button onclick="changeKho(${i}, -1)" style="background:#d32f2f; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">-</button>
                     </div>
                 </td>
                 
                 <!-- Giới hạn -->
-                <td>
+                <td style="text-align:center; border-bottom:1px solid #eee;">
                     <input type="number" value="${k.limit || 0}" 
                            style="width:40px; text-align:center; border:none; background:transparent; color:#bbb;"
                            onchange="updateLimit(${i}, this.value)">
                 </td>
                 
-                <td style="color:#ccc; font-size:12px;">${k.dvt}</td>
+                <td style="color:#ccc; font-size:12px; text-align:center; border-bottom:1px solid #eee;">${k.dvt}</td>
               </tr>`; 
     });
-    document.getElementById("stock-body").innerHTML = h;
+    document.getElementById("modal-stock-body").innerHTML = h;
 }
 /* 🛠 CẬP NHẬT KHO LÊN FIREBASE */
 /* 🛠 HÀM CẬP NHẬT KHO MỚI (Lấy dữ liệu từ ô Input) */
@@ -1249,8 +1337,8 @@ function renderHoiVien() {
 
            h += `
     <tr style="border-bottom: 1px solid #eee;">
-        <!-- Cột 1 & 2 giữ nguyên -->
-        <td style="padding: 12px 0; width: 45%; text-align: left;">
+        <!-- Cột 1: Khách hàng (45%) -->
+        <td style="padding: 12px 15px; width: 45%; text-align: left; vertical-align: top;">
             <b style="color: #d32f2f; font-size: 15px;">${tenKhach}</b>
             ${soThich}
             <div style="font-size: 11px; margin-top: 4px; line-height: 1.4;">
@@ -1258,17 +1346,23 @@ function renderHoiVien() {
                 <small style="color:#888">(Tâm: ${tam} | Thượng: ${thuong})</small>
             </div>
         </td>
-        <td style="text-align: center; width: 35%; font-size: 13px; color: #444;">
+
+        <!-- Cột 2: SĐT & Ngày sinh (30%) -->
+        <td style="padding: 12px 0; width: 30%; text-align: center; font-size: 13px; color: #444; vertical-align: top;">
             <b>${soDT}</b><br>
-            <small style="color:#aaa">🎂 ${ngaySinh}</small>
+            <small style="color:#aaa">📅 ${ngaySinh}</small>
         </td>
 
-        <!-- CỘT 3: THÊM NÚT LỊCH SỬ 📜 -->
-        <td style="text-align: right; width: 20%;">
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="xemLichSuKhach('${id}', '${tenKhach}')" title="Xem lịch sử" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">📜</button>
-                <button onclick="chuanBiSua('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">📝</button>
-                <button onclick="xoaHoiVien('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px; padding:0;">🗑️</button>
+        <!-- Cột 3: Lịch sử (12%) -->
+        <td style="padding: 12px 0; width: 12%; text-align: center; vertical-align: top;">
+            <button onclick="xemLichSuKhach('${id}', '${tenKhach}')" style="border:none; background:none; cursor:pointer; font-size:18px;">📜</button>
+        </td>
+
+        <!-- Cột 4: Sửa/Xóa (13%) -->
+        <td style="padding: 12px 15px; width: 13%; text-align: right; vertical-align: top;">
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button onclick="chuanBiSua('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px;">📝</button>
+                <button onclick="xoaHoiVien('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px;">🗑️</button>
             </div>
         </td>
     </tr>
@@ -1371,6 +1465,14 @@ function selectTable(id) {
     });
 
     renderTables();
+
+    // --- THÊM ĐOẠN NÀY ĐỂ TỰ ĐỘNG HIỆN CHI TIẾT ĐƠN ---
+    if (window.innerWidth <= 768) {
+        const sheet = document.getElementById('order-column');
+        if (sheet) {
+            sheet.classList.add('mo-ra'); // Tự động trượt lên
+        }
+    }
 }
 
 
@@ -1598,7 +1700,8 @@ function suaNote(index, value) {
 }
 
 /*17.Tặng quà*/
-/*18.CHUYỂN BƯỚC - ĐÃ SỬA LỖI TÍNH GIÁ VÀ VOUCHER*/
+
+/*18.CHUYỂN BƯỚC*/
 function chuyenBuoc(st) {
     if (!currentTableId) return;
 
@@ -1970,45 +2073,84 @@ function chuanBiSua(id) {
         console.error("Lỗi khi lấy dữ liệu sửa:", err);
     });
 }
+/*25.1.chuẩn hóa tên*/
+function chuanHoaTen(str) {
+    return str.toLowerCase().split(' ').map(word => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+}
 
-// 2. Sửa lại hàm themHoiVien để xử lý cả "Thêm" và "Lưu"
+
+
+/*25.Thêm hội viên*/
 function themHoiVien() {
-    const ten = document.getElementById('hv-ten').value;
-    const sdt = document.getElementById('hv-sdt').value;
+    const tenRaw = document.getElementById('hv-ten').value.trim();
+    const ten = chuanHoaTen(tenRaw);
+    const sdt = document.getElementById('hv-sdt').value.trim();
+
+    if (!ten || !sdt) {
+        alert("⚠️ Vui lòng nhập đầy đủ tên và số điện thoại!");
+        return;
+    }
+
     const ngaySinh = document.getElementById('hv-ngaysinh').value;
     const soThich = document.getElementById('hv-sothich').value;
 
-    if (!ten || !sdt) return alert("Vui lòng nhập tên và SĐT!");
-
     const data = {
-        ten: ten,
-        sdt: sdt,
+        ten,
+        sdt,
         ngaysinh: ngaySinh,
         sothich: soThich
     };
 
-    if (dangSuaId) {
-        // --- LOGIC SỬA ---
-        db.ref("members/" + dangSuaId).update(data).then(() => {
-            alert("Đã cập nhật thông tin!");
-            dangSuaId = null; // Reset về null sau khi sửa xong
-            resetFormHoiVien();
+    // 🔥 LẤY DATA TRỰC TIẾP TỪ FIREBASE (KHÔNG DÙNG HOIVIEN_DATA NỮA)
+    db.ref("members").once("value").then(snap => {
+        const danhSachHoiVien = snap.val() || {};
+        let trung = false;
+
+        Object.keys(danhSachHoiVien).forEach(idKey => {
+            const sdtDB = String(danhSachHoiVien[idKey].sdt || "").trim();
+            const sdtInput = String(sdt).trim();
+
+            // ❗ CHỈ CHECK nếu KHÔNG phải chính nó
+            if (sdtDB === sdtInput && idKey !== dangSuaId) {
+                trung = true;
+            }
         });
-    } else {
-        // --- LOGIC THÊM MỚI ---
-        // Khởi tạo điểm bằng 0 cho khách mới
-        data.tuy_tam_count = 0;
-        data.tuy_thuong_count = 0;
-        data.diem_tich_luy = 0;
-        
-        db.ref("members").push(data).then(() => {
-            alert("Đã thêm hội viên mới!");
-            resetFormHoiVien();
-        });
-    }
+
+        if (trung) {
+            alert(`❌ Số điện thoại ${sdt} đã tồn tại!`);
+            return;
+        }
+
+        // =============================
+        // 🟢 CẬP NHẬT
+        // =============================
+        if (dangSuaId) {
+            db.ref("members/" + dangSuaId).update(data)
+                .then(() => {
+                    alert("✅ Đã cập nhật thành công!");
+                    resetFormHoiVien();
+                })
+                .catch(e => alert("Lỗi Firebase: " + e.message));
+        } 
+        // =============================
+        // 🟢 THÊM MỚI
+        // =============================
+        else {
+            data.tuy_tam_count = 0;
+            data.tuy_thuong_count = 0;
+            data.diem_tich_luy = 0;
+
+            db.ref("members").push(data)
+                .then(() => {
+                    alert("✅ Đã thêm hội viên mới!");
+                    resetFormHoiVien();
+                })
+                .catch(e => alert("Lỗi Firebase: " + e.message));
+        }
+    });
 }
-
-
 //25.Hàm xóa trắng form sau khi làm xong
 function resetFormHoiVien() {
     document.getElementById('hv-ten').value = "";
@@ -2474,49 +2616,44 @@ function xacNhanPhucVu(event, tableId) {
 }
 
 
-/*38.Trừ kho*/
 function truKhoMoi(itemId, sl) {
-    // 1. Kiểm tra xem biến RECIPES có tồn tại không
-    if (typeof RECIPES === 'undefined') {
-        console.error("❌ Lỗi: Biến RECIPES chưa được khai báo ở đầu file!");
-        return;
-    }
+    if (typeof RECIPES === 'undefined') return;
 
     const recipe = RECIPES[itemId];
-    
-    // 2. Debug để xem recipe lấy ra là gì
-    console.log("ID nhận được:", itemId, "Recipe tìm thấy:", recipe);
+    if (!recipe) return;
 
-    if (!recipe) {
-        console.error("❌ Không tìm thấy Công thức cho ID:", itemId);
-        return;
-    }
+    // Dùng luôn biến KHO đang lắng nghe realtime để tính toán, không dùng .once nữa
+    if (!KHO || KHO.length === 0) return;
 
-    db.ref("kho").once("value").then(s => {
-        let khoData = s.val() || [];
-        let updates = {};
+    let updates = {};
+    Object.keys(recipe).forEach(idNL => {
+        const dinhMuc = recipe[idNL];
+        // Tìm vị trí nguyên liệu trong mảng KHO toàn cục
+        const idx = KHO.findIndex(k => k.id === idNL);
 
-        Object.keys(recipe).forEach(idNL => {
-            const dinhMuc = recipe[idNL];
-            const idx = khoData.findIndex(k => k.id === idNL);
+        if (idx !== -1) {
+            let tonHienTai = parseFloat(KHO[idx].ton) || 0;
+            let giaTriTru = (KHO[idx].dvt === "kg" || KHO[idx].dvt === "lít") 
+                            ? (dinhMuc * sl) / 1000 
+                            : (dinhMuc * sl);
 
-            if (idx !== -1) {
-                let tonHienTai = parseFloat(khoData[idx].ton) || 0;
-                let giaTriTru = (khoData[idx].dvt === "kg" || khoData[idx].dvt === "lít") 
-                                ? (dinhMuc * sl) / 1000 
-                                : (dinhMuc * sl);
-
-                updates[`${idx}/ton`] = parseFloat(Math.max(0, tonHienTai - giaTriTru).toFixed(2));
-            }
-        });
-
-        if (Object.keys(updates).length > 0) {
-            db.ref("kho").update(updates);
+            // Tính số dư mới
+            let newTon = parseFloat(Math.max(0, tonHienTai - giaTriTru).toFixed(2));
+            updates[`${idx}/ton`] = newTon;
+            
+            // Cập nhật tạm thời vào biến KHO để các lệnh trừ tiếp theo (trong cùng 1 đơn) lấy số mới nhất
+            KHO[idx].ton = newTon; 
         }
     });
-}
 
-let mónĐangTách = null;
+    if (Object.keys(updates).length > 0) {
+        // Đẩy lên Firebase - Vì bạn đã có lệnh db.ref("kho").on(...) ở ngoài
+        // Nên khi update xong, Firebase sẽ tự "hét" lên và hàm renderKho sẽ tự chạy lại
+        db.ref("kho").update(updates).then(() => {
+            console.log("⚡ Đã trừ kho realtime cho món:", itemId);
+        });
+    }
+}
 
 //39.HÀM GỘP BÀN ---
 function moModalGop() {
@@ -3286,18 +3423,22 @@ function xuLyDonQR(orderId, action) {
                     db.ref("pending_qr_orders/" + orderId).remove()
                 ]);
             }).then(() => {
-                // --- BỔ SUNG: CHUYỂN TRẠNG THÁI BÀN SANG 'ordering' (Đang chọn) ---
-                // Việc này giúp bàn đổi màu đỏ/cam và hiện nút "In Bếp"
+                // --- BỔ SUNG THÔNG BÁO TỚI KHÁCH HÀNG ---
+                db.ref(`notifications/${data.tableId}`).set({
+                    status: "confirmed",
+                    timestamp: Date.now()
+                });
+
                 if (typeof updateStatus === "function") {
                     updateStatus(data.tableId, "ordering");
                 }
 
-                // 3. Cập nhật giao diện chi tiết nếu đang mở bàn đó
                 if (typeof currentTableId !== 'undefined' && currentTableId === data.tableId) {
                     db.ref("orders/" + data.tableId).once("value", s => renderOrder(s.val()));
                 }
                 
-                alert("✅ Xác nhận thành công & Bàn đã chuyển sang Đang chọn!");
+                // Bạn có thể bỏ alert này nếu không muốn bị ngắt quãng thao tác
+                console.log("✅ Đã gửi thông báo xác nhận tới khách hàng bàn " + data.tableId);
             });
         }
     });
@@ -3324,6 +3465,61 @@ function syncMenuToFirebase() {
         .then(() => console.log("✅ Menu đã sync Firebase"))
         .catch(err => console.error(err));
 }
+
+function moKhoHang() {
+    // 1. Hiện cái hộp Modal lên
+    document.getElementById('modal-kho-hang').style.display = 'flex';
+    // 2. Vẽ dữ liệu ra bảng (Lấy từ biến KHO đã được đồng bộ realtime ở trên)
+    renderKho();
+}
+// 3. Quan trọng: Phải ngắt lắng nghe khi đóng Modal để tránh tốn tài nguyên
+function dongKhoHang() {
+    document.getElementById('modal-kho-hang').style.display = 'none';
+    db.ref("kho").off(); // Ngắt kết nối Realtime
+}
+
+
+
+// Hàm mở Modal Hội Viên
+function moHoiVien() {
+    document.getElementById('modal-hoivien').style.display = 'flex';
+    
+    // Lắng nghe Realtime danh sách hội viên
+    db.ref("members").on("value", s => {
+        window.HOIVIEN_DATA = s.val() || {}; // Hoặc tên biến hội viên bạn đang dùng
+        if (typeof renderHoiVien === "function") {
+            renderHoiVien(); // Gọi hàm vẽ danh sách của bạn
+        }
+    });
+}
+
+// Hàm đóng Modal
+function dongHoiVien() {
+    document.getElementById('modal-hoivien').style.display = 'none';
+    db.ref("members").off(); // Tắt lắng nghe khi đóng để nhẹ máy
+}
+
+// (Tùy chọn) Thêm tính năng ấn ra ngoài để đóng
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('modal-hoivien');
+    if (e.target === modal) dongHoiVien();
+});
+
+
+
+
+// Lắng nghe dữ liệu Hội viên 24/7
+db.ref("members").on("value", snapshot => {
+    window.HOIVIEN_DATA = snapshot.val() || {}; // Cập nhật biến dữ liệu toàn cục
+    
+    // Nếu cái Modal Hội viên đang mở thì vẽ lại bảng ngay lập tức
+    const modal = document.getElementById('modal-hoivien');
+    if (modal && modal.style.display === 'flex') {
+        renderHoiVien(); // Gọi hàm vẽ danh sách của bạn
+    }
+});
+
+
 
 
 
@@ -3384,15 +3580,35 @@ function syncMenuToFirebase() {
 </style>
 
 
-<!-- NÚT 1: LỊCH SỬ (Nằm trên) -->
-<button onclick="moModalBaoCao()" class="floating-history-btn" title="Xem báo cáo">📊</button>
+<!-- CỤM NÚT ĐIỀU KHIỂN TỔNG HỢP GÓC PHẢI -->
+<div style="position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 9999;">
 
-<!-- NÚT 2: THÔNG BÁO QR (Nằm dưới) -->
-<div id="btn-open-qr-list" onclick="moDanhSachChoQR()" style="position:fixed; bottom:20px; right:20px; background:#d32f2f; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:9999;">
-    <span style="font-size:24px;">🔔</span>
-    <span id="qr-count-badge" style="position:absolute; top:0; right:0; background:#ffeb3b; color:#000; border-radius:50%; width:22px; height:22px; font-size:12px; font-weight:bold; display:none; align-items:center; justify-content:center; border:2px solid #d32f2f;">0</span>
+
+<div style="position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 9999;">
+    
+    <!-- NÚT HỘI VIÊN (Đã chỉnh khung tròn giống nút kho) -->
+    <div onclick="moHoiVien()" style="background:#03a9f4; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <span style="font-size: 24px;">👤</span>
+    </div>
+
+    
+    <!-- 1. NÚT KHO HÀNG (Màu cam) -->
+    <div onclick="moKhoHang()" style="background:#ff9800; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <span style="font-size: 24px;">📦</span>
+    </div>
+
+    <!-- 2. NÚT LỊCH SỬ/BÁO CÁO (Màu xanh đậm - Thay cho class floating-history-btn cũ) -->
+    <div onclick="moModalBaoCao()" style="background:#283593; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+        <span style="font-size: 24px;">📊</span>
+    </div>
+
+    <!-- 3. NÚT CHUÔNG THÔNG BÁO (Màu đỏ) -->
+    <div id="btn-open-qr-list" onclick="moDanhSachChoQR()" style="background:#d32f2f; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative;">
+        <span style="font-size: 24px;">🔔</span>
+        <span id="qr-count-badge" style="position: absolute; top: 0; right: 0; background: #ffeb3b; color: #000; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; font-weight: bold; display: none; align-items: center; justify-content: center; border: 2px solid #d32f2f;">0</span>
+    </div>
+
 </div>
-
 
 <div id="modal-bao-cao-tong" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
     <!-- Khung chính Modal: Đặt display flex và hướng dọc -->
@@ -3453,6 +3669,14 @@ function syncMenuToFirebase() {
     </div>
 </div>
 
+<!-- nút mở kho -->
+<div style="position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:15px; z-index:9999;">
+    
+    <!-- Nút Kho Hàng (Nằm trên) -->
+    <div id="btn-open-stock" onclick="moKhoHang()" style="background:#ff9800; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+        <span style="font-size:24px;">📦</span>
+    </div>
+
 
 <!-- Nút chuông thông báo (Đặt ở góc màn hình hoặc thanh menu) -->
 <div id="btn-open-qr-list" onclick="moDanhSachChoQR()" style="position:fixed; bottom:20px; right:20px; background:#d32f2f; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:9999;">
@@ -3474,10 +3698,134 @@ function syncMenuToFirebase() {
 </div>
 
 
+<!-- MODAL KHO HÀNG (Bọc quanh Tab Kho cũ) -->
+<div id="modal-kho-hang" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    
+    <div style="background:white; padding:20px; border-radius:15px; width:95%; max-width:800px; max-height:90vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position:relative; display:flex; flex-direction:column;">
+        
+        <!-- Nút đóng -->
+        <button onclick="dongKhoHang()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:25px; cursor:pointer; color:#666; z-index:10;">&times;</button>
+
+        <!-- GIỮ NGUYÊN NỘI DUNG TAB KHO CỦA BẠN -->
+        <div id="tab-kho" style="display:block !important; overflow-y:auto; flex:1;"> 
+            <h3 style="color:#2e7d32; margin-top:0">📦 QUẢN LÝ TỒN KHO</h3>
+            <table class="stock-table" style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background:#f5f5f5;">
+                        <th>Nguyên liệu</th>
+                        <th>Tồn</th>
+                        <th>Số lượng thêm</th>
+                        <th>Thêm/Bớt</th>
+                        <th>Giới hạn</th>
+                        <th>ĐVT</th>
+                    </tr>
+                </thead>
+               <tbody id="modal-stock-body"></tbody>
+            </table>
+        </div>
+
+        <button onclick="dongKhoHang()" style="width:100%; margin-top:15px; padding:12px; background:#f5f5f5; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:#666;">ĐÓNG</button>
+    </div>
+</div>
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+@media (max-width: 768px) {
+    #order-column.right {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        /* Dùng width: 100vw và box-sizing để không bị che mép phải */
+        width: 100vw !important; 
+        box-sizing: border-box !important;
+        
+        height: 85vh !important;
+        z-index: 99999 !important;
+        margin: 0 !important;
+        border-radius: 25px 25px 0 0 !important;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.3) !important;
+        background: white !important;
+        
+        /* Trạng thái đóng mặc định */
+        transform: translateY(calc(100% - 60px)) !important;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        
+        /* Đảm bảo nội dung bên trong không bị lấp ló */
+        overflow-x: hidden !important; 
+    }
+
+    /* CHỈ nâng lên khi click (có class mo-ra) */
+    #order-column.right.mo-ra {
+        transform: translateY(0) !important;
+    }
+
+    /* Thanh gờ kéo */
+    #order-column.right::before {
+        content: "";
+        width: 40px; height: 5px;
+        background: #ddd; border-radius: 10px;
+        margin: 5px auto 10px; display: block;
+    }
+}
+
+</style>
+
+<script>
+document.addEventListener('click', function (e) {
+    const sheet = document.getElementById('order-column');
+    if (!sheet || window.innerWidth > 768) return;
+
+    const isTriggerClick = e.target.closest('#order-trigger');
+    const isInsideSheet = sheet.contains(e.target);
+    const isTableCard = e.target.closest('.table-card');
+    
+    // THÊM DÒNG NÀY: Kiểm tra xem có bấm vào nút Xóa món không
+    // (Giả sử nút xóa của bạn có emoji ❌ hoặc class chứa chữ 'x' hoặc 'delete')
+    const isDeleteBtn = e.target.innerText === 'X' || e.target.innerText === '❌' || e.target.closest('.delete-btn');
+
+    if (isTriggerClick) {
+        sheet.classList.toggle('mo-ra');
+    } 
+    else if (isTableCard) {
+        sheet.classList.add('mo-ra');
+    }
+    // Nếu bấm vào nút Xóa món bên trong sheet, ta KHÔNG làm gì cả (để nó giữ nguyên trạng thái mở)
+    else if (isDeleteBtn) {
+        return; 
+    }
+    else if (!isInsideSheet) {
+        sheet.classList.remove('mo-ra');
+    }
+});
+// Hàm di chuyển layout thoát khỏi wrapper để fixed chạy chuẩn
+function fixOrderLayout() {
+    const col = document.getElementById('order-column');
+    if (window.innerWidth <= 768 && col && col.parentElement && col.parentElement.classList.contains('main-wrapper')) {
+        document.body.appendChild(col);
+    }
+}
+window.addEventListener('load', fixOrderLayout);
+window.addEventListener('resize', fixOrderLayout);
+</script>
 
 
 
