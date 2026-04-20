@@ -1495,19 +1495,33 @@ function addItem(index) {
         const currentTable = TABLES.find(t => t.id == currentTableId);
         const customerId = currentTable ? currentTable.customerId : null;
 
-        // 👉 Nếu không có hội viên → add bình thường
-        if (!customerId) {
-            let itemTonTai = items.find(i => i.id_mon === monDangBam.id && !i.isReward);
-            if (itemTonTai) itemTonTai.sl += 1;
-            else items.push({ ...monDangBam, id_mon: monDangBam.id, id: Date.now(), sl: 1 });
+        // Hàm hỗ trợ thêm món vào mảng (Để dùng chung cho cả 2 trường hợp khách vãng lai/hội viên)
+        const addOrUpdateItem = (list, mon) => {
+            // QUAN TRỌNG: Chỉ tìm món trùng mà CHƯA GỬI BẾP (isSent !== true)
+            let itemTonTai = list.find(i => i.id_mon === mon.id && !i.isReward && i.isSent !== true);
+            if (itemTonTai) {
+                itemTonTai.sl += 1;
+            } else {
+               list.push({ 
+    ...mon, 
+    id_mon: mon.id, 
+    id: Date.now(), 
+    sl: 1, 
+    isSent: false,  // Chưa gửi bếp
+    cooked: false   // Bếp chưa nấu
+});
+            }
+        };
 
+        // 👉 TRƯỜNG HỢP 1: KHÔNG CÓ HỘI VIÊN
+        if (!customerId) {
+            addOrUpdateItem(items, monDangBam);
             return db.ref("orders/" + currentTableId).set(items).then(() => hoanTatAddItem(items));
         }
 
-        // 👉 Có hội viên → xử lý điểm + quà
-        db.ref(`members/${customerId}`).once('value').then(snap => {
+        // 👉 TRƯỜNG HỢP 2: CÓ HỘI VIÊN
+        return db.ref(`members/${customerId}`).once('value').then(snap => {
             let kh = snap.val() || { tuy_tam_count: 0, tuy_thuong_count: 0 };
-
             let plusTam = 0, plusThuong = 0;
             if (monDangBam.id === "tuy_tam" || monDangBam.id === "combo_tam_chau") plusTam = 1;
             else if (monDangBam.id === "tuy_thuong" || monDangBam.id === "combo_thuong_thuy") plusThuong = 1;
@@ -1515,68 +1529,38 @@ function addItem(index) {
 
             let tongTruoc = (Number(kh.tuy_tam_count) || 0) + (Number(kh.tuy_thuong_count) || 0);
 
-            // =====================================================
-            // 🔥 CASE 1: ĐỦ 10 → CHỈ ADD FREE (KHÔNG ADD BÌNH THƯỜNG)
-            // =====================================================
+            // CASE 1: ĐỦ 10 → ADD BÁT FREE
             if (tongTruoc >= 10 && (plusTam > 0 || plusThuong > 0)) {
-
                 let giaUuDai = (kh.tuy_thuong_count >= kh.tuy_tam_count) ? 0 : 50000;
-
                 items.push({
                     id_mon: "tuy_thuong",
                     ten: "Túy Thượng (Ưu đãi mốc 10)",
                     gia: giaUuDai,
                     sl: 1,
                     id: Date.now(),
-                    isReward: true
+                    isReward: true,
+                    isSent: false // Quà tặng cũng phải gửi bếp
                 });
-
-                // reset điểm
-                kh.tuy_tam_count = 0;
-                kh.tuy_thuong_count = 0;
-
+                kh.tuy_tam_count = 0; kh.tuy_thuong_count = 0;
                 alert(`🎁 Đã áp dụng bát miễn phí / nâng cấp!`);
-
             } else {
-
-                // =====================================================
-                // ✅ CASE 2: ADD BÌNH THƯỜNG
-                // =====================================================
-                let itemTonTai = items.find(i => i.id_mon === monDangBam.id && !i.isReward);
-                if (itemTonTai) itemTonTai.sl += 1;
-                else items.push({ ...monDangBam, id_mon: monDangBam.id, id: Date.now(), sl: 1 });
-
-                // cộng điểm
+                // CASE 2: ADD BÌNH THƯỜNG
+                addOrUpdateItem(items, monDangBam);
                 kh.tuy_tam_count = (Number(kh.tuy_tam_count) || 0) + plusTam;
                 kh.tuy_thuong_count = (Number(kh.tuy_thuong_count) || 0) + plusThuong;
 
                 let tongSau = kh.tuy_tam_count + kh.tuy_thuong_count;
-
-                // 🎁 Mốc 5
                 if (tongSau === 5) {
-                    items.push({
-                        id_mon: "quay",
-                        ten: "Quẩy (Quà tặng 5 bát)",
-                        gia: 0,
-                        sl: 1,
-                        id: Date.now() + 1,
-                        isReward: true
-                    });
+                    items.push({ id_mon: "quay", ten: "Quẩy (Quà tặng 5 bát)", gia: 0, sl: 1, id: Date.now() + 1, isReward: true, isSent: false });
                     alert(`🎯 Tặng Quẩy mốc 5 bát!`);
                 }
-
-                // 🔔 Thông báo mốc 10
                 if (tongSau === 10) {
-                    alert(kh.tuy_thuong_count >= kh.tuy_tam_count
-                        ? "🔥 Bát tiếp theo sẽ MIỄN PHÍ!"
-                        : "🌟 Bát tiếp theo sẽ được Nâng cấp!");
+                    alert(kh.tuy_thuong_count >= kh.tuy_tam_count ? "🔥 Bát tiếp theo MIỄN PHÍ!" : "🌟 Bát tiếp theo Nâng cấp!");
                 }
             }
 
-            // Lưu tất cả
             db.ref(`members/${customerId}`).update(kh);
             return db.ref("orders/" + currentTableId).set(items);
-
         }).then(() => {
             hoanTatAddItem(items);
         });
@@ -1597,75 +1581,82 @@ function renderOrder(items) {
     let h = "";
     let sub = 0;
 
-    // 1. VẼ DANH SÁCH MÓN
     orderItems.forEach((item, index) => {
         const sl = item.sl || 1;
         const gia = item.gia || 0;
         sub += (gia * sl);
 
-     // --- PHẦN LOGIC GHI CHÚ 1 DÒNG ---
-const dsHienGhiChu = ['tuy_tam', 'tuy_thuong', 'combo_thuong_thuy', 'combo_tam_chau', 'combo_song_long'];
-const idMon = item.id_mon || item.id;
-let ghiChuHTML = "";
+        // --- PHẦN LOGIC TRẠNG THÁI GỬI BẾP (MỚI) ---
+        const isSent = item.isSent === true;
+        const statusBadge = isSent 
+            ? `<span style="color: #4caf50; font-size: 12px; margin-left: 5px;" title="Đã gửi bếp">✔️</span>` 
+            : `<span style="color: #ff9800; font-size: 12px; margin-left: 5px; animation: blinker 1.5s linear infinite;" title="Món mới - Chưa gửi bếp">🕒</span>`;
 
-if (dsHienGhiChu.includes(idMon)) {
-    ghiChuHTML = `
-        <div style="font-size:11px; margin-top:2px;">
-            <div style="color:#999; font-style: italic; margin-bottom: 2px;">(${item.desc || ''})</div>
-            
-            <div style="display: flex; align-items: center; white-space: nowrap; overflow: hidden;">
-                <span style="color: #d32f2f; font-weight: bold; margin-right: 5px; flex-shrink: 0;">Ghi chú:</span>
-                <div style="position: relative; flex-grow: 1; display: flex; align-items: center;">
-                    <input type="text" 
-                           value="${item.note || ''}" 
-                           onchange="suaNote(${index}, this.value)"
-                           style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; z-index: 2; padding: 0;">
-                    <div style="position: absolute; left: 0; bottom: 2px; width: 100%; border-bottom: 1px dashed #ccc; z-index: 1;"></div>
+        // --- PHẦN LOGIC GHI CHỦ ---
+        const dsHienGhiChu = ['tuy_tam', 'tuy_thuong', 'combo_thuong_thuy', 'combo_tam_chau', 'combo_song_long'];
+        const idMon = item.id_mon || item.id;
+        let ghiChuHTML = "";
+
+        if (dsHienGhiChu.includes(idMon)) {
+            ghiChuHTML = `
+                <div style="font-size:11px; margin-top:2px;">
+                    <div style="color:#999; font-style: italic; margin-bottom: 2px;">(${item.desc || ''})</div>
+                    <div style="display: flex; align-items: center; white-space: nowrap; overflow: hidden;">
+                        <span style="color: #d32f2f; font-weight: bold; margin-right: 5px; flex-shrink: 0;">Ghi chú:</span>
+                        <div style="position: relative; flex-grow: 1; display: flex; align-items: center;">
+                            <input type="text" 
+                                   value="${item.note || ''}" 
+                                   onchange="suaNote(${index}, this.value)"
+                                   style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; z-index: 2; padding: 0;">
+                            <div style="position: absolute; left: 0; bottom: 2px; width: 100%; border-bottom: 1px dashed #ccc; z-index: 1;"></div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        // --- PHẦN HTML HIỂN THỊ ---
+        h += `
+        <div style="padding:10px; border-bottom:1px dashed #eee; ${!isSent ? 'background-color: #fff9f0;' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div style="flex: 1;">
+                    <b style="font-size: 15px; color: ${isSent ? '#333' : '#e67e22'};">${item.ten}</b> 
+                    ${statusBadge}
+                    ${sl > 1 ? `
+                        <span style="background: #d32f2f; color: #fff; border-radius: 50%; 
+                                     padding: 0 6px; font-size: 10px; margin-left: 5px; 
+                                     display: inline-flex; align-items: center; justify-content: center;
+                                     min-width: 18px; height: 18px; vertical-align: middle; font-weight: bold;">
+                            <span style="font-size: 8px; margin-right: 1px; font-weight: normal;">x</span>${sl}
+                        </span>` : ""}
+                    ${ghiChuHTML}
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <b style="color: ${isSent ? '#333' : '#e67e22'};">${(gia * sl).toLocaleString()}đ</b>
+                    <!-- Nếu món đã gửi bếp thì hiện nút xóa mờ hơn hoặc cảnh báo khi xóa -->
+                    <button onclick="xoaMon(${index})" 
+                            style="background:${isSent ? '#ccc' : '#ff5252'}; color:#fff; border:none; border-radius:4px; padding:2px 6px; cursor:pointer;">
+                        X
+                    </button>
                 </div>
             </div>
         </div>`;
-}
-
-// --- PHẦN HTML HIỂN THỊ TRÊN GIAO DIỆN ---
-h += `
-<div style="padding:10px; border-bottom:1px dashed #eee;">
-    <div style="display:flex; justify-content:space-between; align-items:start;">
-        <div>
-    <b style="font-size: 15px;">${item.ten}</b> 
-    ${sl > 1 ? `
-        <span style="background: #d32f2f; color: #fff; border-radius: 50%; 
-                     padding: 0 6px; font-size: 10px; margin-left: 5px; 
-                     display: inline-flex; align-items: center; justify-content: center;
-                     min-width: 18px; height: 18px; vertical-align: middle; font-weight: bold;">
-            <span style="font-size: 8px; margin-right: 1px; font-weight: normal;">x</span>${sl}
-        </span>` : ""}
-    ${ghiChuHTML}
-</div>
-
-        <div style="display:flex; align-items:center; gap:8px;">
-            <b>${(gia * sl).toLocaleString()}đ</b>
-            <button onclick="xoaMon(${index})" style="background:#ff5252; color:#fff; border:none; border-radius:4px; padding:2px 6px; cursor:pointer;">X</button>
-        </div>
-    </div>
-</div>`;
-
     });
 
     document.getElementById("order-container").innerHTML = h || `<div style="text-align:center;color:#ccc;margin-top:20px;">Chưa có món ăn</div>`;
 
-    // 2. TÍNH TOÁN TIỀN (BAO GỒM GIẢM GIÁ & THUẾ)
+    // 2. PHẦN TÍNH TIỀN (Giữ nguyên logic cũ của bạn)
     const discountAmount = Math.round(sub * (currentDiscountPercent / 100));
     const subAfterDiscount = sub - discountAmount;
-    const tax = Math.round(subAfterDiscount * 0.02); // Thuế 2% tính sau giảm giá
+    const tax = Math.round(subAfterDiscount * 0.02); 
     const total = subAfterDiscount + tax;
 
-    // Hiển thị ra các ô ID tương ứng trong HTML mới
     if(document.getElementById("sub-total")) document.getElementById("sub-total").innerText = sub.toLocaleString() + "đ";
     if(document.getElementById("discount-val")) document.getElementById("discount-val").innerText = "-" + discountAmount.toLocaleString() + "đ";
     if(document.getElementById("tax-val")) document.getElementById("tax-val").innerText = tax.toLocaleString() + "đ";
     if(document.getElementById("total-price")) document.getElementById("total-price").innerText = total.toLocaleString();
 
-    // 3. ĐIỀU KHIỂN NÚT (Giữ nguyên logic của bạn)
+    // 3. ĐIỀU KHIỂN NÚT (Sửa nhẹ: Nếu có món chưa gửi thì ưu tiên hiện nút IN)
     const btnPrint = document.getElementById('step-print');
     const btnPay = document.getElementById('step-pay');
     const btnClear = document.getElementById('step-clear');
@@ -1674,10 +1665,14 @@ h += `
     [btnPrint, btnPay, btnClear, extra].forEach(el => { if(el) el.style.display = 'none'; });
 
     if (orderItems.length > 0) {
-        if(extra) extra.style.display = 'flex'; // Chỉnh lại flex cho nằm ngang
-        const table = TABLES.find(t => t.id === currentTableId);
-        if (table?.status === 'ordering') btnPrint.style.display = 'block';
-        else if (['printed', 'eating'].includes(table?.status)) btnPay.style.display = 'block';
+        if(extra) extra.style.display = 'flex';
+        const hasUnsentItems = orderItems.some(i => !i.isSent);
+        
+        if (hasUnsentItems) {
+            btnPrint.style.display = 'block'; // Có món mới -> Phải In Bếp
+        } else {
+            btnPay.style.display = 'block'; // Tất cả đã gửi -> Cho phép Thanh Toán
+        }
     } else {
         const table = TABLES.find(t => t.id === currentTableId);
         if (table?.status === 'paid') btnClear.style.display = 'block';
@@ -1701,7 +1696,7 @@ function suaNote(index, value) {
 
 /*17.Tặng quà*/
 
-/*18.CHUYỂN BƯỚC*/
+/*18.CHUYỂN BƯỚC (BẢN FULL TỐI ƯU - CHỈ THÊM LOGIC ĐẨY BẾP RIÊNG)*/
 function chuyenBuoc(st) {
     if (!currentTableId) return;
 
@@ -1709,11 +1704,18 @@ function chuyenBuoc(st) {
     .then(snapshot => {
         let items = snapshot.val() || [];
 
-        // =========================
-        // 1. IN BẾP (Giữ nguyên logic của bạn)
-        // =========================
+        // =====================================================
+        // 1. IN BẾP (CHỈ XỬ LÝ MÓN MỚI)
+        // =====================================================
         if (st === "printed") {
-            if (!confirm("Xác nhận in bếp & Trừ suất ăn?")) return Promise.reject("cancel");
+            // Lọc các món chưa gửi bếp
+            const monMoi = items.filter(i => i.isSent === false || i.isSent === undefined);
+
+            if (monMoi.length === 0) {
+                return alert("⚠️ Bàn này không có món mới nào để gửi bếp!");
+            }
+
+            if (!confirm(`Xác nhận gửi ${monMoi.length} món mới xuống bếp & Trừ kho?`)) return Promise.reject("cancel");
 
             return db.ref("menu").once("value")
             .then(menuSnap => {
@@ -1729,135 +1731,152 @@ function chuyenBuoc(st) {
                     }
                 };
 
-                items.forEach(item => {
+                // CHỈ TRỪ SUẤT BÁN VÀ TRỪ KHO CHO MÓN MỚI
+                monMoi.forEach(item => {
                     const idGoc = item.id_mon || item.id;
+                    
+                    // A. Trừ suất bán trên Menu (Logic cũ của bạn)
                     if (idGoc === "tuy_tam" || idGoc === "tuy_thuong") updateSold(idGoc, item.sl);
                     if (idGoc === "combo_tam_chau") updateSold("tuy_tam", item.sl);
                     if (idGoc === "combo_thuong_thuy") updateSold("tuy_thuong", item.sl);
                     if (idGoc === "combo_song_long") updateSold("tuy_thuong", item.sl * 2);
+
+                    // B. Trừ kho nguyên liệu ngay khi In bếp
+                    if (typeof truKhoMoi === "function") {
+                        if (idGoc && !String(idGoc).includes(Date.now().toString().substring(0,6))) {
+                            truKhoMoi(idGoc, item.sl);
+                        } else if (item.ten.includes("Hỏa Châu")) {
+                            truKhoMoi("hoa_chau", item.sl);
+                        }
+                    }
                 });
 
-                return db.ref("menu").set(menuFromServer);
+                // C. Đánh dấu tất cả món trong đơn là ĐÃ GỬI (Để lần sau gọi thêm không bị trùng)
+                items.forEach(i => i.isSent = true);
+
+                // --- THÊM MỚI: Đẩy riêng món mới vào node kitchen_orders để màn hình bếp hiển thị ---
+                const kitchenPush = db.ref("kitchen_orders").push({
+                    tableId: currentTableId,
+                    tableName: TABLES.find(t => String(t.id) === String(currentTableId))?.name || "Bàn " + currentTableId,
+                    timestamp: Date.now(),
+                    items: monMoi // CHỈ GỬI MÓN MỚI, KHÔNG GỬI 'items' TỔNG
+                });
+                // --------------------------------------------------------------------------------
+
+                // D. Cập nhật đồng thời đơn hàng và Menu lên Firebase
+                return Promise.all([
+                    db.ref("orders/" + currentTableId).set(items),
+                    db.ref("menu").set(menuFromServer),
+                    kitchenPush // Đợi đẩy lên bếp xong
+                ]);
             })
             .then(() => updateStatus(currentTableId, "waiting"))
             .then(() => {
-                alert("✅ Đã gửi đơn xuống bếp!");
+                // E. Cập nhật mốc thời gian chờ cho màn hình Bếp (F5 không mất)
+                const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+                if (tableIdx !== -1) {
+                    db.ref(`tables/${tableIdx}/timeAtBep`).set(Date.now());
+                }
+                
+                alert("✅ Đã gửi các món mới xuống bếp!");
                 if (typeof renderStockStatus === "function") renderStockStatus();
                 capNhatNut();
             });
         }
 
-        // =========================
-        // 2. THANH TOÁN (SỬA LẠI ĐỂ TÍNH VOUCHER)
-        // =========================
+        // =====================================================
+        // 2. THANH TOÁN (TÍNH BILL & TÍCH ĐIỂM)
+        // =====================================================
         else if (st === "paid") {
-            // Lấy thông tin bàn hiện tại để xem mức giảm giá
             const currentTable = TABLES.find(t => String(t.id) === String(currentTableId));
-            
-            // A. TÍNH TOÁN TIỀN
+            if (!currentTable) return;
+
             let subTotal = items.reduce((s, i) => s + (i.gia * i.sl), 0);
-            let vatPercent = 0.02; // 2%
-            let discountPercent = (currentTable && currentTable.discount) ? Number(currentTable.discount) : 0;
+            let vatPercent = 0.02; // VAT 2%
+            let discountPercent = currentTable.discount ? Number(currentTable.discount) : 0;
 
             let tienVAT = Math.round(subTotal * vatPercent);
             let tienGiamGia = Math.round(subTotal * (discountPercent / 100));
-            
-            // TỔNG CUỐI CÙNG = Gốc + VAT - Giảm giá
             let finalTotal = subTotal + tienVAT - tienGiamGia;
 
             if (!confirm(`Xác nhận thanh toán: ${finalTotal.toLocaleString()}đ?\n(Gốc: ${subTotal.toLocaleString()} + VAT 2% - Giảm: ${discountPercent}%)`)) {
                 return Promise.reject("cancel");
             }
 
+            // A. Tính điểm bát cho hội viên
             let soBat = 0;
-            // B. TÍNH ĐIỂM HỘI VIÊN
-            if (currentTable && currentTable.customerId) {
+            if (currentTable.customerId) {
                 soBat = items.reduce((sum, i) => {
                     const idGoc = i.id_mon || i.id;
                     let heSo = (idGoc === 'combo_song_long') ? 2 : (i.isReward ? 0 : 1);
                     return sum + (i.sl * heSo);
                 }, 0);
-                if (soBat > 0) cộngĐiểmHộiViên(currentTable.customerId, soBat);
+                if (soBat > 0 && typeof cộngĐiểmHộiViên === "function") {
+                    cộngĐiểmHộiViên(currentTable.customerId, soBat);
+                }
             }
 
-            // C. LẤY SĐT VÀ LƯU LỊCH SỬ
-            let promiseLaySDT = Promise.resolve(""); 
-            if (currentTable && currentTable.customerId) {
-                promiseLaySDT = db.ref("members/" + currentTable.customerId + "/sdt").once("value").then(s => s.val() || "");
-            }
+            // B. Lưu lịch sử đơn hàng
+            let promiseLaySDT = currentTable.customerId 
+                ? db.ref("members/" + currentTable.customerId + "/sdt").once("value").then(s => s.val() || "")
+                : Promise.resolve("");
 
             return promiseLaySDT.then(phoneFound => {
                 const historyData = {
-                    customerId: (currentTable && currentTable.customerId) ? currentTable.customerId : null,
-                    customerName: (currentTable && currentTable.customerName) ? currentTable.customerName : "Khách vãng lai",
+                    customerId: currentTable.customerId || null,
+                    customerName: currentTable.customerName || "Khách vãng lai",
                     customerPhone: phoneFound,
-                    tableName: (currentTable && currentTable.name) ? currentTable.name : "Không rõ",
-                    subTotal: subTotal,       // Lưu thêm giá gốc để đối soát
-                    discount: tienGiamGia,    // Lưu số tiền đã giảm
-                    total: finalTotal,        // CON SỐ THỰC THU (Dùng cho báo cáo)
+                    tableName: currentTable.name || "Không rõ",
+                    subTotal: subTotal,
+                    discount: tienGiamGia,
+                    total: finalTotal,
                     totalBowls: soBat,
                     timestamp: Date.now(),
                     items: items 
                 };
-                
                 return db.ref("history_orders").push(historyData);
             })
             .then(() => {
-                // D. TRỪ KHO
-                items.forEach(i => {
-                    const idThucTe = i.id_mon || i.id;
-                    if (idThucTe && !String(idThucTe).includes(Date.now().toString().substring(0,6))) {
-                        truKhoMoi(idThucTe, i.sl);
-                    } else if (i.ten.includes("Hỏa Châu")) {
-                        truKhoMoi("hoa_chau", i.sl);
-                    }
-                });
-
-                // E. RESET & CẬP NHẬT TRẠNG THÁI
+                // C. Cập nhật trạng thái bàn sang ĐÃ THANH TOÁN (LƯU Ý: Không trừ kho ở đây nữa)
                 let input = document.getElementById('order-customer-input');
                 if (input) input.value = "";
-
                 return updateStatus(currentTableId, "paid", true);
             })
             .then(() => {
-                alert("✅ Thanh toán xong & Đã lưu lịch sử!");
-                capNhatNut();
-            });
+    capNhatNut();
+});
         }
-       
-        // =========================
-        // 3. DỌN BÀN (Giữ nguyên logic của bạn)
-        // =========================
+
+        // =====================================================
+        // 3. DỌN BÀN (LÀM SẠCH DỮ LIỆU)
+        // =====================================================
         else if (st === "empty") {
-            if (!confirm("Đã dọn bàn?")) return Promise.reject("cancel");
+            if (!confirm("Xác nhận đã dọn sạch bàn để đón khách mới?")) return Promise.reject("cancel");
 
             const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
 
             return db.ref("orders/" + currentTableId).remove()
             .then(() => {
                 if (tableIdx !== -1) {
-                    return Promise.all([
-                        db.ref(`tables/${tableIdx}/discount`).set(0),
-                        db.ref(`tables/${tableIdx}/customerName`).set(""),
-                        db.ref(`tables/${tableIdx}/customerId`).set("") // Xóa luôn ID khách để bàn sạch hoàn toàn
-                    ]);
+                    return db.ref(`tables/${tableIdx}`).update({
+                        status: "empty",
+                        discount: 0,
+                        customerName: "",
+                        customerId: "",
+                        timeAtBep: null // Xóa luôn mốc giờ chờ của bếp
+                    });
                 }
             })
             .then(() => {
-                if (typeof renderOrder === "function") renderOrder([]);
-                document.getElementById("total-price").innerText = "0";
-                currentDiscountPercent = 0;
-                return updateStatus(currentTableId, "empty", true);
-            })
-            .then(() => {
+               
                 capNhatNut();
             });
         }
     })
     .catch(err => {
         if (err !== "cancel") {
-            console.error("Lỗi:", err);
-            alert("❌ Có lỗi xảy ra!");
+            console.error("Lỗi vận hành:", err);
+            alert("❌ Lỗi: " + err);
         }
     });
 }
@@ -2659,6 +2678,10 @@ function truKhoMoi(itemId, sl) {
 function moModalGop() {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
     
+    // HẠ LÁ SỚ CHI TIẾT ĐƠN XUỐNG CHO GỌN
+    const sheet = document.getElementById('order-column');
+    if (sheet) sheet.classList.remove('mo-ra');
+
     db.ref("orders/" + currentTableId).once("value").then(s => {
         const items = s.val() || [];
         if (items.length === 0) return alert("Bàn này không có món để gộp!");
@@ -2666,23 +2689,19 @@ function moModalGop() {
         document.getElementById('modal-title').innerText = `Gộp bàn ${currentTableId} đi đâu?`;
         const body = document.getElementById('modal-body');
         
-       body.innerHTML = TABLES.filter(t => t.id != currentTableId).map(t => {
-    // 1. Xác định class trạng thái để lấy màu (ordering, eating, paid, empty)
-    let statusClass = t.status || "empty"; 
-    
-    // 2. Gán class đó vào div
-    return `
-        <div class="modal-item-table ${statusClass}" onclick="thucHienGopBan(${t.id})">
-            <span style="font-weight:bold; position:relative; z-index:2;">
-                ➡️ Gộp vào ${t.name}
-            </span>
-            <small style="position:relative; z-index:2; opacity:0.8;">
-                (${t.status === 'empty' ? 'Trống' : 'Có khách'})
-            </small>
-        </div>
-    `;
-}).join('');
-        document.getElementById('modal-container').style.display = 'flex';
+        body.innerHTML = TABLES.filter(t => t.id != currentTableId).map(t => {
+            let statusClass = t.status || "empty"; 
+            return `
+                <div class="modal-item-table ${statusClass}" onclick="thucHienGopBan(${t.id})">
+                    <span style="font-weight:bold; position:relative; z-index:2;">➡️ Gộp vào ${t.name}</span>
+                    <small style="position:relative; z-index:2; opacity:0.8;">(${t.status === 'empty' ? 'Trống' : 'Có khách'})</small>
+                </div>`;
+        }).join('');
+        
+        // HIỆN MODAL VÀ ÉP Z-INDEX CAO NHẤT
+        const modal = document.getElementById('modal-container');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '999999'; 
     });
 }
 
@@ -2725,9 +2744,13 @@ function thucHienGopBan(targetId) {
 }
 
 /*41.TÁCH MÓN*/
-function moModalTachMon() { // Sửa tên hàm bỏ dấu sắc để khớp HTML của bạn
+function moModalTachMon() {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
     
+    // HẠ LÁ SỚ CHI TIẾT ĐƠN XUỐNG
+    const sheet = document.getElementById('order-column');
+    if (sheet) sheet.classList.remove('mo-ra');
+
     db.ref("orders/" + currentTableId).once("value").then(s => {
         const items = s.val() || [];
         if (items.length === 0) return;
@@ -2739,9 +2762,11 @@ function moModalTachMon() { // Sửa tên hàm bỏ dấu sắc để khớp HTM
             <div class="modal-item" onclick="moModalChonBanDichTach(${index})">
                 <span>${item.ten} (SL: ${item.sl})</span>
                 <button style="padding:2px 8px">Chọn</button>
-            </div>
-        `).join('');
-        document.getElementById('modal-container').style.display = 'flex';
+            </div>`).join('');
+
+        const modal = document.getElementById('modal-container');
+        modal.style.display = 'flex';
+        modal.style.zIndex = '999999';
     });
 }
 /*42.CHỌN BÀN ĐÍCH TÁCH*/
@@ -3521,10 +3546,150 @@ db.ref("members").on("value", snapshot => {
 
 
 
+let bepTimer = null;
+
+function moManHinhBep() {
+    document.getElementById('modal-bep').style.display = 'flex';
+    
+    // Lắng nghe danh sách phiếu từ bếp
+    db.ref("kitchen_orders").on("value", snapshot => {
+        const bepQueue = snapshot.val() || {};
+        const bepGrid = document.getElementById('bep-grid');
+        bepGrid.innerHTML = "";
+        let count = 0;
+
+        // Sắp xếp phiếu: Cũ nhất hiện trước
+        const tickets = Object.keys(bepQueue).map(key => ({
+            id: key,
+            ...bepQueue[key]
+        })).sort((a, b) => a.timestamp - b.timestamp);
+
+        tickets.forEach(ticket => {
+            count++;
+            const items = ticket.items || [];
+            
+            let itemsHtml = items.map(i => {
+                const ghiChu = i.note ? `<div style="color:#d32f2f; font-size:13px; font-weight:bold; font-style:italic; margin-top:2px;">⚠️ Ghi chú: ${i.note}</div>` : "";
+                return `
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #ccc;">
+                    <div style="text-align:left; flex:1;">
+                        <b style="font-size:18px; color:#333;">${i.ten}</b>
+                        ${ghiChu}
+                    </div>
+                    <div style="font-size:24px; color:#2e7d32; font-weight:900; margin-left:15px;">x${i.sl}</div>
+                </div>`;
+            }).join('');
+
+            const startTime = ticket.timestamp || Date.now();
+            const orderTime = new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            bepGrid.innerHTML += `
+            <div class="order-card-bep card-safe" id="ticket-${ticket.id}" 
+                 style="background:#fff; border-radius:15px; overflow:hidden; display:flex; flex-direction:column; min-height: 250px; height: 100%;">
+                
+                <!-- 1. HEADER: Tên bàn & Giờ -->
+                <div class="card-header-pos header-safe" style="padding:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink: 0;">
+                    <div>
+                        <b style="font-size:16px;">${ticket.tableName}</b>
+                        <div style="font-size:10px; opacity:0.8;">🕙 ${orderTime}</div>
+                    </div>
+                    <div id="timer-${ticket.id}" class="bep-timer" data-start="${startTime}" style="font-family:monospace; font-weight:bold; font-size:18px;">00:00</div>
+                </div>
+
+                <!-- 2. BODY: Danh sách món (Sẽ chiếm hết khoảng trống ở giữa) -->
+                <div style="padding:15px; flex-grow: 1; overflow-y:auto;">
+                    ${itemsHtml}
+                </div>
+
+                <!-- 3. FOOTER: Nút bấm (Luôn nằm dưới cùng) -->
+                <button onclick="xongMonBep('${ticket.id}', '${ticket.tableId}')" 
+                        style="background:#2e7d32; color:#fff; border:none; padding:15px; font-weight:bold; cursor:pointer; font-size:16px; width: 100%; flex-shrink: 0; margin-top: auto;">
+                    XÁC NHẬN XONG ✅
+                </button>
+            </div>`;
+        });
+        
+        document.getElementById('bep-count').innerText = `Phiếu chờ nấu: ${count}`;
+    });
+
+    if(window.bepTimer) clearInterval(window.bepTimer);
+    window.bepTimer = setInterval(updateAllTimers, 1000);
+}
+// Hàm tính toán độ lệch thời gian
+function updateAllTimers() {
+    const now = Date.now();
+    document.querySelectorAll('.bep-timer').forEach(el => {
+        const start = parseInt(el.getAttribute('data-start'));
+        const diff = Math.floor((now - start) / 1000); 
+        const card = el.closest('.order-card-bep'); 
+        const header = card ? card.querySelector('.card-header-pos') : null;
+
+        // Hiển thị phút:giây
+        const min = String(Math.floor(diff / 60)).padStart(2, '0');
+        const sec = String(diff % 60).padStart(2, '0');
+        el.innerText = `${min}:${sec}`;
+
+        if (!card || !header) return;
+
+        // LOGIC NHẢY MÀU
+        if (diff >= 420) { // Từ phút thứ 7 trở đi
+            card.className = "order-card-bep card-danger";
+            header.className = "card-header-pos header-danger";
+        } 
+        else if (diff >= 181) { // Từ phút thứ 4 đến phút thứ 6
+            card.className = "order-card-bep card-warning";
+            header.className = "card-header-pos header-warning";
+        } 
+        else { // Dưới 3 phút
+            card.className = "order-card-bep card-safe";
+            header.className = "card-header-pos header-safe";
+        }
+    });
+}
+function xongMonBep(ticketId, tableId) {
+    if(!confirm("Xác nhận đã nấu xong phiếu này?")) return;
+    
+    // Xóa phiếu khỏi bếp
+    db.ref(`kitchen_orders/${ticketId}`).remove()
+    .then(() => {
+        // Cập nhật trạng thái bàn sang 'eating' (nếu cần)
+        const tableIdx = TABLES.findIndex(t => String(t.id) === String(tableId));
+        if (tableIdx !== -1) {
+            db.ref(`tables/${tableIdx}/status`).set("eating");
+        }
+    })
+    .catch(err => alert("Lỗi: " + err));
+}
+function dongManHinhBep() {
+    document.getElementById('modal-bep').style.display = 'none';
+    db.ref("orders").off(); // Ngắt lắng nghe cho nhẹ máy
+}
 
 
 
+function xacNhanGiaoMon(tableId) {
+    // 1. Tìm index của bàn để cập nhật chính xác vào db.ref(`tables/${tableIndex}`)
+    const tableIndex = TABLES.findIndex(t => String(t.id) === String(tableId));
+    if (tableIndex === -1) return;
 
+    if (!confirm("Xác nhận đã nấu xong và giao đủ món cho bàn này?")) return;
+
+    // 2. Giữ nguyên logic đổi trạng thái từ 'waiting' sang 'eating'
+    db.ref(`tables/${tableIndex}/status`).set("eating").then(() => {
+        
+        // 3. Đồng thời xóa lệnh trong hàng đợi bếp (kitchen_orders) để bếp không bị rối
+        db.ref("kitchen_orders").once("value", snapshot => {
+            const orders = snapshot.val();
+            for (let key in orders) {
+                if (String(orders[key].tableId) === String(tableId)) {
+                    db.ref(`kitchen_orders/${key}`).remove();
+                }
+            }
+        });
+
+        console.log("Bàn " + tableId + " đã giao món xong!");
+    });
+}
 
 
 </script>
@@ -3540,6 +3705,41 @@ db.ref("members").on("value", snapshot => {
 
 <!-- 2. Nút lịch sử nổi (Floating Button) -->
 <style>
+
+
+
+/* Màu mặc định - Xanh (1-3p) */
+.card-safe { border: 2px solid #2e7d32 !important; }
+.header-safe { background: #2e7d32 !important; color: white !important; }
+
+/* Màu cảnh báo - Vàng (4-6p) */
+.card-warning { border: 2px solid #f1c40f !important; }
+.header-warning { background: #f1c40f !important; color: #000 !important; }
+
+/* Màu báo động - Đỏ (>7p) */
+.card-danger { 
+    border: 3px solid #d32f2f !important; 
+    animation: blink-red 1s infinite; 
+}
+.header-danger { background: #d32f2f !important; color: white !important; }
+
+@keyframes blink-red {
+    50% { border-color: #ffcdd2; box-shadow: 0 0 20px rgba(211, 47, 47, 0.5); }
+}
+
+
+
+
+
+
+
+/*Nháy khi thời gian lớn hơn 5p*/
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
    /* Nút Lịch sử nằm trên nút Chuông khoảng 70px */
 .floating-history-btn {
     position: fixed;
@@ -3580,35 +3780,38 @@ db.ref("members").on("value", snapshot => {
 </style>
 
 
-<!-- CỤM NÚT ĐIỀU KHIỂN TỔNG HỢP GÓC PHẢI -->
-<div style="position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 9999;">
+<!-- CỤM NÚT ĐIỀU KHIỂN ĐÃ ĐỒNG BỘ -->
+<div class="fab-wrapper">
 
 
-<div style="position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 12px; z-index: 9999;">
+   <!-- NÚT MÀN HÌNH BẾP (Màu xanh lá đậm) -->
+  <div onclick="moManHinhBep()" class="fab-item" style="background:#1b5e20;" title="Màn hình bếp">
+    <span>👨‍🍳</span>
+   </div>
     
-    <!-- NÚT HỘI VIÊN (Đã chỉnh khung tròn giống nút kho) -->
-    <div onclick="moHoiVien()" style="background:#03a9f4; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-        <span style="font-size: 24px;">👤</span>
+    <!-- NÚT HỘI VIÊN -->
+    <div class="fab-item" onclick="moHoiVien()" title="Hội viên">
+        <span>👤</span>
     </div>
 
-    
-    <!-- 1. NÚT KHO HÀNG (Màu cam) -->
-    <div onclick="moKhoHang()" style="background:#ff9800; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-        <span style="font-size: 24px;">📦</span>
+    <!-- NÚT KHO HÀNG -->
+    <div class="fab-item" onclick="moKhoHang()" title="Kho hàng">
+        <span>📦</span>
     </div>
 
-    <!-- 2. NÚT LỊCH SỬ/BÁO CÁO (Màu xanh đậm - Thay cho class floating-history-btn cũ) -->
-    <div onclick="moModalBaoCao()" style="background:#283593; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-        <span style="font-size: 24px;">📊</span>
+    <!-- NÚT LỊCH SỬ -->
+    <div class="fab-item" onclick="moModalBaoCao()" title="Báo cáo">
+        <span>📊</span>
     </div>
 
-    <!-- 3. NÚT CHUÔNG THÔNG BÁO (Màu đỏ) -->
-    <div id="btn-open-qr-list" onclick="moDanhSachChoQR()" style="background:#d32f2f; color:#fff; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative;">
-        <span style="font-size: 24px;">🔔</span>
-        <span id="qr-count-badge" style="position: absolute; top: 0; right: 0; background: #ffeb3b; color: #000; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; font-weight: bold; display: none; align-items: center; justify-content: center; border: 2px solid #d32f2f;">0</span>
+    <!-- NÚT CHUÔNG -->
+    <div id="btn-open-qr-list" class="fab-item" onclick="moDanhSachChoQR()" title="Thông báo">
+        <span>🔔</span>
+        <span id="qr-count-badge" style="position: absolute; top: -2px; right: -2px; background: #ffeb3b; color: #000; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; border: 1.5px solid #455a64;">0</span>
     </div>
 
 </div>
+
 
 <div id="modal-bao-cao-tong" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
     <!-- Khung chính Modal: Đặt display flex và hướng dọc -->
@@ -3672,17 +3875,8 @@ db.ref("members").on("value", snapshot => {
 <!-- nút mở kho -->
 <div style="position:fixed; bottom:20px; right:20px; display:flex; flex-direction:column; gap:15px; z-index:9999;">
     
-    <!-- Nút Kho Hàng (Nằm trên) -->
-    <div id="btn-open-stock" onclick="moKhoHang()" style="background:#ff9800; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
-        <span style="font-size:24px;">📦</span>
-    </div>
 
 
-<!-- Nút chuông thông báo (Đặt ở góc màn hình hoặc thanh menu) -->
-<div id="btn-open-qr-list" onclick="moDanhSachChoQR()" style="position:fixed; bottom:20px; right:20px; background:#d32f2f; color:#fff; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.3); z-index:9999;">
-    <span style="font-size:24px;">🔔</span>
-    <span id="qr-count-badge" style="position:absolute; top:0; right:0; background:#ffeb3b; color:#000; border-radius:50%; width:22px; height:22px; font-size:12px; font-weight:bold; display:none; align-items:center; justify-content:center; border:2px solid #d32f2f;">0</span>
-</div>
 
 <!-- Modal Danh sách đơn chờ -->
 <div id="modal-qr-list" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
@@ -3731,7 +3925,25 @@ db.ref("members").on("value", snapshot => {
 
 
 
+<!-- MODAL MÀN HÌNH BẾP -->
+<div id="modal-bep" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200000; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
+    <div style="background:#f4f4f4; padding:20px; border-radius:15px; width:98%; height:95vh; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column;">
+        
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:#fff; padding:15px; border-radius:10px;">
+            <h2 style="margin:0; color:#1b5e20;">👨‍🍳 DANH SÁCH CHẾ BIẾN (BẾP)</h2>
+            <div style="display:flex; gap:15px; align-items:center;">
+                <b id="bep-count" style="background:#d32f2f; color:#fff; padding:5px 15px; border-radius:20px;">Đang chờ: 0</b>
+                <button onclick="dongManHinhBep()" style="border:none; background:#ddd; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">ĐÓNG</button>
+            </div>
+        </div>
 
+        <!-- Vùng hiển thị các Order Cards -->
+        <div id="bep-grid" style="flex:1; overflow-y:auto; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:15px; padding:5px;">
+            <!-- Các thẻ bàn đang chờ sẽ nhảy vào đây -->
+        </div>
+    </div>
+</div>
 
 
 
@@ -3786,6 +3998,43 @@ db.ref("members").on("value", snapshot => {
         margin: 5px auto 10px; display: block;
     }
 }
+
+/* Khung chứa các nút */
+    .fab-wrapper {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 9999;
+    }
+
+    /* Style chung cho 4 nút: cùng màu, cùng cỡ */
+    .fab-item {
+        background: #455a64; /* MÀU NỀN ĐỒNG NHẤT (Xám xanh chuyên nghiệp) */
+        color: #fff;
+        width: 45px;          /* THU NHỎ kích thước xuống 45px */
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .fab-item span {
+        font-size: 20px;      /* Thu nhỏ icon bên trong */
+    }
+
+    /* Hiệu ứng nhún khi nhấn */
+    .fab-item:active {
+        transform: scale(0.9);
+    }
+
 
 </style>
 
