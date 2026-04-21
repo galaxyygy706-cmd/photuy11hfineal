@@ -7,6 +7,26 @@
 
     <style>
 
+
+.badge-suat-an {
+    position: absolute;
+    top: -8px;    /* Đẩy lên trên mép */
+    right: -8px;  /* Đẩy sang phải mép */
+    background: #2e7d32; /* Màu xanh lá đậm như hình */
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    border: 2px solid #fff; /* Viền trắng để nổi bật */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 101;
+}
+
 #modal-qr-big {
     display: none; 
     position: fixed;
@@ -1258,6 +1278,22 @@ const db = firebase.database();
 
 let TABLES = [], MENU = [], KHO = [], HOIVIEN = [], CHITIEU = [], currentTableId = null;
 
+
+
+
+// Khai báo biến toàn cục ở đầu file script
+let ALL_ORDERS = {}; 
+
+// Lắng nghe toàn bộ đơn hàng
+db.ref("orders").on("value", snap => {
+    ALL_ORDERS = snap.val() || {}; // Cập nhật dữ liệu mới nhất
+    if (typeof renderTables === "function") {
+        renderTables(); // Ép sơ đồ bàn vẽ lại ngay khi có món mới
+    }
+});
+
+
+
 // 🔥 LẮNG NGHE KHO REALTIME
 db.ref("kho").on("value", s => {
     const data = s.val();
@@ -1636,15 +1672,23 @@ function selectTable(id) {
 
 
 
-/*14.Thêm móm*/
-function addItem(index) { 
+/*14.Thêm món - BẢN FIX NHẢY MÓN*/
+function addItem(monId) { // Chuyển tham số từ index sang monId
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
- if (event) playFlyEffect(event);
+    
+    // Gọi hiệu ứng bay (nếu có biến event toàn cục)
+    if (typeof event !== 'undefined' && typeof playFlyEffect === "function") playFlyEffect(event);
 
     db.ref("orders/" + currentTableId).once("value").then(s => {
         let items = s.val() || [];
-        const monDangBam = MENU_MASTER[index];
-        if (!monDangBam) return;
+        
+        // 🔥 SỬA QUAN TRỌNG NHẤT: Tìm đúng món trong mảng gốc bằng ID
+        const monDangBam = MENU_MASTER.find(m => m.id === monId);
+        
+        if (!monDangBam) {
+            console.error("Không tìm thấy món với ID:", monId);
+            return;
+        }
 
         // 1. CHECK HẾT HÀNG
         let conLai = (Number(monDangBam.limit) || 0) - (Number(monDangBam.soldToday) || 0);
@@ -1655,21 +1699,19 @@ function addItem(index) {
         const currentTable = TABLES.find(t => t.id == currentTableId);
         const customerId = currentTable ? currentTable.customerId : null;
 
-        // Hàm hỗ trợ thêm món vào mảng (Để dùng chung cho cả 2 trường hợp khách vãng lai/hội viên)
         const addOrUpdateItem = (list, mon) => {
-            // QUAN TRỌNG: Chỉ tìm món trùng mà CHƯA GỬI BẾP (isSent !== true)
             let itemTonTai = list.find(i => i.id_mon === mon.id && !i.isReward && i.isSent !== true);
             if (itemTonTai) {
                 itemTonTai.sl += 1;
             } else {
-               list.push({ 
-    ...mon, 
-    id_mon: mon.id, 
-    id: Date.now(), 
-    sl: 1, 
-    isSent: false,  // Chưa gửi bếp
-    cooked: false   // Bếp chưa nấu
-});
+                list.push({ 
+                    ...mon, 
+                    id_mon: mon.id, 
+                    id: Date.now(), 
+                    sl: 1, 
+                    isSent: false,
+                    cooked: false
+                });
             }
         };
 
@@ -1679,17 +1721,18 @@ function addItem(index) {
             return db.ref("orders/" + currentTableId).set(items).then(() => hoanTatAddItem(items));
         }
 
-        // 👉 TRƯỜNG HỢP 2: CÓ HỘI VIÊN
+        // 👉 TRƯỜNG HỢP 2: CÓ HỘI VIÊN (Giữ nguyên logic tính bát của bạn)
         return db.ref(`members/${customerId}`).once('value').then(snap => {
             let kh = snap.val() || { tuy_tam_count: 0, tuy_thuong_count: 0 };
             let plusTam = 0, plusThuong = 0;
+            
+            // Logic cộng bát dựa trên ID chuẩn
             if (monDangBam.id === "tuy_tam" || monDangBam.id === "combo_tam_chau") plusTam = 1;
             else if (monDangBam.id === "tuy_thuong" || monDangBam.id === "combo_thuong_thuy") plusThuong = 1;
             else if (monDangBam.id === "combo_song_long") plusThuong = 2;
 
             let tongTruoc = (Number(kh.tuy_tam_count) || 0) + (Number(kh.tuy_thuong_count) || 0);
 
-            // CASE 1: ĐỦ 10 → ADD BÁT FREE
             if (tongTruoc >= 10 && (plusTam > 0 || plusThuong > 0)) {
                 let giaUuDai = (kh.tuy_thuong_count >= kh.tuy_tam_count) ? 0 : 50000;
                 items.push({
@@ -1699,12 +1742,11 @@ function addItem(index) {
                     sl: 1,
                     id: Date.now(),
                     isReward: true,
-                    isSent: false // Quà tặng cũng phải gửi bếp
+                    isSent: false
                 });
                 kh.tuy_tam_count = 0; kh.tuy_thuong_count = 0;
                 alert(`🎁 Đã áp dụng bát miễn phí / nâng cấp!`);
             } else {
-                // CASE 2: ADD BÌNH THƯỜNG
                 addOrUpdateItem(items, monDangBam);
                 kh.tuy_tam_count = (Number(kh.tuy_tam_count) || 0) + plusTam;
                 kh.tuy_thuong_count = (Number(kh.tuy_thuong_count) || 0) + plusThuong;
@@ -1713,9 +1755,6 @@ function addItem(index) {
                 if (tongSau === 5) {
                     items.push({ id_mon: "quay", ten: "Quẩy (Quà tặng 5 bát)", gia: 0, sl: 1, id: Date.now() + 1, isReward: true, isSent: false });
                     alert(`🎯 Tặng Quẩy mốc 5 bát!`);
-                }
-                if (tongSau === 10) {
-                    alert(kh.tuy_thuong_count >= kh.tuy_tam_count ? "🔥 Bát tiếp theo MIỄN PHÍ!" : "🌟 Bát tiếp theo Nâng cấp!");
                 }
             }
 
@@ -2607,7 +2646,7 @@ if (!isHet) {
         playFlyEffect(event);
         
         // Thực hiện thêm món
-        addItem(index); 
+        addItem(mon.id); 
     });
 }
 
@@ -2728,39 +2767,64 @@ function renderTables() {
     TABLES.forEach(t => {
         const isActive = t.id === currentTableId ? 'active-table' : '';
         
+        // --- BẮT ĐẦU LOGIC TÍNH SỐ NGƯỜI (SUẤT ĂN) ---
+        let tongSuat = 0;
+        // Kiểm tra dữ liệu đơn hàng của bàn này (thay ALL_ORDERS bằng biến bạn đang dùng nếu khác tên)
+        const orderOfTable = (typeof ALL_ORDERS !== 'undefined') ? ALL_ORDERS[t.id] : null;
+        
+        if (orderOfTable) {
+            Object.values(orderOfTable).forEach(item => {
+                const idMon = item.id_mon || item.id;
+                const sl = Number(item.sl) || 0;
+                
+                if (idMon === 'combo_song_long') {
+                    tongSuat += (sl * 2); // Song Long tính 2 suất
+                } else if (['tuy_tam', 'tuy_thuong', 'combo_tam_chau', 'combo_thuong_thuy'].includes(idMon)) {
+                    tongSuat += sl; // Các món khác tính 1 suất
+                }
+            });
+        }
+
+        // Tạo nhãn số người nếu có suất ăn
+        const badgeNguoi = tongSuat > 0 
+            ? `<div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.8); color:#fff; font-size:11px; padding:2px 7px; border-radius:12px; font-weight:bold; z-index:10; display:flex; align-items:center; gap:3px;">
+                 ${tongSuat}
+               </div>` 
+            : "";
+        // --- KẾT THÚC LOGIC TÍNH SỐ NGƯỜI ---
+
         let statusClass = "empty"; 
         let statusText = "Trống";
         let statusIcon = `<div class="status-circle color-empty"></div>`;
-        let confirmBtn = ""; // Nút xác nhận giao món
+        let confirmBtn = ""; 
 
         if (t.status === "ordering") {
             statusClass = "ordering"; 
             statusText = "Đang chọn";
             statusIcon = `<div class="status-circle color-ordering"></div>`;
         } 
-        // --- TRẠNG THÁI MỚI: CHỜ MÓN ---
         else if (t.status === "waiting") {
             statusClass = "waiting"; 
-            statusText = "Chờ món";
-            statusIcon = `<div style="font-size:20px; margin-bottom:5px;">📄</div>`; // Icon hóa đơn
-            // Nút dấu tích xác nhận bưng ra
-          confirmBtn = `
-    <div onclick="event.stopPropagation(); xacNhanGiaoMon(${t.id})" 
-         class="btn-confirm-delivery"
-         style="position:absolute; top:-10px; right:-10px; background:#ff9800; color:#fff; 
-                border-radius:50%; width:32px; height:32px; display:flex; 
-                align-items:center; justify-content:center; font-size:18px; 
-                font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.3); 
-                z-index:100; cursor:pointer; border:2px solid #fff;">
-        ✓
-    </div>`;
+            let phutCho = t.timeAtBep ? Math.floor((Date.now() - t.timeAtBep) / 60000) : 0;
+            statusText = `Đợi: <b style="color:#ff9800;">${phutCho}p</b>`; 
+            statusIcon = `<div style="font-size:20px; margin-bottom:5px;">📄</div>`;
+            confirmBtn = `
+            <div onclick="event.stopPropagation(); xacNhanGiaoMon(${t.id})" 
+                 class="btn-confirm-delivery"
+                 style="position:absolute; top:-10px; right:-10px; background:#ff9800; color:#fff; 
+                        border-radius:50%; width:32px; height:32px; display:flex; 
+                        align-items:center; justify-content:center; font-size:18px; 
+                        font-weight:bold; box-shadow:0 4px 10px rgba(0,0,0,0.3); 
+                        z-index:100; cursor:pointer; border:2px solid #fff;">
+                ✓
+            </div>`;
         }
-        else if (t.status === "eating") {
+         else if (t.status === "eating") {
             statusClass = "eating"; 
-            statusText = "Đang ăn";
+            let phutNgoi = t.timeGiaoMon ? Math.floor((Date.now() - t.timeGiaoMon) / 60000) : 0;
+            statusText = `Đang ăn • <b style="color:#d32f2f;">${phutNgoi}p</b>`;
             statusIcon = `<div style="font-size:24px; margin-bottom:5px;">🍜</div>`;
         }
-
         else if (t.status === "paid") {
             statusClass = "paid"; 
             statusText = "Chờ dọn";
@@ -2769,6 +2833,7 @@ function renderTables() {
 
         const html = `
         <div class="table-card ${statusClass} ${isActive}" onclick="selectTable(${t.id})" style="position:relative;">
+            ${badgeNguoi} <!-- CHÈN BADGE VÀO ĐÂY -->
             ${confirmBtn}
             <div class="icon-box">${statusIcon}</div>
             <div class="table-name">${t.name}</div>
@@ -3838,16 +3903,17 @@ function dongManHinhBep() {
 
 
 function xacNhanGiaoMon(tableId) {
-    // 1. Tìm index của bàn để cập nhật chính xác vào db.ref(`tables/${tableIndex}`)
     const tableIndex = TABLES.findIndex(t => String(t.id) === String(tableId));
     if (tableIndex === -1) return;
 
     if (!confirm("Xác nhận đã nấu xong và giao đủ món cho bàn này?")) return;
 
-    // 2. Giữ nguyên logic đổi trạng thái từ 'waiting' sang 'eating'
-    db.ref(`tables/${tableIndex}/status`).set("eating").then(() => {
+    // Cập nhật TRẠNG THÁI và GIỜ GIAO MÓN cùng lúc
+    db.ref(`tables/${tableIndex}`).update({
+        status: "eating",
+        timeGiaoMon: Date.now() // <--- DÒNG QUAN TRỌNG NHẤT
+    }).then(() => {
         
-        // 3. Đồng thời xóa lệnh trong hàng đợi bếp (kitchen_orders) để bếp không bị rối
         db.ref("kitchen_orders").once("value", snapshot => {
             const orders = snapshot.val();
             for (let key in orders) {
@@ -3857,10 +3923,9 @@ function xacNhanGiaoMon(tableId) {
             }
         });
 
-        console.log("Bàn " + tableId + " đã giao món xong!");
+        console.log("Bàn " + tableId + " đã giao món xong và bắt đầu tính giờ!");
     });
 }
-
 // B. KHI ẤN TÊN BÀN TRÊN LÁ SỚ -> Hiện Menu để thêm món
 // A. HÀM MỞ MENU (GIỮ NGUYÊN NHƯNG THÊM STOP PROPAGATION)
 function moMenuTuTenBan() {
@@ -4118,6 +4183,38 @@ function phongToQR() {
 // capNhatQRThanhToan(total);
 
 
+
+
+
+
+
+setInterval(() => {
+    if (typeof renderTables === "function") {
+        renderTables();
+    }
+}, 60000);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </script>
 
 <!-- 1. Lịch sử ăn uống cá nhân khách hàng (Modal) -->
@@ -4360,16 +4457,6 @@ function phongToQR() {
         </div>
     </div>
 </div>
-
-
-
-
-
-
-
-
-
-
 
 
 
