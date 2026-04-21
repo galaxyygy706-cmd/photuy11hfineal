@@ -7,6 +7,56 @@
 
     <style>
 
+
+
+#qr-payment-zone {
+    transition: all 0.3s ease;
+    border: 1px solid #005a32; /* Màu xanh đặc trưng Vietcombank */
+}
+
+#qr-payment-zone:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 90, 50, 0.2);
+}
+
+#qr-image {
+    /* Tạo hiệu ứng bo góc nhẹ cho QR */
+    border-radius: 4px;
+}
+
+
+.flying-item {
+    position: fixed;
+    z-index: 999999;
+    font-size: 30px;
+    pointer-events: none;
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0;
+}
+.shake-effect {
+    animation: shake-sheet 0.4s ease-in-out;
+}
+@keyframes shake-sheet {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+/* Hiệu ứng rung nhẹ cái Lá sớ khi nhận được món */
+@keyframes shake-sheet {
+    0% { transform: translateY(0); }
+    25% { transform: translateY(-5px); }
+    50% { transform: translateY(0); }
+    75% { transform: translateY(-3px); }
+    100% { transform: translateY(0); }
+}
+
+.shake-effect {
+    animation: shake-sheet 0.4s ease-in-out;
+}
+
+
+
+
+
 .left {
     display: flex;
     flex-direction: column;
@@ -822,7 +872,7 @@ body {
                 <button class="tab-btn active" onclick="switchTab('tab-so-do', this)">SƠ ĐỒ BÀN</button>
                
 
-                <button class="tab-btn" onclick="switchTab('tab-chi-tieu', this)" style="background: #ffebee; color: #d32f2f;">Chi tiêu💸</button>
+                <button class="tab-btn" onclick="switchTab('tab-chi-tieu', this)" style="background: #EEEEEE; color: #d32f2f;">Chi tiêu💸</button>
             </div>
 
             <div id="tab-so-do" class="tab-content active">
@@ -958,18 +1008,21 @@ body {
 <div class="center" id="menu-column" style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
     
     <!-- PHẦN CỐ ĐỊNH (HEADER) -->
-    <div style="flex-shrink: 0; padding: 15px 15px 0 15px; background: #fff;">
-        <!-- 1. Tiêu đề & Đồng hồ -->
-        <div id="menu-trigger" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px double #d32f2f;padding-bottom:8px;gap:10px; cursor:pointer;">
-            <div style="display:flex;flex-direction:column;">
-                <h2 style="margin:0;font-size:20px;">🍜 Phở Túy 11h</h2>
-                <marquee style="font-size:11px;color:#666;">📍 Số 11 Bà Triệu - 06h-11h</marquee>
-            </div>
-            <div style="text-align:right;">
-                <div id="clock-date" style="font-size:10px;color:#d32f2f;"></div>
-                <div id="clock-time" style="font-size:16px;font-weight:bold;"></div>
-            </div>
+<div style="flex-shrink: 0; padding: 15px 15px 0 15px; background: #fff;">
+    <!-- 1. Tiêu đề & Đồng hồ -->
+    <div id="menu-trigger" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px double #d32f2f;padding-bottom:8px;gap:10px; cursor:pointer;">
+        <div style="display:flex;flex-direction:column;">
+            <h2 style="margin:0;font-size:20px;">🍜 Phở Túy 11h</h2>
+            <marquee style="font-size:11px;color:#666;">📍 Số 11 Bà Triệu - 06h-11h</marquee>
         </div>
+       <div style="text-align:right; display: flex; flex-direction: column; align-items: flex-end;">
+    <!-- Thêm icon đồng hồ nhỏ xinh ở đây -->
+    <div style="display: flex; align-items: center; gap: 4px;">
+        <span style="font-size: 12px; color: #d32f2f;">🕒</span>
+        <div id="clock-time" style="font-size:16px;font-weight:bold;"></div>
+    </div>
+</div>
+</div>
 
         <!-- 2. Suất bán ngày -->
         <div id="stock-counter-section" style="margin-bottom: 10px; padding: 10px; background: #fffdf7; border: 2px dashed #ffd54f; border-radius: 12px;">
@@ -1039,11 +1092,25 @@ body {
         <div style="display: flex; justify-content: space-between; color: #2e7d32; font-weight: 500;"><span>Thuế GTGT (2%):</span> <span id="tax-val">0đ</span></div>
     </div>
 
- <!-- Tổng cộng lớn -->
-    <div style="margin: 10px 0; border-top: 2px solid #eee; padding-top: 10px;">
-        <div style="font-weight: bold; font-size: 14px; color: #333;">TỔNG CỘNG:</div>
-        <div id="total-price" style="font-size: 26px; font-weight: bold; color: #d32f2f;">0đ</div>
+ <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+    <div style="text-align:left;">
+        <div style="font-size:14px; font-weight:bold; color:#333;">TỔNG CỘNG:</div>
+        <div id="total-price" style="font-size:24px; font-weight:900; color:#d32f2f;">0</div>
     </div>
+    
+    <!-- KHU VỰC QR THANH TOÁN (Vị trí khoanh vàng) -->
+    <div id="qr-payment-zone" onclick="phongToQR()" style="display:none; cursor:pointer; text-align:center; background:#fff; padding:5px; border-radius:8px; border:1px solid #ddd; width:80px;">
+    <img id="qr-image" src="" style="width:70px; height:70px; display:block; object-fit:contain; transition: opacity 0.3s ease;">
+    <span style="font-size:9px; color:#666; font-weight:bold; display:block; margin-top:2px;">QUÉT MÃ</span>
+</div>
+</div>
+
+<!-- Modal để phóng to QR khi cần -->
+<div id="modal-qr-big" onclick="this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000000; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
+    <h3 style="margin-bottom:20px;">QUÉT MÃ THANH TOÁN</h3>
+    <img id="qr-image-big" src="" style="width:85vw; max-width:400px; border-radius:15px; background:#fff; padding:10px;">
+    <p style="margin-top:20px;">Chạm để đóng</p>
+</div>
 
  <!-- Khu vực chọn mã Voucher cho nhân viên -->
 <div style="background: #f1f8e9; border: 1px dashed #2e7d32; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
@@ -1162,7 +1229,7 @@ const MENU_MASTER = [
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAtwr87l4pjnInOvL_9TMkBRi-xzkp2YGA",
+  apiKey: "YXBpS2V5OiAiQUl6YVN5QXR3cjg3bDRwam5Jbk92TF85VE1rQlJpLXh6a3AyWUdBIiw=",
   authDomain: "pho-tuy.firebaseapp.com",
   databaseURL: "https://pho-tuy-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "pho-tuy",
@@ -1553,6 +1620,7 @@ function selectTable(id) {
 /*14.Thêm móm*/
 function addItem(index) { 
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
+ if (event) playFlyEffect(event);
 
     db.ref("orders/" + currentTableId).once("value").then(s => {
         let items = s.val() || [];
@@ -1649,7 +1717,6 @@ function hoanTatAddItem(items) {
 
 
 /*15.Vẽ order*/
-/*15.Vẽ order - BẢN KHÓA NÚT Ở ĐÁY CHỐNG CHE */
 function renderOrder(items) {
     const orderItems = items || [];
     let h = "";
@@ -1666,16 +1733,24 @@ function renderOrder(items) {
         const idMon = item.id_mon || item.id;
         let ghiChuHTML = "";
 
-        if (dsHienGhiChu.includes(idMon)) {
-            ghiChuHTML = `
-                <div style="font-size:11px; margin-top:2px;">
-                    <div style="display: flex; align-items: center;">
-                        <input type="text" value="${item.note || ''}" onchange="suaNote(${index}, this.value)"
-                               placeholder="Ghi chú (ít hành, cay...)"
-                               style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; border-bottom: 1px dashed #ccc;">
-                    </div>
-                </div>`;
-        }
+       if (dsHienGhiChu.includes(idMon)) {
+    ghiChuHTML = `
+        <div style="font-size:11px; margin-top:2px; display: flex; align-items: center;">
+            <!-- Chữ Ghi chú cố định -->
+            <span style="color: #d32f2f; font-weight: bold; margin-right: 5px; flex-shrink: 0;">Ghi chú:</span>
+            
+            <div style="position: relative; flex-grow: 1; display: flex; align-items: center;">
+                <input type="text" 
+                       value="${item.note || ''}" 
+                       onchange="suaNote(${index}, this.value)"
+                       placeholder=""
+                       style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; padding: 0; position: relative; z-index: 2;">
+                
+                <!-- Đường gạch chân dashed -->
+                <div style="position: absolute; left: 0; bottom: 2px; width: 100%; border-bottom: 1px dashed #ccc; z-index: 1;"></div>
+            </div>
+        </div>`;
+}
 
         h += `
         <div style="padding:10px; border-bottom:1px dashed #eee;">
@@ -1712,6 +1787,10 @@ function renderOrder(items) {
     if(document.getElementById("discount-val")) document.getElementById("discount-val").innerText = "-" + discountAmount.toLocaleString() + "đ";
     if(document.getElementById("tax-val")) document.getElementById("tax-val").innerText = tax.toLocaleString() + "đ";
     if(document.getElementById("total-price")) document.getElementById("total-price").innerText = total.toLocaleString();
+  // 🔥 DÒNG QUAN TRỌNG: CẬP NHẬT MÃ QR THEO SỐ TIỀN TỔNG
+    if (typeof capNhatQRThanhToan === "function") {
+        capNhatQRThanhToan(total);
+    }
 
     // 3. ĐIỀU KHIỂN NÚT (ÉP HIỂN THỊ CỐ ĐỊNH Ở ĐÁY)
     const btnPrint = document.getElementById('step-print');
@@ -2373,20 +2452,26 @@ function editKho(i, v) { KHO[i].ton += v; db.ref("kho").set(KHO); }
 
 /*31.Cập nhật giờ*/
 function updateClock() {
-    const dateEl = document.getElementById('clock-date');
-    const timeEl = document.getElementById('clock-time');
-    
-    // DÒNG BẢO HIỂM: Nếu không thấy đồng hồ trên màn hình thì thoát luôn, không báo lỗi nữa
-    if (!dateEl || !timeEl) return; 
-
     const now = new Date();
-    // ... code chạy đồng hồ cũ của bạn giữ nguyên ...
-    dateEl.innerText = now.toLocaleDateString(); 
-    timeEl.innerText = now.toLocaleTimeString();
-}
+    
+    // 1. Cập nhật GIỜ (Giữ lại)
+    const timeEl = document.getElementById("clock-time");
+    if (timeEl) {
+        timeEl.innerText = now.toLocaleTimeString('vi-VN', { 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            second: '2-digit' 
+        });
+    }
 
-setInterval(updateClock,1000);
-updateClock();
+    // 2. Cập nhật NGÀY (Thêm kiểm tra 'if' để không bị lỗi khi đã xóa thẻ HTML)
+    const dateEl = document.getElementById("clock-date");
+    if (dateEl) {
+        dateEl.innerText = now.toLocaleDateString('vi-VN');
+    }
+}
+// Chạy đồng hồ mỗi giây
+setInterval(updateClock, 1000);
 
 /*32.vẽ stock*/
 function renderStock(){
@@ -2493,14 +2578,19 @@ function renderMenu() {
             </button>
         `;
 
-        // Gán sự kiện click cho nút thêm món
+         // Gán sự kiện click cho nút thêm món
         const btn = div.querySelector("button");
-        if (!isHet) {
-            btn.addEventListener("click", () => {
-                // Nếu là App Phụ, cần truyền ID thật thay vì index mảng
-                addItem(index); 
-            });
-        }
+if (!isHet) {
+    btn.addEventListener("click", (event) => {
+        event.stopPropagation(); // Ngăn sự kiện nhảy lên các lớp khác
+        
+        // Gọi hiệu ứng bay cả cụm
+        playFlyEffect(event);
+        
+        // Thực hiện thêm món
+        addItem(index); 
+    });
+}
 
         fragment.appendChild(div);
     });
@@ -3383,31 +3473,33 @@ function khoiTaoLangNgheQR() {
     db.ref("pending_qr_orders").on("value", (snap) => {
         const data = snap.val();
         const count = data ? Object.keys(data).length : 0;
-        const badge = document.getElementById("qr-count-badge");
+        
+        // Lấy các thẻ Badge (trong và ngoài)
+        const badgeInner = document.getElementById("qr-count-badge"); // Badge nút chuông
+        const badgeMain = document.getElementById("fab-main-badge");  // Badge nút dấu +
         const btnChuong = document.getElementById("btn-open-qr-list");
+        const fabMain = document.querySelector(".fab-main");
         
         if (count > 0) {
-            badge.innerText = count;
-            badge.style.display = "flex";
+            // HIỆN SỐ Ở CẢ 2 NƠI
+            if (badgeInner) { badgeInner.innerText = count; badgeInner.style.display = "flex"; }
+            if (badgeMain) { badgeMain.innerText = count; badgeMain.style.display = "flex"; }
             
-            // CHỈ PHÁT NHẠC VÀ RUNG KHI CÓ ĐƠN MỚI THÊM VÀO
             if (count > soLuongDonCu) {
-                // Rung nút chuông (sử dụng class CSS has-new-order đã tạo ở bước trước)
                 btnChuong.classList.add("has-new-order");
+                if (fabMain) fabMain.classList.add("ring-active"); // Rung cả nút +
                 
-                // Phát âm thanh Ting Ting
                 const sound = new Audio('https://mixkit.co');
-                sound.play().catch(e => console.log("Trình duyệt chặn tự động phát âm thanh"));
+                sound.play().catch(e => console.log("Cần tương tác để phát nhạc"));
             }
         } else {
-            badge.style.display = "none";
+            if (badgeInner) badgeInner.style.display = "none";
+            if (badgeMain) badgeMain.style.display = "none";
             btnChuong.classList.remove("has-new-order");
+            if (fabMain) fabMain.classList.remove("ring-active");
         }
         
-        // Cập nhật lại số lượng để so sánh lần sau
         soLuongDonCu = count;
-
-        // Nếu đang mở modal thì vẽ lại danh sách ngay lập tức
         if (document.getElementById("modal-qr-list").style.display === "flex") {
             veDanhSachChoQR(data);
         }
@@ -3887,9 +3979,128 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+document.addEventListener("keydown", function(e) {
+    if (e.key === "F12") e.preventDefault();
+});
+
+document.addEventListener("contextmenu", e => e.preventDefault());
 
 
 
+
+function playFlyEffect(e) {
+    // 1. Tìm cái khung món ăn (menu-item) bao quanh nút bấm vừa nhấn
+    const originalItem = e.currentTarget.closest('.menu-item');
+    if (!originalItem) return;
+
+    // 2. Tạo bản sao (Clone) của khung món ăn đó
+    const flyer = originalItem.cloneNode(true);
+    flyer.classList.remove('combo-neon-glow', 'single-neon-glow'); // Bỏ hiệu ứng hào quang để bay cho nhẹ
+    flyer.style.position = 'fixed';
+    flyer.style.zIndex = '999999';
+    flyer.style.pointerEvents = 'none';
+    flyer.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+    
+    // 3. Tính toán vị trí hiện tại của món ăn trên màn hình
+    const rect = originalItem.getBoundingClientRect();
+    flyer.style.width = rect.width + 'px';
+    flyer.style.height = rect.height + 'px';
+    flyer.style.top = rect.top + 'px';
+    flyer.style.left = rect.left + 'px';
+    
+    document.body.appendChild(flyer);
+
+    // 4. Xác định vị trí đích (Chi tiết đơn)
+    const target = document.getElementById('order-column');
+    if (!target) return;
+    const targetRect = target.getBoundingClientRect();
+    const endX = targetRect.left + (targetRect.width / 2);
+    const endY = targetRect.top;
+
+    // 5. Kích hoạt hiệu ứng bay sau 50ms
+    setTimeout(() => {
+        flyer.style.left = (endX - rect.width / 4) + 'px'; // Bay vào giữa
+        flyer.style.top = (endY - 20) + 'px';
+        flyer.style.transform = 'scale(0.1)'; // Thu nhỏ lại khi bay vào
+        flyer.style.opacity = '0.3';
+    }, 50);
+
+    // 6. Xóa bản sao và làm rung giỏ hàng
+    setTimeout(() => {
+        flyer.remove();
+        target.classList.add('shake-effect');
+        setTimeout(() => target.classList.remove('shake-effect'), 400);
+    }, 800);
+}
+
+
+
+function updateQRCount(count) {
+    const mainBadge = document.getElementById('fab-main-badge'); // Badge ngoài nút +
+    const innerBadge = document.getElementById('qr-count-badge'); // Badge trong nút chuông
+
+    if (count > 0) {
+        // Hiện số ở nút chính
+        mainBadge.innerText = count;
+        mainBadge.style.display = 'flex';
+        
+        // Hiện số ở nút chuông bên trong
+        innerBadge.innerText = count;
+        innerBadge.style.display = 'flex';
+        
+        // Hiệu ứng rung nhẹ nút chính để gây chú ý
+        document.querySelector('.fab-main').classList.add('ring-active');
+    } else {
+        mainBadge.style.display = 'none';
+        innerBadge.style.display = 'none';
+        document.querySelector('.fab-main').classList.remove('ring-active');
+    }
+}
+
+
+
+function capNhatQRThanhToan(tongTien) {
+    const qrImg = document.getElementById('qr-image');
+    const qrZone = document.getElementById('qr-payment-zone');
+    if (!qrImg || !qrZone) return;
+
+    if (!tongTien || tongTien <= 0) {
+        qrZone.style.display = 'none';
+        return;
+    }
+
+    const BANK_ID = "VCB";
+    const ACCOUNT_NO = "030093020397";
+    const addInfo = encodeURIComponent(`Thanh toan Ban ${currentTableId || ''}`);
+    
+    // Tạo link API chuẩn
+    const qrUrl = `https://vietqr.io{BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${Math.round(tongTien)}&addInfo=${addInfo}`;
+    
+    // MẸO: Ẩn ảnh đi, nạp link, khi nào load xong mới hiện để tránh hiện icon "vỡ"
+    qrImg.style.opacity = "0"; 
+    qrImg.src = qrUrl;
+
+    qrImg.onload = function() {
+        qrImg.style.opacity = "1";
+        qrZone.style.display = 'block';
+    };
+
+    // Dự phòng lỗi load ảnh
+    qrImg.onerror = function() {
+        console.error("Không thể load mã QR từ VietQR");
+        qrZone.style.display = 'none';
+    };
+}
+
+function phongToQR() {
+    const modal = document.getElementById('modal-qr-big');
+    if (document.getElementById('qr-image').src) {
+        modal.style.display = 'flex';
+    }
+}
+
+// Gọi hàm này ở cuối hàm renderOrder của bạn:
+// capNhatQRThanhToan(total);
 
 
 </script>
@@ -3977,13 +4188,17 @@ document.addEventListener('DOMContentLoaded', () => {
     animation: ring 0.5s ease infinite;
 }
 
+
+
 </style>
 
 
 <div class="fab-wrapper" id="fabWrapper">
-    <!-- Nút chính -->
+     <!-- Nút chính (➕) -->
     <div class="fab-main" onclick="toggleFab(event)">
         <span id="fab-icon">➕</span>
+        <!-- THÊM BADGE THÔNG BÁO TỔNG Ở ĐÂY -->
+        <span id="fab-main-badge" style="position: absolute; top: -5px; right: -5px; background: #ffeb3b; color: #000; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; font-weight: bold; display: none; align-items: center; justify-content: center; border: 2px solid #0288d1; z-index: 12;">0</span>
     </div>
 
     <!-- Cụm nút con -->
@@ -4261,15 +4476,35 @@ html, body {
 }
 
 .fab-main {
+    position: relative; /* Bắt buộc để badge bám theo */
+    overflow: visible !important; /* Cho phép badge hiện ra ngoài phạm vi hình tròn */
     width: 56px; height: 56px;
-    background: #0288d1; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 24px; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    margin-top: 15px; z-index: 10;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: #0288d1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000; /* Đảm bảo nút chính nằm trên các thành phần nền */
 }
-
+/* Định dạng Badge trên nút + */
+#fab-main-badge {
+    position: absolute;
+    top: -5px;      /* Đẩy lên mép trên */
+    right: -5px;    /* Đẩy sang mép phải */
+    background: #ffeb3b; /* Màu vàng nổi bật */
+    color: #000;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    display: none; /* Mặc định ẩn, sẽ hiện bằng JS */
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #0288d1; /* Viền cùng màu nút chính cho đẹp */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 1001; /* Luôn nằm trên dấu + */
+}
 /* Hiệu ứng xoay nút chính khi mở */
 .fab-wrapper.active #fab-icon {
     transform: rotate(45deg);
@@ -4348,6 +4583,27 @@ html, body {
     visibility: visible;
     transform: translateX(0);
 }
+/* Hiệu ứng nháy cho Badge ở nút chính */
+#fab-main-badge {
+    animation: pulse-yellow 1.5s infinite;
+}
+
+@keyframes pulse-yellow {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 235, 59, 0.7); }
+    70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(255, 235, 59, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 235, 59, 0); }
+}
+
+/* Hiệu ứng rung nút chính khi có đơn */
+.ring-active {
+    animation: shake-fab 0.5s ease-in-out infinite;
+}
+
+@keyframes shake-fab {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(5deg); }
+    75% { transform: rotate(-5deg); }
+}
 
 </style>
 
@@ -4414,6 +4670,7 @@ document.addEventListener('click', function(e) {
         document.getElementById('fab-icon').innerText = '➕';
     }
 });
+
 </script>
 
 
