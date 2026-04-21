@@ -4061,35 +4061,26 @@ function updateQRCount(count) {
 
 function capNhatQRThanhToan(tongTien) {
     const qrImg = document.getElementById('qr-image');
-    const qrZone = document.getElementById('qr-payment-zone');
-    if (!qrImg || !qrZone) return;
+    if (!qrImg) return;
 
     if (!tongTien || tongTien <= 0) {
-        qrZone.style.display = 'none';
+        document.getElementById('qr-payment-zone').style.display = 'none';
         return;
     }
+    
+    document.getElementById('qr-payment-zone').style.display = 'block';
 
-    const BANK_ID = "VCB";
+    const BANK_ID = "VCB"; // Vietcombank
     const ACCOUNT_NO = "030093020397";
     const addInfo = encodeURIComponent(`Thanh toan Ban ${currentTableId || ''}`);
-    
-    // Tạo link API chuẩn
+
+    // Tạo URL VietQR (Sử dụng mẫu compact2 cho gọn)
     const qrUrl = `https://vietqr.io{BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${Math.round(tongTien)}&addInfo=${addInfo}`;
     
-    // MẸO: Ẩn ảnh đi, nạp link, khi nào load xong mới hiện để tránh hiện icon "vỡ"
-    qrImg.style.opacity = "0"; 
     qrImg.src = qrUrl;
-
-    qrImg.onload = function() {
-        qrImg.style.opacity = "1";
-        qrZone.style.display = 'block';
-    };
-
-    // Dự phòng lỗi load ảnh
-    qrImg.onerror = function() {
-        console.error("Không thể load mã QR từ VietQR");
-        qrZone.style.display = 'none';
-    };
+    // Cập nhật luôn cho ảnh phóng to nếu có
+    const qrImgBig = document.getElementById('qr-image-big');
+    if (qrImgBig) qrImgBig.src = qrUrl;
 }
 
 function phongToQR() {
