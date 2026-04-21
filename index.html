@@ -1649,23 +1649,19 @@ function hoanTatAddItem(items) {
 
 
 /*15.Vẽ order*/
+/*15.Vẽ order - BẢN KHÓA NÚT Ở ĐÁY CHỐNG CHE */
 function renderOrder(items) {
     const orderItems = items || [];
     let h = "";
     let sub = 0;
 
+    // 1. DUYỆT VẼ DANH SÁCH MÓN
     orderItems.forEach((item, index) => {
         const sl = item.sl || 1;
         const gia = item.gia || 0;
         sub += (gia * sl);
-
-        // --- PHẦN LOGIC TRẠNG THÁI GỬI BẾP (MỚI) ---
         const isSent = item.isSent === true;
-        const statusBadge = isSent 
-            ? `<span style="color: #4caf50; font-size: 12px; margin-left: 5px;" title="Đã gửi bếp">✔️</span>` 
-            : `<span style="color: #ff9800; font-size: 12px; margin-left: 5px; animation: blinker 1.5s linear infinite;" title="Món mới - Chưa gửi bếp">🕒</span>`;
 
-        // --- PHẦN LOGIC GHI CHỦ ---
         const dsHienGhiChu = ['tuy_tam', 'tuy_thuong', 'combo_thuong_thuy', 'combo_tam_chau', 'combo_song_long'];
         const idMon = item.id_mon || item.id;
         let ghiChuHTML = "";
@@ -1673,84 +1669,71 @@ function renderOrder(items) {
         if (dsHienGhiChu.includes(idMon)) {
             ghiChuHTML = `
                 <div style="font-size:11px; margin-top:2px;">
-                    <div style="color:#999; font-style: italic; margin-bottom: 2px;">(${item.desc || ''})</div>
-                    <div style="display: flex; align-items: center; white-space: nowrap; overflow: hidden;">
-                        <span style="color: #d32f2f; font-weight: bold; margin-right: 5px; flex-shrink: 0;">Ghi chú:</span>
-                        <div style="position: relative; flex-grow: 1; display: flex; align-items: center;">
-                            <input type="text" 
-                                   value="${item.note || ''}" 
-                                   onchange="suaNote(${index}, this.value)"
-                                   style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; z-index: 2; padding: 0;">
-                            <div style="position: absolute; left: 0; bottom: 2px; width: 100%; border-bottom: 1px dashed #ccc; z-index: 1;"></div>
-                        </div>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" value="${item.note || ''}" onchange="suaNote(${index}, this.value)"
+                               placeholder="Ghi chú (ít hành, cay...)"
+                               style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; border-bottom: 1px dashed #ccc;">
                     </div>
                 </div>`;
         }
 
-        // --- PHẦN HTML HIỂN THỊ ---
         h += `
-        <div style="padding:10px; border-bottom:1px dashed #eee; ${!isSent ? 'background-color: #fff9f0;' : ''}">
+        <div style="padding:10px; border-bottom:1px dashed #eee;">
             <div style="display:flex; justify-content:space-between; align-items:start;">
-                <div style="flex: 1;">
-                    <b style="font-size: 15px; color: ${isSent ? '#333' : '#e67e22'};">${item.ten}</b> 
-                    ${statusBadge}
-                    ${sl > 1 ? `
-                        <span style="background: #d32f2f; color: #fff; border-radius: 50%; 
-                                     padding: 0 6px; font-size: 10px; margin-left: 5px; 
-                                     display: inline-flex; align-items: center; justify-content: center;
-                                     min-width: 18px; height: 18px; vertical-align: middle; font-weight: bold;">
-                            <span style="font-size: 8px; margin-right: 1px; font-weight: normal;">x</span>${sl}
-                        </span>` : ""}
+                <div style="flex:1">
+                    <b style="font-size: 15px;">${item.ten}</b> ${isSent ? '✔️' : '🕒'}
+                    ${sl > 1 ? `<span style="background:#d32f2f; color:#fff; border-radius:50%; padding:0 6px; font-size:10px; margin-left:5px;">x${sl}</span>` : ""}
                     ${ghiChuHTML}
                 </div>
-
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <b style="color: ${isSent ? '#333' : '#e67e22'};">${(gia * sl).toLocaleString()}đ</b>
-                    <!-- Nếu món đã gửi bếp thì hiện nút xóa mờ hơn hoặc cảnh báo khi xóa -->
-                    <button onclick="xoaMon(${index})" 
-                            style="background:${isSent ? '#ccc' : '#ff5252'}; color:#fff; border:none; border-radius:4px; padding:2px 6px; cursor:pointer;">
-                        X
-                    </button>
+                    <b>${(gia * sl).toLocaleString()}đ</b>
+                    <button onclick="xoaMon(${index})" style="background:#ff5252; color:#fff; border:none; border-radius:4px; padding:2px 6px;">X</button>
                 </div>
             </div>
         </div>`;
     });
 
-    document.getElementById("order-container").innerHTML = h || `<div style="text-align:center;color:#ccc;margin-top:20px;">Chưa có món ăn</div>`;
+    // --- PHẦN QUAN TRỌNG: CHIA LÀM 2 VÙNG ---
+    // Vùng 1: Danh sách món (Cho phép cuộn)
+    document.getElementById("order-container").innerHTML = `
+        <div style="flex: 1; overflow-y: auto; max-height: calc(85vh - 250px); padding-bottom: 20px;">
+            ${h || `<div style="text-align:center;color:#ccc;margin-top:20px;">Chưa có món ăn</div>`}
+        </div>
+    `;
 
-    // 2. PHẦN TÍNH TIỀN (Giữ nguyên logic cũ của bạn)
+    // 2. TÍNH TOÁN TIỀN
     const discountAmount = Math.round(sub * (currentDiscountPercent / 100));
     const subAfterDiscount = sub - discountAmount;
-    const tax = Math.round(subAfterDiscount * 0.02); 
+    const tax = Math.round(subAfterDiscount * 0.02);
     const total = subAfterDiscount + tax;
 
+    // Cập nhật các con số tiền
     if(document.getElementById("sub-total")) document.getElementById("sub-total").innerText = sub.toLocaleString() + "đ";
     if(document.getElementById("discount-val")) document.getElementById("discount-val").innerText = "-" + discountAmount.toLocaleString() + "đ";
     if(document.getElementById("tax-val")) document.getElementById("tax-val").innerText = tax.toLocaleString() + "đ";
     if(document.getElementById("total-price")) document.getElementById("total-price").innerText = total.toLocaleString();
 
-    // 3. ĐIỀU KHIỂN NÚT (Sửa nhẹ: Nếu có món chưa gửi thì ưu tiên hiện nút IN)
+    // 3. ĐIỀU KHIỂN NÚT (ÉP HIỂN THỊ CỐ ĐỊNH Ở ĐÁY)
     const btnPrint = document.getElementById('step-print');
     const btnPay = document.getElementById('step-pay');
     const btnClear = document.getElementById('step-clear');
     const extra = document.getElementById('extra-actions');
 
+    // Reset trạng thái
     [btnPrint, btnPay, btnClear, extra].forEach(el => { if(el) el.style.display = 'none'; });
 
+    // Hiển thị bộ nút dựa theo trạng thái
     if (orderItems.length > 0) {
-        if(extra) extra.style.display = 'flex';
-        const hasUnsentItems = orderItems.some(i => !i.isSent);
-        
-        if (hasUnsentItems) {
-            btnPrint.style.display = 'block'; // Có món mới -> Phải In Bếp
-        } else {
-            btnPay.style.display = 'block'; // Tất cả đã gửi -> Cho phép Thanh Toán
-        }
+        if(extra) extra.style.display = 'flex'; // Hiện Gộp/Tách
+        const hasUnsent = orderItems.some(i => !i.isSent);
+        if (hasUnsent) btnPrint.style.display = 'block';
+        else btnPay.style.display = 'block';
     } else {
         const table = TABLES.find(t => t.id === currentTableId);
         if (table?.status === 'paid') btnClear.style.display = 'block';
     }
 }
+
 
 /*16.sửa ghi chú*/
 function suaNote(index, value) {
@@ -4166,6 +4149,32 @@ document.addEventListener('DOMContentLoaded', () => {
 <style>
 
 
+/* Khóa Pull-to-refresh trên toàn bộ trang web */
+html, body {
+    overscroll-behavior-y: contain !important;
+}
+
+@media (max-width: 1024px) {
+    /* Ép cái Lá sớ phải xếp dọc theo dạng Flex */
+    #order-column.right {
+        display: flex !important;
+        flex-direction: column !important;
+        padding-bottom: 0 !important; /* Bỏ padding cũ để nút sát đáy */
+    }
+
+    /* Vùng chứa các nút bấm (Footer) */
+    /* Ghim nó vào đáy, bất chấp danh sách món dài hay ngắn */
+    #order-column.right .action-group, 
+    #order-column.right #extra-actions,
+    #order-column.right .sheet-footer {
+        margin-top: auto !important;
+        background: white !important;
+        padding: 15px !important;
+        border-top: 1px solid #eee !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
 
 @media (max-width: 1024px) {
     #order-column.right, 
@@ -4173,7 +4182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         /* Giúp hiệu ứng trượt mượt như trên iPhone */
         will-change: transform;
         /* Ngăn việc vuốt lá sớ làm cuộn trang web ở dưới */
-        touch-action: pan-y; 
+        touch-action: none; 
     }
 }
 
