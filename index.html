@@ -7,8 +7,27 @@
 
     <style>
 
-
-
+#modal-qr-big {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* 0.85 là độ đậm của màu trắng, bạn có thể chỉnh từ 0 đến 1 */
+    background-color: rgba(255, 255, 255, 0.85) !important; 
+    
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; /* Để chữ "Chạm để đóng" nằm dưới ảnh */
+}
+#modal-qr-big span, 
+#modal-qr-big p {
+    color: #333 !important; /* Đổi màu chữ thông báo thành đen/xám đậm */
+    margin-top: 10px;
+}
 #qr-payment-zone {
     transition: all 0.3s ease;
     border: 1px solid #005a32; /* Màu xanh đặc trưng Vietcombank */
@@ -1101,15 +1120,15 @@ body {
     <!-- KHU VỰC QR THANH TOÁN (Vị trí khoanh vàng) -->
     <div id="qr-payment-zone" onclick="phongToQR()" style="cursor:pointer; text-align:center; background:#f9f9f9; padding:5px; border-radius:8px; border:1px solid #ddd;">
         <img id="qr-image" src="" style="width:60px; height:60px; display:block; object-fit:contain;">
-        <span style="font-size:8px; color:#666; font-weight:bold;">QUÉT MÃ</span>
+        <span style="font-size:8px; color:#000; font-weight:bold;">QUÉT MÃ</span>
     </div>
 </div>
 
 <!-- Modal để phóng to QR khi cần -->
 <div id="modal-qr-big" onclick="this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000000; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
-    <h3 style="margin-bottom:20px;">QUÉT MÃ THANH TOÁN</h3>
+    <h3 style="margin-bottom:20px;color: #000;">QUÉT MÃ THANH TOÁN</h3>
     <img id="qr-image-big" src="" style="width:85vw; max-width:400px; border-radius:15px; background:#fff; padding:10px;">
-    <p style="margin-top:20px;">Chạm để đóng</p>
+    <p style="margin-top:20px;color: #000;">Chạm để đóng</p>
 </div>
 
  <!-- Khu vực chọn mã Voucher cho nhân viên -->
@@ -4061,24 +4080,29 @@ function updateQRCount(count) {
 
 function capNhatQRThanhToan(tongTien) {
     const qrImg = document.getElementById('qr-image');
-    if (!qrImg) return;
+    const qrZone = document.getElementById('qr-payment-zone');
+    if (!qrImg || !qrZone) return;
 
     if (!tongTien || tongTien <= 0) {
-        document.getElementById('qr-payment-zone').style.display = 'none';
+        qrZone.style.display = 'none';
         return;
     }
-    
-    document.getElementById('qr-payment-zone').style.display = 'block';
 
-    const BANK_ID = "VCB"; // Vietcombank
+    qrZone.style.display = 'block';
+
+    const BANK_ID = "VCB"; // ✅ sửa lại đây
     const ACCOUNT_NO = "030093020397";
-    const addInfo = encodeURIComponent(`Thanh toan Ban ${currentTableId || ''}`);
+    const ACCOUNT_NAME = encodeURIComponent("Nguyễn Kim Anh");
 
-    // Tạo URL VietQR (Sử dụng mẫu compact2 cho gọn)
-    const qrUrl = `https://vietqr.io{BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${Math.round(tongTien)}&addInfo=${addInfo}`;
-    
+    const tableInfo = typeof currentTableId !== 'undefined' ? currentTableId : '';
+    const addInfo = encodeURIComponent(`Thanh toan Ban ${tableInfo}`);
+
+    const qrUrl = `https://img.vietqr.io/image/${BANK_ID}-${ACCOUNT_NO}-compact2.png?amount=${Math.round(tongTien)}&addInfo=${addInfo}&accountName=${ACCOUNT_NAME}&t=${Date.now()}`;
+
+    console.log("QR URL:", qrUrl);
+
     qrImg.src = qrUrl;
-    // Cập nhật luôn cho ảnh phóng to nếu có
+
     const qrImgBig = document.getElementById('qr-image-big');
     if (qrImgBig) qrImgBig.src = qrUrl;
 }
