@@ -6,7 +6,14 @@
     <title>Phở Túy POS PRO - Full Features</title>
 
     <style>
-
+#table-header::after {
+    content: " ▾"; /* Thêm mũi tên nhỏ trỏ xuống */
+    font-size: 10px;
+    opacity: 0.8;
+}
+#table-header:active {
+    transform: scale(0.95); /* Hiệu ứng lún xuống khi chạm */
+}
 
 
 /* Ép Modal lịch sử nổi lên trên cùng */
@@ -151,15 +158,37 @@
 
 /* Container Menu */
 @media (max-width: 768px) {
-    .main-container {
-        flex-direction: column !important;
+    /* 1. Ẩn cột Menu và Order khỏi màn hình chính */
+    .center, .right {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 85vh !important;
+        margin: 0 !important;
+        background: white !important;
+        border-radius: 25px 25px 0 0 !important;
+        box-shadow: 0 -10px 40px rgba(0,0,0,0.2) !important;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        z-index: 20000;
+        transform: translateY(100%); /* Giấu hoàn toàn xuống dưới */
+        display: flex !important;
+        flex-direction: column;
     }
 
-    .left-panel,
-    .center-panel,
-    .right-panel {
+    /* 2. Thứ tự ưu tiên (Menu nằm trên Chi tiết đơn) */
+    #order-column { z-index: 20001; }
+    #menu-column { z-index: 20002; }
+
+    /* 3. Trạng thái khi mở (Hiện lên) */
+    .mo-ra {
+        transform: translateY(0) !important;
+    }
+
+    /* 4. Chỉnh lại Sơ đồ bàn cho thoáng */
+    .left {
         width: 100% !important;
-        height: auto !important;
+        padding-bottom: 80px !important; /* Để không bị nút bấm che */
     }
 }
 /* Container Menu */
@@ -897,49 +926,61 @@ body {
 
         </div> <!-- Đóng Left -->
 
-        <!-- CỘT GIỮA (CENTER) -->
-        <div class="center">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px double #d32f2f;padding-bottom:8px;gap:10px;">
-                <div style="display:flex;flex-direction:column;">
-                    <h2 style="margin:0;font-size:20px;">🍜 Phở Túy 11h</h2>
-                    <marquee style="font-size:11px;color:#666;">📍 Số 11 Bà Triệu - Hotline: 0999.999.888 - Mở cửa 06h-11h</marquee>
-                </div>
-                <button onclick="toggleDarkMode()" id="dark-btn" style="padding:6px 12px;border-radius:15px;border:none;background:#333;color:#fff;cursor:pointer;">🌙</button>
-                <div style="text-align:right;">
-                    <div id="clock-date" style="font-size:10px;color:#d32f2f;"></div>
-                    <div id="clock-time" style="font-size:16px;font-weight:bold;"></div>
-                </div>
-            </div>
+     <!-- CỘT GIỮA (CENTER) -->
+<div class="center" id="menu-column">
+    <!-- Vùng tiêu đề & Đồng hồ (Chạm vào đây để hạ Menu xuống) -->
+   <div id="menu-trigger" onclick="event.stopPropagation(); document.getElementById('menu-column').classList.remove('mo-ra');" style="cursor:pointer;">
+        <div style="display:flex;flex-direction:column;">
+            <h2 style="margin:0;font-size:20px;">🍜 Phở Túy 11h</h2>
+            <marquee style="font-size:11px;color:#666;">📍 Số 11 Bà Triệu - 06h-11h</marquee>
+        </div>
+        
+        <button onclick="toggleDarkMode()" id="dark-btn" style="padding:6px 12px;border-radius:15px;border:none;background:#333;color:#fff;cursor:pointer;">🌙</button>
+        
+        <div style="text-align:right;">
+            <!-- PHẢI CÓ 2 CÁI ID NÀY THÌ ĐỒNG HỒ MỚI CHẠY -->
+            <div id="clock-date" style="font-size:10px;color:#d32f2f;"></div>
+            <div id="clock-time" style="font-size:16px;font-weight:bold;"></div>
+        </div>
+    </div>
 
-             <div id="stock-counter-section" style="margin-bottom: 20px; padding: 15px; background: #fffdf7; border: 2px dashed #ffd54f; border-radius: 12px;">
-    <h4 style="margin: 0 0 10px 0; color: #d32f2f; text-align: center; font-size: 14px;">
-        📊 SUẤT BÁN NGÀY: <span id="current-date-display" style="color: #555;">--/--/----</span>
-    </h4>
-    
-    <div id="stock-display-list"></div>
+    <!-- Giữ nguyên phần Suất bán & Danh sách món bên dưới -->
+    <div id="stock-counter-section" style="margin-bottom: 20px; padding: 15px; background: #fffdf7; border: 2px dashed #ffd54f; border-radius: 12px;">
+        <h4 style="margin: 0 0 10px 0; color: #d32f2f; text-align: center; font-size: 14px;">
+            📊 SUẤT BÁN NGÀY: <span id="current-date-display">--/--/----</span>
+        </h4>
+        <div id="stock-display-list"></div>
+        <div id="stock-warning-box" class="stock-alert-container"></div>
+    </div>
 
-    <!-- PHẦN MỚI: Dòng chữ chạy cảnh báo -->
-    <div id="stock-warning-box" class="stock-alert-container"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="btn-don" onclick="switchMenuTab('don')" style="flex:1;background:#2e7d32;color:#fff;padding:10px;border:none;border-radius:8px;cursor:pointer;">🍜Menu Đơn</button>
+        <button id="btn-combo" onclick="switchMenuTab('combo')" style="flex:1;background:#eee;padding:10px;border:none;border-radius:8px;cursor:pointer;">🍱Menu COMBO</button>
+    </div>
+
+    <div id="menu-list"></div>
 </div>
 
-
-            <div style="display:flex;gap:8px;margin-bottom:10px;">
-                <button id="btn-don" onclick="switchMenuTab('don')" style="flex:1;background:#2e7d32;color:#fff;padding:10px;border:none;border-radius:8px;cursor:pointer;">🍜Menu Đơn</button>
-                <button id="btn-combo" onclick="switchMenuTab('combo')" style="flex:1;background:#eee;padding:10px;border:none;border-radius:8px;cursor:pointer;">🍱Menu COMBO</button>
-            </div>
-
-            <div id="menu-list"></div>
-        </div> <!-- Đóng Center -->
 
     
         <!-- CỘT PHẢI (RIGHT) - Đã thêm ID để trượt -->
 <div id="order-column" class="right" tabindex="0" style="display: flex; flex-direction: column; background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); height: 100%; outline: none;">
     
     <!-- Tiêu đề -->
-    <div id="order-trigger" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; cursor: pointer;">
-    <h3 style="margin:0; font-size: 16px;">📋 CHI TIẾT ĐƠN</h3>
-        <span id="table-header" style="background: #f5f5f5; padding: 4px 15px; border-radius: 8px; font-weight: bold; border: 1px solid #ddd; font-size: 14px;">Chọn Bàn</span>
-    </div>
+<div id="order-trigger" 
+     onclick="event.stopPropagation(); document.getElementById('order-column').classList.toggle('mo-ra');" 
+     style="cursor:pointer; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee;">
+    
+    <!-- Tiêu đề bên trái -->
+    <h3 style="margin:0; font-size: 16px; white-space: nowrap;">📋 CHI TIẾT ĐƠN</h3>
+    
+    <!-- Nút Chọn bàn bên phải -->
+    <span id="table-header" 
+          onclick="event.stopPropagation(); moMenuTuTenBan();" 
+          style="cursor:pointer; background:#2e7d32; color:#fff; padding:6px 12px; border-radius:8px; font-weight: bold; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        Chọn bàn
+    </span>
+</div>
 
     <!-- Tìm kiếm khách hàng -->
     <div class="customer-select-box" style="margin-bottom: 10px; position: relative;">
@@ -2316,14 +2357,17 @@ function editKho(i, v) { KHO[i].ton += v; db.ref("kho").set(KHO); }
 
 
 /*31.Cập nhật giờ*/
-function updateClock(){
+function updateClock() {
+    const dateEl = document.getElementById('clock-date');
+    const timeEl = document.getElementById('clock-time');
+    
+    // DÒNG BẢO HIỂM: Nếu không thấy đồng hồ trên màn hình thì thoát luôn, không báo lỗi nữa
+    if (!dateEl || !timeEl) return; 
+
     const now = new Date();
-
-    document.getElementById("clock-time").innerText =
-        now.toLocaleTimeString("vi-VN");
-
-    document.getElementById("clock-date").innerText =
-        now.toLocaleDateString("vi-VN");
+    // ... code chạy đồng hồ cũ của bạn giữ nguyên ...
+    dateEl.innerText = now.toLocaleDateString(); 
+    timeEl.innerText = now.toLocaleTimeString();
 }
 
 setInterval(updateClock,1000);
@@ -3691,6 +3735,99 @@ function xacNhanGiaoMon(tableId) {
     });
 }
 
+// B. KHI ẤN TÊN BÀN TRÊN LÁ SỚ -> Hiện Menu để thêm món
+// A. HÀM MỞ MENU (GIỮ NGUYÊN NHƯNG THÊM STOP PROPAGATION)
+function moMenuTuTenBan() {
+    if (!currentTableId) return;
+    const menuSheet = document.getElementById('menu-column');
+    if (menuSheet) {
+        menuSheet.classList.add('mo-ra');
+    }
+    // Ngăn chặn việc click vào tên bàn làm hạ luôn đơn hàng
+    if (event) event.stopPropagation();
+}
+
+// B. ĐIỀU KHIỂN TRỰC TIẾP TỪNG CỘT
+// 1. Đối với Menu
+const menuCol = document.getElementById('menu-column');
+const menuTrigger = document.getElementById('menu-trigger');
+
+menuTrigger.onclick = function(e) {
+    e.stopPropagation(); // Chặn không cho báo lên document
+    menuCol.classList.remove('mo-ra'); // CHỈ hạ chính nó
+    console.log("Đã đóng Menu, Order đứng im nhé!");
+};
+
+menuCol.onclick = function(e) {
+    e.stopPropagation(); // Click bên trong nội dung menu (chọn món) không bị hạ
+};
+
+// 2. Đối với Chi tiết đơn
+const orderCol = document.getElementById('order-column');
+const orderTrigger = document.getElementById('order-trigger');
+
+orderTrigger.onclick = function(e) {
+    e.stopPropagation();
+    orderCol.classList.toggle('mo-ra');
+};
+
+orderCol.onclick = function(e) {
+    e.stopPropagation(); // Click trong đơn hàng không bị hạ
+};
+
+// C. CHỈ HẠ TẤT CẢ KHI CHẠM VÀO SƠ ĐỒ BÀN
+// Bạn hãy tìm class hoặc ID của vùng chứa Map bàn (ví dụ .left)
+const vungMapBan = document.querySelector('.left'); 
+if (vungMapBan) {
+    vungMapBan.onclick = function() {
+        // Chỉ khi chạm vào vùng sơ đồ bàn mới dọn dẹp màn hình
+        document.getElementById('menu-column').classList.remove('mo-ra');
+        document.getElementById('order-column').classList.remove('mo-ra');
+    };
+}
+// C. LOGIC ĐÓNG NHANH
+document.addEventListener('click', function (e) {
+    if (window.innerWidth > 768) return;
+
+    const menuCol = document.getElementById('menu-column');
+    const orderCol = document.getElementById('order-column');
+
+    // 1. Nếu nhấn trúng tiêu đề MENU (Trigger của Menu)
+    if (e.target.closest('#menu-trigger')) {
+        e.stopPropagation(); // Chặn đứng sự kiện, không cho lan ra ngoài
+        menuCol.classList.remove('mo-ra'); // CHỈ hạ Menu
+        console.log("Đã đóng Menu - Giữ nguyên Order");
+        return; 
+    }
+
+    // 2. Nếu nhấn trúng tiêu đề CHI TIẾT ĐƠN (Trigger của Order)
+    if (e.target.closest('#order-trigger')) {
+        e.stopPropagation();
+        orderCol.classList.toggle('mo-ra'); // Nâng/Hạ Order
+        return;
+    }
+
+    // 3. Nếu nhấn trúng BÀN (Table Map)
+    if (e.target.closest('.table-card')) {
+        // Khi chọn bàn mới: Hiện Order, Đóng Menu cho gọn
+        orderCol.classList.add('mo-ra');
+        menuCol.classList.remove('mo-ra');
+        return;
+    }
+
+    // 4. Nếu nhấn VÀO TRONG vùng nội dung của Menu hoặc Order
+    // (Đang chọn món, đang sửa số lượng...) -> KHÔNG LÀM GÌ CẢ
+    if (menuCol.contains(e.target) || orderCol.contains(e.target)) {
+        return; 
+    }
+
+    // 5. TRƯỜNG HỢP CUỐI: Nhấn vào vùng trống (Background/Sơ đồ bàn)
+    // Thì mới hạ tất cả xuống cho thoáng màn hình
+    menuCol.classList.remove('mo-ra');
+    orderCol.classList.remove('mo-ra');
+});
+document.getElementById('menu-column').onclick = function(e) { e.stopPropagation(); };
+document.getElementById('order-column').onclick = function(e) { e.stopPropagation(); };
 
 </script>
 
@@ -3780,38 +3917,24 @@ function xacNhanGiaoMon(tableId) {
 </style>
 
 
-<!-- CỤM NÚT ĐIỀU KHIỂN ĐÃ ĐỒNG BỘ -->
-<div class="fab-wrapper">
-
-
-   <!-- NÚT MÀN HÌNH BẾP (Màu xanh lá đậm) -->
-  <div onclick="moManHinhBep()" class="fab-item" style="background:#1b5e20;" title="Màn hình bếp">
-    <span>👨‍🍳</span>
-   </div>
-    
-    <!-- NÚT HỘI VIÊN -->
-    <div class="fab-item" onclick="moHoiVien()" title="Hội viên">
-        <span>👤</span>
+<div class="fab-wrapper" id="fabWrapper">
+    <!-- Nút chính -->
+    <div class="fab-main" onclick="toggleFab(event)">
+        <span id="fab-icon">➕</span>
     </div>
 
-    <!-- NÚT KHO HÀNG -->
-    <div class="fab-item" onclick="moKhoHang()" title="Kho hàng">
-        <span>📦</span>
+    <!-- Cụm nút con -->
+    <div class="fab-menu" id="fabMenu">
+        <div class="fab-item" data-label="Báo cáo" onclick="handleFabClick(moModalBaoCao)"><span>📊</span></div>
+        <div class="fab-item" data-label="Kho hàng" onclick="handleFabClick(moKhoHang)"><span>📦</span></div>
+        <div class="fab-item" data-label="Hội viên" onclick="handleFabClick(moHoiVien)"><span>👤</span></div>
+        <div class="fab-item" data-label="Bếp" onclick="handleFabClick(moManHinhBep)" style="background:#1b5e20;"><span>👨‍🍳</span></div>
+        <div id="btn-open-qr-list" class="fab-item" data-label="Thông báo" onclick="handleFabClick(moDanhSachChoQR)">
+            <span>🔔</span>
+            <span id="qr-count-badge" style="position: absolute; top: -2px; right: -2px; background: #ffeb3b; color: #000; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: none; align-items: center; justify-content: center;">0</span>
+        </div>
     </div>
-
-    <!-- NÚT LỊCH SỬ -->
-    <div class="fab-item" onclick="moModalBaoCao()" title="Báo cáo">
-        <span>📊</span>
-    </div>
-
-    <!-- NÚT CHUÔNG -->
-    <div id="btn-open-qr-list" class="fab-item" onclick="moDanhSachChoQR()" title="Thông báo">
-        <span>🔔</span>
-        <span id="qr-count-badge" style="position: absolute; top: -2px; right: -2px; background: #ffeb3b; color: #000; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; font-weight: bold; display: none; align-items: center; justify-content: center; border: 1.5px solid #455a64;">0</span>
-    </div>
-
 </div>
-
 
 <div id="modal-bao-cao-tong" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; align-items:center; justify-content:center;">
     <!-- Khung chính Modal: Đặt display flex và hướng dọc -->
@@ -3962,79 +4085,155 @@ function xacNhanGiaoMon(tableId) {
 
 <style>
 @media (max-width: 768px) {
-    #order-column.right {
+    /* 1. ĐỊNH DẠNG CHUNG CHO CẢ 2 "LÁ SỚ" (ORDER & MENU) */
+    #order-column.right, 
+    #menu-column.center {
         position: fixed !important;
         bottom: 0 !important;
         left: 0 !important;
-        /* Dùng width: 100vw và box-sizing để không bị che mép phải */
         width: 100vw !important; 
         box-sizing: border-box !important;
-        
         height: 85vh !important;
-        z-index: 99999 !important;
         margin: 0 !important;
         border-radius: 25px 25px 0 0 !important;
         box-shadow: 0 -10px 40px rgba(0,0,0,0.3) !important;
         background: white !important;
-        
-        /* Trạng thái đóng mặc định */
-        transform: translateY(calc(100% - 60px)) !important;
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        
-        /* Đảm bảo nội dung bên trong không bị lấp ló */
         overflow-x: hidden !important; 
     }
 
-    /* CHỈ nâng lên khi click (có class mo-ra) */
-    #order-column.right.mo-ra {
+    /* 2. THỨ TỰ ƯU TIÊN: CHI TIẾT ĐƠN (LỚP DƯỚI) */
+    #order-column.right {
+        z-index: 100000 !important; /* Thấp hơn Menu */
+        /* Mặc định lấp ló tiêu đề 60px */
+        transform: translateY(calc(100% - 60px)) !important;
+    }
+
+    /* 3. THỨ TỰ ƯU TIÊN: MENU MÓN ĂN (LỚP TRÊN - ĐÈ LÊN CHI TIẾT ĐƠN) */
+    #menu-column.center {
+        z-index: 100001 !important; /* Cao nhất để luôn nằm trên cùng */
+        /* Mặc định ẩn hoàn toàn xuống dưới để không choán chỗ */
+        transform: translateY(100%) !important;
+    }
+
+    /* 4. TRẠNG THÁI KHI MỞ (CLASS mo-ra) */
+    #order-column.right.mo-ra,
+    #menu-column.center.mo-ra {
         transform: translateY(0) !important;
     }
 
-    /* Thanh gờ kéo */
-    #order-column.right::before {
+    /* Thanh gờ kéo cho chuyên nghiệp */
+    #order-column.right::before,
+    #menu-column.center::before {
         content: "";
         width: 40px; height: 5px;
         background: #ddd; border-radius: 10px;
-        margin: 5px auto 10px; display: block;
+        margin: 8px auto 5px; display: block;
     }
 }
+	
+/* --- GIỮ NGUYÊN TOÀN BỘ LOGIC BẠN GỬI --- */
 
-/* Khung chứa các nút */
-    .fab-wrapper {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        z-index: 9999;
-    }
+/* --- PHẦN LOGIC CỦA BẠN (ĐÃ FIX) --- */
 
-    /* Style chung cho 4 nút: cùng màu, cùng cỡ */
-    .fab-item {
-        background: #455a64; /* MÀU NỀN ĐỒNG NHẤT (Xám xanh chuyên nghiệp) */
-        color: #fff;
-        width: 45px;          /* THU NHỎ kích thước xuống 45px */
-        height: 45px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        transition: all 0.2s ease;
-        position: relative;
-    }
+.fab-wrapper {
+    position: fixed;
+    bottom: 50px;
+    right: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    z-index: 9999;
+}
 
-    .fab-item span {
-        font-size: 20px;      /* Thu nhỏ icon bên trong */
-    }
+.fab-main {
+    width: 56px; height: 56px;
+    background: #0288d1; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 24px; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    margin-top: 15px; z-index: 10;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-    /* Hiệu ứng nhún khi nhấn */
-    .fab-item:active {
-        transform: scale(0.9);
-    }
+/* Hiệu ứng xoay nút chính khi mở */
+.fab-wrapper.active #fab-icon {
+    transform: rotate(45deg);
+    display: inline-block;
+}
 
+/* 1. Menu chứa các nút con - Chỉnh lại để mượt hơn */
+.fab-menu {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 15px;
+    margin-bottom: 15px;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+/* 2. Từng nút con - Thiết lập trạng thái ẩn "sâu" hơn để khi hiện có đà bay */
+.fab-item {
+    width: 48px; height: 48px;
+    background: #455a64; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    position: relative;
+
+    /* Trạng thái ẩn: Vừa mờ, vừa thu nhỏ, vừa nằm dưới nút + */
+    opacity: 0;
+    transform: translateY(40px) scale(0.5);
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Hiệu ứng nảy lò xo */
+}
+
+/* 3. Khi menu mở: Kích hoạt trạng thái hiện */
+.fab-wrapper.active .fab-menu {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.fab-wrapper.active .fab-item {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+/* 4. TẠO ĐỘ TRỄ LẦN LƯỢT (Stagger Effect) */
+/* Nút đầu tiên hiện ngay, các nút sau trễ dần 0.05s */
+.fab-item:nth-child(1) { transition-delay: 0.05s; }
+.fab-item:nth-child(2) { transition-delay: 0.10s; }
+.fab-item:nth-child(3) { transition-delay: 0.15s; }
+.fab-item:nth-child(4) { transition-delay: 0.20s; }
+.fab-item:nth-child(5) { transition-delay: 0.25s; }
+
+/* 5. HIỆU ỨNG HOVER (Chỉ hiện chữ icon đó) */
+.fab-item:hover {
+    transform: scale(1.2) !important; /* To hơn khi hover */
+    background: #0288d1;
+    transition-delay: 0s !important; /* Hover là phải ăn ngay, không delay */
+}
+
+.fab-item::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 60px;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(10px);
+    transition: all 0.2s ease;
+}
+
+.fab-item:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+}
 
 </style>
 
@@ -4074,6 +4273,33 @@ function fixOrderLayout() {
 }
 window.addEventListener('load', fixOrderLayout);
 window.addEventListener('resize', fixOrderLayout);
+
+
+function toggleFab(event) {
+    if(event) event.stopPropagation();
+    const wrapper = document.getElementById('fabWrapper');
+    const icon = document.getElementById('fab-icon');
+    
+    wrapper.classList.toggle('active');
+    icon.innerText = wrapper.classList.contains('active') ? '✖' : '➕';
+}
+
+function handleFabClick(callback) {
+    if (typeof callback === 'function') callback();
+    // Đóng menu sau khi chọn chức năng
+    const wrapper = document.getElementById('fabWrapper');
+    wrapper.classList.remove('active');
+    document.getElementById('fab-icon').innerText = '➕';
+}
+
+// Đóng menu khi bấm ra ngoài vùng cụm nút
+document.addEventListener('click', function(e) {
+    const wrapper = document.getElementById('fabWrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        wrapper.classList.remove('active');
+        document.getElementById('fab-icon').innerText = '➕';
+    }
+});
 </script>
 
 
