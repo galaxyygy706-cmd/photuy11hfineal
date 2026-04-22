@@ -7,366 +7,52 @@
 
     <style>
 
-
-.badge-suat-an {
-    position: absolute;
-    top: -8px;    /* Đẩy lên trên mép */
-    right: -8px;  /* Đẩy sang phải mép */
-    background: #2e7d32; /* Màu xanh lá đậm như hình */
-    color: white;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    border: 2px solid #fff; /* Viền trắng để nổi bật */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    z-index: 101;
-}
-
-#modal-qr-big {
-    display: none; 
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    
-    /* 0.85 là độ đậm của màu trắng, bạn có thể chỉnh từ 0 đến 1 */
-    background-color: rgba(255, 255, 255, 0.85) !important; 
-    
-    justify-content: center;
-    align-items: center;
-    flex-direction: column; /* Để chữ "Chạm để đóng" nằm dưới ảnh */
-}
-#modal-qr-big span, 
-#modal-qr-big p {
-    color: #333 !important; /* Đổi màu chữ thông báo thành đen/xám đậm */
-    margin-top: 10px;
-}
-#qr-payment-zone {
-    transition: all 0.3s ease;
-    border: 1px solid #005a32; /* Màu xanh đặc trưng Vietcombank */
-}
-
-#qr-payment-zone:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 10px rgba(0, 90, 50, 0.2);
-}
-
-#qr-image {
-    /* Tạo hiệu ứng bo góc nhẹ cho QR */
-    border-radius: 4px;
-}
-
-
-.flying-item {
-    position: fixed;
-    z-index: 999999;
-    font-size: 30px;
-    pointer-events: none;
-    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    opacity: 0;
-}
-.shake-effect {
-    animation: shake-sheet 0.4s ease-in-out;
-}
-@keyframes shake-sheet {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-/* Hiệu ứng rung nhẹ cái Lá sớ khi nhận được món */
-@keyframes shake-sheet {
-    0% { transform: translateY(0); }
-    25% { transform: translateY(-5px); }
-    50% { transform: translateY(0); }
-    75% { transform: translateY(-3px); }
-    100% { transform: translateY(0); }
-}
-
-.shake-effect {
-    animation: shake-sheet 0.4s ease-in-out;
-}
-
-
-
-
-
-.left {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden; /* 🔥 chặn scroll toàn cột */
-}
-
-.tab-content {
-    flex: 1;
-    overflow: hidden;
-}
-
-#tab-so-do {
-    overflow-y: auto;
-    padding-bottom: 90px; /* 🔥 chỉnh số này */
-}
-
-
-
-
-#table-header::after {
-    content: " ▾"; /* Thêm mũi tên nhỏ trỏ xuống */
-    font-size: 10px;
-    opacity: 0.8;
-}
-#table-header:active {
-    transform: scale(0.95); /* Hiệu ứng lún xuống khi chạm */
-}
-
-
-/* Ép Modal lịch sử nổi lên trên cùng */
-#modal-lich-su-khach {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(0, 0, 0, 0.7) !important; /* Nền tối hơn lớp dưới */
-    z-index: 999999 !important; /* Đặt z-index cực lớn (ví dụ 1 triệu) */
-    display: none; /* Mặc định ẩn */
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(5px) !important; /* Làm mờ Modal Hội viên ở phía sau */
-}
-
-/* Khung nội dung trắng bên trong */
-#modal-lich-su-khach > div {
-    background: #fff;
-    width: 95%;
-    max-width: 480px;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    z-index: 1000000 !important;
-    animation: slideUp 0.3s ease-out;
-}
-
-@keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-
-
-
-
-
-
-#hv-ten {
-    text-transform: capitalize;
-}
-
-/* Ép nội dung hội viên luôn hiển thị khi nằm trong Modal */
-#modal-hoivien .tab-content {
-    display: block !important;
-}
-
-/* 1. Hiệu ứng hiện Modal báo cáo */
-#modal-bao-cao-tong {
-    backdrop-filter: blur(4px); /* Làm mờ nền phía sau */
-}
-
-#modal-bao-cao-tong > div {
-    animation: zoomIn 0.3s ease-out;
-}
-
-@keyframes zoomIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-/* 2. Hiệu ứng trượt từng Card đơn hàng */
-@keyframes slideInCard {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-
-/* 1. Hiệu ứng cho các thẻ hóa đơn (Card) */
-.report-item-card {
-    transition: all 0.3s ease !important;
-    cursor: pointer;
-    border: 1px solid #eee !important; /* Ép viền mặc định */
-    background: #fff;
-    position: relative;
-}
-
-.report-item-card:hover {
-    transform: translateY(-5px);
-    /* Dùng !important để ghi đè màu xám trong JS */
-    border: 2px solid #2e7d32 !important; 
-    box-shadow: 0 8px 20px rgba(46, 125, 50, 0.15) !important;
-    z-index: 10;
-}
-
-/* 2. Hiệu ứng cho các ô nhập liệu (Ngày, Loại khách) */
-#report-from, #report-to, #report-customer-filter {
-    transition: all 0.2s ease;
-    border: 1px solid #ddd;
-}
-
-#report-from:hover, #report-to:hover, #report-customer-filter:hover {
-    border-color: #2e7d32;
-    background-color: #f0fdf4; /* Đổi nền xanh cực nhạt khi chỉ vào */
-}
-
-#report-from:focus, #report-to:focus, #report-customer-filter:focus {
-    border-color: #2e7d32;
-    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-    outline: none;
-}
-
-/* 3. Hiệu ứng cho nút LỌC */
-#modal-bao-cao-tong button {
-    transition: all 0.2s ease;
-}
-
-#modal-bao-cao-tong button:hover {
-    background-color: #1b5e20 !important; /* Xanh đậm hơn */
-    transform: scale(1.05); /* Phóng to nhẹ */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-/* Hiệu ứng số tiền nhảy số nhẹ */
-#report-total-amount {
+/* Lớp phủ chặn thao tác toàn màn hình */
+.global-lock {
+    pointer-events: none !important; /* Chặn click */
+    user-select: none !important;    /* Chặn bôi đen */
+    filter: grayscale(80%) blur(1px); /* Làm mờ và đổi màu để báo hiệu đang khóa */
+    opacity: 0.7;
     transition: all 0.5s ease;
 }
 
-
-
-
-
-/* Hiệu ứng cho nút tích V-start*/
-.btn-confirm-delivery:active {
-    transform: scale(0.8); /* Co lại một chút khi nhấn để biết đã bấm trúng */
-    background-color: #e65100 !important; /* Đổi màu đậm hơn khi nhấn */
+/* Chỉ cho phép tương tác với thẻ nhân viên để chọn Đại sứ */
+#main-staff-card {
+    pointer-events: auto !important;
+    filter: none !important;
+    opacity: 1 !important;
+    z-index: 9999; /* Đẩy lên trên cùng */
 }
 
-/* Hiệu ứng nhấp nháy nhẹ để nhân viên chú ý bưng món */
-.table-card.waiting .btn-confirm-delivery {
-    animation: pulse-confirm 1.5s infinite;
+
+/* --- BỌC VIỀN MẦU TOÀN BỘ THẺ MÓN ĂN --- */
+.single-neon-glow { 
+    /* Thay đổi từ border-left thành border toàn bộ */
+    border: 2px solid #2e7d32 !important; 
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15); 
 }
 
-@keyframes pulse-confirm {
-    0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
-}
-/* Hiệu ứng cho nút tích V end */
-
-
-/* Container Menu */
-@media (max-width: 768px) {
-    /* 1. Ẩn cột Menu và Order khỏi màn hình chính */
-    .center, .right {
-        position: fixed !important;
-        bottom: 0 !important;
-        left: 0 !important;
-        width: 100vw !important;
-        height: 85vh !important;
-        margin: 0 !important;
-        background: white !important;
-        border-radius: 25px 25px 0 0 !important;
-        box-shadow: 0 -10px 40px rgba(0,0,0,0.2) !important;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        z-index: 20000;
-        transform: translateY(100%); /* Giấu hoàn toàn xuống dưới */
-        display: flex !important;
-        flex-direction: column;
-    }
-
-    /* 2. Thứ tự ưu tiên (Menu nằm trên Chi tiết đơn) */
-    #order-column { z-index: 20001; }
-    #menu-column { z-index: 20002; }
-
-    /* 3. Trạng thái khi mở (Hiện lên) */
-    .mo-ra {
-        transform: translateY(0) !important;
-    }
-
-    /* 4. Chỉnh lại Sơ đồ bàn cho thoáng */
-    .left {
-        width: 100% !important;
-        padding-bottom: 80px !important; /* Để không bị nút bấm che */
-    }
-}
-#menu-list {
-    -webkit-overflow-scrolling: touch; /* Giúp cuộn mượt trên iPhone */
-    scrollbar-width: none; /* Ẩn thanh cuộn cho đẹp */
-}
-#menu-list::-webkit-scrollbar {
-    display: none; /* Ẩn thanh cuộn trên Chrome/Safari */
-}
-/* Container Menu */
-#menu-list {
-    padding: 10px;
+.combo-neon-glow { 
+    /* Tương tự với món Combo (viền màu cam) */
+    border: 2px solid #e65100 !important; 
+    box-shadow: 0 4px 12px rgba(230, 81, 0, 0.15); 
 }
 
-/* Hiệu ứng hào quang phát sáng phía sau dựa theo loại món */
-.single-neon-glow { --glow-color: #2e7d32; --bg-light: #fff0f3; }
-.combo-neon-glow { --glow-color: #e65100; --bg-light: #fff8e1; }
-
+/* Đảm bảo thẻ món ăn chung không bị ghi đè viền xám */
 .menu-item {
-    position: relative;
     background: #fff;
     border-radius: 18px;
-    z-index: 1;
-    overflow: hidden; /* Cắt viền xoay theo bo góc */
     transition: all 0.3s ease;
-    /* Đổ bóng hào quang nhẹ phía sau */
-    box-shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 15px var(--glow-color);
+    overflow: hidden;
+    position: relative;
+    /* Xóa border mặc định nếu có */
+    border: 2px solid transparent; 
 }
 
-/* HIỆU ỨNG DẢI SÁNG XOAY LIỀN KHỐI */
-.menu-item::before {
-    content: "";
-    position: absolute;
-    top: -150%; left: -50%;
-    width: 200%; height: 400%;
-    /* Dải màu xoay mượt mà (30% vòng tròn) */
-    background: conic-gradient(
-        from 0deg,
-        transparent 0%,
-        var(--glow-color) 15%, 
-        var(--glow-color) 30%,
-        transparent 45%
-    );
-    animation: rotate-menu 2s linear infinite;
-    filter: blur(8px); /* Tạo độ lấp lánh Neon */
-    z-index: -2;
-}
-
-/* Lớp mặt bàn đè lên tạo độ dày viền */
-.menu-item::after {
-    content: "";
-    position: absolute;
-    inset: 3px; /* Độ dày viền sáng là 3px */
-    background: #fff;
-    border-radius: 15px;
-    z-index: -1;
-}
-
-/* Animation xoay viền */
-@keyframes rotate-menu {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-/* Hover nổi bật */
+/* Hiệu ứng khi di chuột vào (Hover) để viền sáng lên */
 .menu-item:hover {
-    transform: scale(1.02);
-    box-shadow: 0 15px 40px var(--glow-color);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(46, 125, 50, 0.25) !important;
 }
 
 /* Vùng chứa chữ chạy trong từng món ăn */
@@ -391,170 +77,618 @@
     letter-spacing: -0.2px;       /* Co khoảng cách chữ lại cho thanh thoát */
     font-family: sans-serif;      /* Dùng font không chân để nét mảnh đều */
 }
-
-@keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
+/* Khi rà chuột vào món ăn, chữ sẽ khựng lại */
+.menu-item:hover .scroll-text {
+    animation-play-state: paused;
 }
 
-/* Hào quang lấp lánh cho món đơn (Xanh) và Combo (Cam) */
-.single-neon-glow { box-shadow: 0 0 10px rgba(46, 125, 50, 0.15); border-left: 5px solid #2e7d32; }
-.combo-neon-glow { box-shadow: 0 0 15px rgba(230, 81, 0, 0.2); border-left: 5px solid #e65100; }
 
+
+@media (min-width: 769px) {
+    #menu-list {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+
+        column-gap: 12px;
+        row-gap: 14px;
+
+        align-items: start !important;
+        align-content: start !important;
+
+        grid-auto-rows: max-content; /* ⭐ FIX CHÍNH */
+    }
+}
 .menu-item {
+    /* CHỈNH TẠI ĐÂY: Xóa các con số 100px, 120px cũ, để auto hoặc unset */
+    min-height: unset !important; 
+    height: auto !important;
+
+    /* CHỈNH TẠI ĐÂY: Giảm padding để thẻ mỏng hơn */
+    padding: 10px !important; 
+    
+    display: flex !important;
+    align-items: flex-start !important; /* Đẩy nội dung lên đỉnh */
+}
+
+.food-right-zone {
+    /* CHỈNH TẠI ĐÂY: Đảm bảo nội dung không tự giãn đều */
+    justify-content: flex-start !important; 
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Thu nhỏ ảnh một chút để thẻ mỏng lại */
+.food-left-zone {
+    width: 75px !important;
+    gap: 4px !important; /* Giá bám sát đáy ảnh */
+}
+
+.food-left-zone img {
+    height: 70px !important; /* Giảm chiều cao ảnh */
+    width: 75px !important;
+}
+
+/* Thẻ Quẩy kéo dài nhưng không quá cao */
+.full-width-item {
+    grid-column: span 2 !important;
+    height: fit-content !important;
+}
+.menu-item {
+    transition: 0.2s;
+}
+
+.menu-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+/* Tiêu đề: Định dạng huy hiệu (badge) số lượng suất ăn hình tròn */
+.badge-suat-an {
+    position: absolute;    /* Định vị tuyệt đối dựa trên phần tử cha (cần cha có position: relative) */
+    top: -8px;             /* Đẩy lên trên, vượt quá mép trên của phần tử cha 8px */
+    right: -8px;           /* Đẩy sang phải, vượt quá mép phải của phần tử cha 8px */
+    background: #2e7d32;   /* Đổ màu nền xanh lá đậm */
+    color: white;          /* Màu chữ (số) là trắng */
+    width: 22px;           /* Chiều rộng của vòng tròn */
+    height: 22px;          /* Chiều cao của vòng tròn */
+    border-radius: 50%;    /* Bo góc 50% để tạo thành hình tròn hoàn hảo */
+    display: flex;         /* Sử dụng mô hình hộp linh hoạt để căn chỉnh nội dung */
+    align-items: center;   /* Căn chữ giữa theo chiều dọc */
+    justify-content: center; /* Căn chữ giữa theo chiều ngang */
+    font-size: 12px;       /* Kích thước chữ (số) bên trong */
+    font-weight: bold;     /* Làm đậm chữ để dễ đọc */
+    border: 2px solid #fff; /* Tạo viền trắng dày 2px bao quanh vòng tròn xanh */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Tạo hiệu ứng đổ bóng nhẹ để huy hiệu nổi lên */
+    z-index: 101;          /* Đảm bảo huy hiệu luôn nằm đè lên trên các thành phần khác */
+}
+
+/* Tiêu đề: Định dạng lớp phủ (overlay) toàn màn hình cho mã QR phóng to */
+#modal-qr-big {
+    display: none;          /* Ẩn modal khi chưa kích hoạt */
+    position: fixed;        /* Cố định vị trí so với khung hình trình duyệt */
+    z-index: 1000;          /* Nằm trên cùng của mọi thành phần khác */
+    left: 0;
+    top: 0;
+    width: 100%;            /* Phủ kín toàn bộ chiều rộng */
+    height: 100%;           /* Phủ kín toàn bộ chiều cao */
+    
+    /* Nền trắng mờ (độ đục 85%) để làm nổi bật QR */
+    background-color: rgba(255, 255, 255, 0.85) !important; 
+    
+    display: flex;          /* (Cần thêm) Kích hoạt flexbox để căn giữa */
+    justify-content: center;/* Căn giữa nội dung theo chiều ngang */
+    align-items: center;    /* Căn giữa nội dung theo chiều dọc */
+    flex-direction: column; /* Xếp chồng ảnh QR và dòng chữ theo hàng dọc */
+}
+
+/* Tiêu đề: Định dạng văn bản thông báo trong modal */
+#modal-qr-big span, 
+#modal-qr-big p {
+    color: #333 !important; /* Màu chữ xám đậm để dễ đọc trên nền trắng */
+    margin-top: 10px;       /* Tạo khoảng cách phía trên chữ */
+}
+
+/* Tiêu đề: Định dạng vùng chứa mã QR */
+#qr-payment-zone {
+    transition: all 0.3s ease;     /* Tạo hiệu ứng chuyển động mượt mà (0.3 giây) */
+    border: 1px solid #005a32;    /* Viền màu xanh lá đặc trưng Vietcombank */
+}
+
+/* Hiệu ứng khi rê chuột (hover) vào vùng mã QR */
+#qr-payment-zone:hover {
+    transform: scale(1.05);        /* Phóng to nhẹ vùng QR lên 1.05 lần */
+    box-shadow: 0 4px 10px rgba(0, 90, 50, 0.2); /* Thêm bóng đổ màu xanh nhạt */
+}
+
+/* Tiêu đề: Định dạng trực tiếp hình ảnh QR */
+#qr-image {
+    border-radius: 4px;            /* Bo góc nhẹ cho tấm ảnh mã QR */
+}
+
+
+/* Tiêu đề: Hiệu ứng icon bay (thường là món ăn) vào giỏ hàng */
+.flying-item {
+    position: fixed;        /* Định vị cố định để bay trên toàn màn hình */
+    z-index: 999999;        /* Nằm trên cùng tuyệt đối */
+    font-size: 30px;        /* Kích thước của icon khi đang bay */
+    pointer-events: none;   /* Không nhận tương tác chuột để tránh cản trở người dùng */
+    /* Hiệu ứng bay mượt mà với đường cong chuyển động đặc biệt (có độ nảy) */
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0;             /* Mặc định ẩn đi cho đến khi được kích hoạt */
+}
+
+/* Tiêu đề: Kích hoạt hiệu ứng rung */
+.shake-effect {
+    animation: shake-sheet 0.4s ease-in-out; /* Chạy animation shake-sheet trong 0.4 giây */
+}
+
+/* Tiêu đề: Định nghĩa các bước chuyển động rung (cho cái Lá sớ/Giỏ hàng) */
+@keyframes shake-sheet {
+    0% { transform: translateY(0); }        /* Trạng thái ban đầu */
+    25% { transform: translateY(-5px); }    /* Nhảy lên 5px */
+    50% { transform: translateY(0); }       /* Rơi về chỗ cũ */
+    75% { transform: translateY(-3px); }    /* Nhảy nhẹ lên 3px */
+    100% { transform: translateY(0); }      /* Kết thúc tại vị trí cũ */
+}
+
+/* Tiêu đề: Bố cục cột bên trái (Menu) */
+.left {
+    display: flex;
+    flex-direction: column; /* Xếp các thành phần theo chiều dọc */
+    height: 100vh;          /* Chiều cao bằng toàn bộ màn hình */
+    overflow: hidden;       /* Chặn cuộn toàn trang để giữ cố định khung */
+}
+
+/* Vùng nội dung của Tab */
+.tab-content {
+    flex: 1;                /* Chiếm toàn bộ phần diện tích còn lại của cột */
+    overflow: hidden;       /* Ẩn các phần tràn ra ngoài */
+}
+
+/* Tiêu đề: Vùng cuộn riêng biệt cho Sớ đồ (Danh sách món) */
+#tab-so-do {
+    overflow-y: auto;       /* Chỉ cho phép cuộn nội dung theo chiều dọc tại đây */
+    padding-bottom: 90px;   /* Tạo khoảng trống dưới cùng để không bị che bởi nút bấm/thanh toán */
+}
+
+
+/* --- TIÊU ĐỀ BẢNG --- */
+#table-header::after {
+    content: " ▾";        /* Tự động thêm ký tự mũi tên xuống sau tiêu đề */
+    font-size: 10px;       /* Kích thước mũi tên nhỏ hơn chữ chính */
+    opacity: 0.8;          /* Làm mờ nhẹ mũi tên để trông tinh tế hơn */
+}
+
+#table-header:active {
+    transform: scale(0.95); /* Hiệu ứng co lại nhẹ khi người dùng nhấn chuột/chạm tay vào */
+}
+
+/* --- MODAL LỊCH SỬ KHÁCH HÀNG (LỚP TRÊN CÙNG) --- */
+#modal-lich-su-khach {
+    position: fixed !important;    /* Cố định vị trí so với màn hình */
+    top: 0 !important;             /* Sát mép trên */
+    left: 0 !important;            /* Sát mép trái */
+    width: 100% !important;        /* Phủ kín chiều rộng */
+    height: 100% !important;       /* Phủ kín chiều cao */
+    background: rgba(0, 0, 0, 0.7) !important; /* Nền đen mờ 70% */
+    z-index: 999999 !important;    /* Ưu tiên hiển thị đè lên tất cả các modal khác */
+    display: none;                 /* Mặc định ẩn, chỉ hiện qua JS */
+    align-items: center;           /* Căn giữa nội dung theo chiều dọc */
+    justify-content: center;       /* Căn giữa nội dung theo chiều ngang */
+    backdrop-filter: blur(5px) !important; /* Làm mờ các lớp nội dung nằm phía sau */
+}
+
+/* Nội dung trắng bên trong Modal Lịch sử */
+#modal-lich-su-khach > div {
+    background: #fff;              /* Nền trắng */
+    width: 95%;                    /* Rộng 95% màn hình điện thoại */
+    max-width: 480px;              /* Không rộng quá 480px trên máy tính */
+    border-radius: 20px;           /* Bo góc tròn mềm mại */
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5); /* Đổ bóng đậm để tạo chiều sâu */
+    z-index: 1000000 !important;   /* Luôn nằm trên lớp nền đen mờ */
+    animation: slideUp 0.3s ease-out; /* Hiệu ứng trượt từ dưới lên khi hiện */
+}
+
+/* --- HỘI VIÊN & BÁO CÁO --- */
+#hv-ten {
+    text-transform: capitalize;    /* Tự động viết hoa chữ cái đầu tiên của mỗi từ (Ví dụ: nguyễn văn a -> Nguyễn Văn A) */
+}
+
+#modal-hoivien .tab-content {
+    display: block !important;     /* Ép vùng nội dung hội viên luôn hiển thị */
+}
+
+/* Modal Báo cáo Tổng */
+#modal-bao-cao-tong {
+    backdrop-filter: blur(4px);    /* Làm mờ nhẹ nền phía sau */
+}
+
+#modal-bao-cao-tong > div {
+    animation: zoomIn 0.3s ease-out; /* Hiệu ứng phóng to nhẹ khi xuất hiện */
+}
+
+/* --- CÁC ĐỊNH NGHĨA CHUYỂN ĐỘNG (ANIMATIONS) --- */
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; } /* Bắt đầu: thấp hơn 20px và trong suốt */
+    to { transform: translateY(0); opacity: 1; }      /* Kết thúc: về vị trí chuẩn và hiện rõ */
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.9); }       /* Bắt đầu: thu nhỏ 90% */
+    to { opacity: 1; transform: scale(1); }           /* Kết thúc: kích thước chuẩn 100% */
+}
+
+@keyframes slideInCard {
+    from { opacity: 0; transform: translateX(-20px); } /* Trượt từ trái sang phải */
+    to { opacity: 1; transform: translateX(0); }
+}
+
+
+/* --- 1. HIỆU ỨNG CHO CÁC THẺ HÓA ĐƠN (CARD) --- */
+.report-item-card {
+    transition: all 0.3s ease !important; /* Tạo độ trễ mượt mà cho mọi thay đổi (0.3 giây) */
+    cursor: pointer;                      /* Biến con trỏ thành hình bàn tay khi di chuyển vào */
+    border: 1px solid #eee !important;    /* Thiết lập viền xám nhạt mặc định */
+    background: #fff;                     /* Nền trắng */
+    position: relative;                   /* Làm gốc tọa độ cho các thành phần con bên trong */
+}
+
+/* Hiệu ứng khi di chuột qua thẻ hóa đơn */
+.report-item-card:hover {
+    transform: translateY(-5px);          /* Nhấc nhẹ thẻ lên trên 5px tạo cảm giác nổi */
+    /* Ép đổi màu viền sang xanh lá đậm để làm nổi bật thẻ đang chọn */
+    border: 2px solid #2e7d32 !important; 
+    /* Thêm bóng đổ màu xanh nhạt phía dưới thẻ */
+    box-shadow: 0 8px 20px rgba(46, 125, 50, 0.15) !important;
+    z-index: 10;                          /* Đảm bảo thẻ đang chọn nằm đè lên các thẻ xung quanh */
+}
+
+/* --- 2. HIỆU ỨNG CHO CÁC Ô NHẬP LIỆU (NGÀY, LOẠI KHÁCH) --- */
+#report-from, #report-to, #report-customer-filter {
+    transition: all 0.2s ease;            /* Hiệu ứng chuyển đổi nhanh (0.2 giây) */
+    border: 1px solid #ddd;               /* Viền xám mặc định */
+}
+
+/* Khi di chuột qua các ô nhập liệu */
+#report-from:hover, #report-to:hover, #report-customer-filter:hover {
+    border-color: #2e7d32;                /* Đổi viền sang xanh lá */
+    background-color: #f0fdf4;            /* Đổi nền sang màu xanh lá cực nhạt */
+}
+
+/* Khi nhấn vào (focus) để nhập liệu hoặc chọn */
+#report-from:focus, #report-to:focus, #report-customer-filter:focus {
+    border-color: #2e7d32;                /* Giữ màu viền xanh lá */
+    /* Tạo hiệu ứng quầng sáng (glow) xanh nhạt bao quanh ô */
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    outline: none;                        /* Bỏ đường viền mặc định của trình duyệt */
+}
+
+
+/* --- 3. HIỆU ỨNG CHO NÚT LỌC --- */
+#modal-bao-cao-tong button {
+    transition: all 0.2s ease;     /* Chuyển động mượt trong 0.2 giây */
+}
+
+#modal-bao-cao-tong button:hover {
+    background-color: #1b5e20 !important; /* Đổi sang màu xanh rừng đậm khi rà chuột */
+    transform: scale(1.05);        /* Phóng to nút lên một chút (5%) */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Đổ bóng để nút trông nổi hơn */
+}
+
+/* Hiệu ứng mượt mà khi số tiền tổng thay đổi (nhảy số) */
+#report-total-amount {
+    transition: all 0.5s ease;
+}
+
+/* --- HIỆU ỨNG CHO NÚT XÁC NHẬN (V-START) --- */
+.btn-confirm-delivery:active {
+    transform: scale(0.8);         /* Co nhỏ lại khi nhấn tay vào (tạo cảm giác nhấn nút thật) */
+    background-color: #e65100 !important; /* Chuyển sang màu cam đậm khi đang nhấn */
+}
+
+/* Hiệu ứng nhấp nháy (Pulse) để nhắc nhân viên bưng món */
+.table-card.waiting .btn-confirm-delivery {
+    animation: pulse-confirm 1.5s infinite; /* Lặp lại vô tận hiệu ứng tỏa sáng */
+}
+
+@keyframes pulse-confirm {
+    0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }  /* Bắt đầu: quầng sáng cam sát nút */
+    70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); } /* Lan ra 10px rồi mờ dần */
+    100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }   /* Kết thúc chu kỳ */
+}
+
+/* --- GIAO DIỆN DI ĐỘNG (RESPONSIVE < 768PX) --- */
+@media (max-width: 768px) {
+    /* ... giữ nguyên các đoạn code .center, .right, .mo-ra cũ của bạn ... */
+
+    /* 1. Sửa lỗi tràn tiêu đề và đồng hồ */
+    #menu-trigger {
+        flex-direction: column !important; /* Đẩy đồng hồ xuống dưới tên quán nếu quá chật */
+        align-items: flex-start !important;
+        gap: 5px !important;
+    }
+
+    /* 2. ÉP DANH SÁCH MÓN VỀ 1 CỘT (Quan trọng nhất) */
+    #menu-list {
+        grid-template-columns: 1fr !important; /* Chuyển từ 2 cột về 1 cột duy nhất */
+        padding: 10px 10px 120px 10px !important; /* Thêm padding dưới để không bị cấn nút */
+    }
+
+    /* 3. Chuyển thẻ món ăn sang dạng nằm ngang (Ảnh trái - Chữ phải) để dễ nhìn */
+    .food-card {
+        flex-direction: row !important; 
+        align-items: center;
+        gap: 12px;
+        padding: 8px !important;
+    }
+
+    .food-img {
+        width: 80px !important; /* Thu nhỏ ảnh */
+        height: 80px !important;
+        margin-bottom: 0 !important; /* Bỏ khoảng cách dưới ảnh */
+    }
+
+    .food-info {
+        flex: 1; /* Để phần chữ chiếm hết khoảng trống còn lại */
+    }
+
+    /* 4. Thu nhỏ chữ để không bị nhảy dòng */
+    .food-name { font-size: 13px !important; }
+    .food-desc { display: none; } /* Ẩn mô tả dài trên điện thoại cho sạch sẽ */
+    
+    /* 5. Điều chỉnh các Tab nút bấm */
+    #menu-column button {
+        font-size: 12px !important;
+        padding: 8px 4px !important;
+    }
+}
+
+/* Nút cộng màu xanh */
+.btn-add-food {
+    background: #2e7d32;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ẩn thanh cuộn trên Chrome, Safari và Edge để giao diện trông như App thật */
+#menu-list::-webkit-scrollbar {
+    display: none; 
+}
+
+/* --- THIẾT LẬP MÀU SẮC NEON THEO LOẠI MÓN --- */
+/* Món đơn: Ánh sáng xanh lá | Combo: Ánh sáng vàng cam */
+.single-neon-glow { --glow-color: #2e7d32; --bg-light: #fff0f3; }
+.combo-neon-glow { --glow-color: #e65100; --bg-light: #fff8e1; }
+
+/* --- KHUNG CHỨA MÓN ĂN (MENU ITEM) --- */
+.menu-item {
+    position: relative;
     background: #fff;
-    border-radius: 15px;
-    transition: 0.3s;
+    border-radius: 18px;
+    z-index: 1;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08), 0 0 15px var(--glow-color);
+
+    /* --- VỊ TRÍ CHỈNH SỬA --- */
+    padding: 8px 10px;      /* CHỈNH TẠI ĐÂY: Số nhỏ lại (ví dụ 5px) để sát lề hơn */
+    min-height: auto;      /* CHỈNH TẠI ĐÂY: Để 'auto' để thẻ mỏng theo nội dung */
+    display: flex;         /* Đảm bảo dùng flex để các thành phần con sát nhau */
+    align-items: flex-start; /* Ép nội dung bám sát đỉnh thẻ, giảm khoảng trống trên */
 }
-.menu-item:hover { transform: scale(1.02); }
 
-/* Thẻ giá lấp lánh */
-.price-tag {
-    background: #ffeb3b;
-    border-radius: 20px;
-    display: inline-block;
+/* --- HIỆU ỨNG DẢI SÁNG XOAY (Lớp nằm dưới) --- */
+.menu-item::before {
+    content: "";
+    position: absolute;
+    top: -150%; left: -50%;            /* Kéo rộng tâm để dải sáng quét phủ toàn bộ */
+    width: 200%; height: 400%;
+    /* Tạo một dải màu hình quạt chiếm khoảng 15-30% vòng tròn */
+    background: conic-gradient(
+        from 0deg,
+        transparent 0%,
+        var(--glow-color) 15%, 
+        var(--glow-color) 30%,
+        transparent 45%
+    );
+    animation: rotate-menu 2s linear infinite; /* Xoay liên tục không ngừng */
+    filter: blur(8px);                 /* Làm nhòe để dải sáng trông giống đèn Neon */
+    z-index: -2;
+}
+
+/* --- LỚP MẶT PHẲNG CHÍNH (Đè lên để tạo viền) --- */
+.menu-item::after {
+    content: "";
+    position: absolute;
+    inset: 3px;                        /* Khoảng cách 3px này chính là độ dày của viền sáng */
+    background: #fff;                  /* Màu nền chính của thẻ món ăn */
+    border-radius: 15px;               /* Bo góc nhỏ hơn lớp ngoài một chút để cân đối */
+    z-index: -1;
+}
+
+/* --- ĐỊNH NGHĨA CHUYỂN ĐỘNG XOAY --- */
+@keyframes rotate-menu {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* HIỆU ỨNG KHI RÀ CHUỘT VÀO MÓN ĂN */
+.menu-item:hover {
+    transform: scale(1.02);            /* Phóng to nhẹ 2% */
+    box-shadow: 0 15px 40px var(--glow-color); /* Tăng cường độ hào quang Neon */
 }
 
 
+/* --- 1. HIỆU ỨNG CHỮ CHẠY (MARQUEE) --- */
+@keyframes marquee {
+    0% { transform: translateX(0); }       /* Bắt đầu tại vị trí gốc */
+    100% { transform: translateX(-100%); } /* Chạy hết chiều ngang sang trái */
+}
 
-/* =========================
-   1. TRẠNG THÁI BÀN & BIẾN MÀU
-========================= */
-.modal-item-table.ordering { --bg: #fff0f3; --glow-color: #ff0055; }
-.modal-item-table.eating   { --bg: #fff8e1; --glow-color: #ff9800; }
-.modal-item-table.paid     { --bg: #fff5f5; --glow-color: #ff4d4d; }
-.modal-item-table.empty    { --bg: #f8f9fa; --glow-color: transparent; }
+/* --- 2. PHÂN LOẠI MÀU SẮC THEO TRẠNG THÁI --- */
+/* Thiết lập biến màu (CSS Variables) để dùng chung cho các hiệu ứng bên dưới */
+.modal-item-table.ordering { --bg: #fff0f3; --glow-color: #ff0055; } /* Đang gọi món - Hồng */
+.modal-item-table.eating   { --bg: #fff8e1; --glow-color: #ff9800; } /* Đang ăn - Cam */
+.modal-item-table.paid     { --bg: #fff5f5; --glow-color: #ff4d4d; } /* Đã thanh toán - Đỏ */
+.modal-item-table.empty    { --bg: #f8f9fa; --glow-color: transparent; } /* Bàn trống - Xám nhạt */
 
-/* =========================
-   2. KHUNG CHÍNH (Cập nhật background)
-========================= */
+/* --- 3. ĐỊNH DẠNG KHUNG CHUNG CHO DÒNG CHỌN BÀN --- */
 .modal-item-table {
     position: relative;
     padding: 18px;
     margin-bottom: 12px;
     border-radius: 12px;
-    background: var(--bg); /* Sử dụng biến màu nền trạng thái */
+    background: var(--bg); /* Đổ màu nền linh hoạt theo trạng thái ở phần 1 */
     display: flex;
     justify-content: space-between;
     align-items: center;
-    z-index: 1; /* Tăng z-index để lớp giả không đè lên chữ */
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng co giãn có độ nảy */
     cursor: pointer;
 }
 
-/* =========================
-   3. VIỀN RGB CHẠY ĐUỔI (Giữ nguyên logic của bạn)
-========================= */
+/* --- 4. VIỀN LED RGB CHẠY ĐUỔI --- */
 .modal-item-table::before {
     content: "";
     position: absolute;
     inset: 0;
-    padding: 3px; /* Tăng nhẹ độ dày viền cho rõ LED */
+    padding: 3px;               /* Độ dày của dải LED */
     border-radius: 12px;
-    background: linear-gradient(
-        90deg,
-        red, orange, yellow, lime, cyan, blue, violet, red
-    );
-    background-size: 300% 100%;
+    /* Tạo dải màu cầu vồng trải dài */
+    background: linear-gradient(90deg, red, orange, yellow, lime, cyan, blue, violet, red);
+    background-size: 300% 100%; /* Kéo dài dải màu để hiệu ứng chạy mượt hơn */
+    
+    /* Kỹ thuật Masking: Chỉ hiện viền, đục rỗng phần giữa để không che nội dung */
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    animation: border-run 3s linear infinite;
-    z-index: -1;
+    
+    animation: border-run 3s linear infinite; /* Chạy vô tận (cần thêm @keyframes border-run) */
+    z-index: -1;                /* Nằm dưới cùng để không che chữ */
 }
 
-/* 4. HIỆU ỨNG CHỌN BÀN (ACTIVE) - NỔI LÊN & TỎA SÁNG */
-/* Class này sẽ được gán khi bạn click vào dòng trong Modal */
+/* --- 5. HIỆU ỨNG KHI ĐƯỢC CHỌN (ACTIVE) --- */
 .modal-item-table.active-choice {
-    transform: translateY(-5px) scale(1.03); /* Nổi lên trên và to hơn */
+    transform: translateY(-5px) scale(1.03); /* Nhấc nhẹ lên và phóng to 3% */
     z-index: 10;
-    /* Tạo hào quang lấp lánh tỏa ra phía sau theo màu trạng thái */
+    /* Tỏa hào quang Neon ra phía sau theo màu trạng thái của bàn đó */
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 0 15px var(--glow-color);
-    background: #fff; /* Làm sáng nền để nổi bật hơn */
+    background: #fff;           /* Chuyển sang nền trắng thuần để làm nổi bật lớp viền */
 }
 
-/* Tăng tốc độ LED khi bàn được chọn để trông 'năng lượng' hơn */
+/* --- 6. PHỤ KIỆN (GIÁ & HÀO QUANG MÓN) --- */
+.price-tag {
+    background: #ffeb3b;        /* Màu vàng nổi bật như thẻ giá siêu thị */
+    border-radius: 20px;
+    display: inline-block;
+    padding: 2px 8px;           /* Thêm padding để số không dính viền */
+}
+
+.single-neon-glow { 
+    box-shadow: 0 0 10px rgba(46, 125, 50, 0.15); 
+    
+}
+
+
+
+/* --- TĂNG CƯỜNG HIỆU ỨNG LED KHI ĐƯỢC CHỌN --- */
 .modal-item-table.active-choice::before {
-    animation-duration: 1.5s; 
-    padding: 4px; /* Viền dày hơn một chút */
+    animation-duration: 1.5s;      /* Tăng tốc độ chạy của dải LED lên gấp đôi (từ 3s còn 1.5s) */
+    padding: 4px;                  /* Làm viền LED dày thêm một chút để nổi bật hơn */
 }
 
-/* =========================
-   5. HOVER & ANIMATION
-========================= */
+/* --- 5. HIỆU ỨNG KHI DI CHUỘT (HOVER) & CHUYỂN ĐỘNG --- */
 .modal-item-table:hover {
-    transform: translateX(10px); /* Lướt ngang khi chỉ chuột */
-    background: #fff;
+    transform: translateX(10px);   /* Tạo hiệu ứng lướt ngang sang phải 10px khi rà chuột */
+    background: #fff;              /* Đổi nền sang trắng thuần để dễ nhìn nội dung */
 }
 
+/* Định nghĩa chuyển động chạy đuổi của dải màu LED */
 @keyframes border-run {
     0% { background-position: 0% 50%; }
-    100% { background-position: 300% 50%; }
+    100% { background-position: 300% 50%; } /* Chạy hết 3 lần chiều rộng dải màu để tạo độ mượt */
 }
-/* Hiệu ứng NỔI LÊN khi chọn bàn trong Modal */
+
+/* Hiệu ứng NỔI LÊN và TỎA SÁNG khi bàn được chọn */
 .modal-item-table.active-choice {
-    transform: translateY(-5px) scale(1.03) !important;
+    transform: translateY(-5px) scale(1.03) !important; /* Nhấc lên 5px và phóng to nhẹ */
     z-index: 10;
-    background: #fff !important; /* Làm sáng nền */
-    /* Tỏa sáng hào quang dựa theo biến màu trạng thái */
+    background: #fff !important;   /* Ép nền trắng để không bị màu trạng thái làm mờ LED */
+    /* Tạo hào quang tỏa sáng dựa trên biến màu trạng thái đã đặt ở trên */
     box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 0 15px var(--glow-color, #2196F3) !important;
 }
 
-/* Tăng tốc độ dải LED khi được chọn để tạo cảm giác 'năng lượng' */
+/* Tăng tốc độ dải LED lên mức tối đa (1 giây) khi được chọn để tạo cảm giác 'năng lượng' */
 .modal-item-table.active-choice::before {
     animation-duration: 1s !important; 
-    padding: 3px !important; /* Viền dày hơn một chút */
+    padding: 3px !important; 
 }
 
-/* Biến màu hào quang cho từng trạng thái */
-.modal-item-table.ordering { --glow-color: #ff0055; }
-.modal-item-table.eating   { --glow-color: #ff9800; }
-.modal-item-table.paid     { --glow-color: #ff4d4d; }
+/* Thiết lập màu hào quang đặc trưng cho từng trạng thái bàn */
+.modal-item-table.ordering { --glow-color: #ff0055; } /* Đang gọi món - Hồng Neon */
+.modal-item-table.eating   { --glow-color: #ff9800; } /* Đang ăn - Cam Neon */
+.modal-item-table.paid     { --glow-color: #ff4d4d; } /* Đã thanh toán - Đỏ Neon */
 
-/* Form của chuyền bàn, tách món*/
- .modal-item {
-            padding: 12px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .modal-item:hover { background: #e3f2fd; transform: translateX(5px); }
-/* Container của form nhập liệu */
+/* --- GIAO DIỆN FORM CHUYỂN BÀN / TÁCH MÓN --- */
+.modal-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    background: #f8f9fa;           /* Nền xám nhạt mặc định */
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* Hiệu ứng khi rê chuột vào item trong form chuyển bàn */
+.modal-item:hover { 
+    background: #e3f2fd;           /* Đổi sang nền xanh dương nhạt */
+    transform: translateX(5px);    /* Trượt nhẹ sang phải */
+}
+
+/* --- GIAO DIỆN QUẢN LÝ HỘI VIÊN --- */
 .member-form {
-    background: #fdfdfd;
+    background: #fdfdfd;           /* Nền trắng xám nhẹ */
     padding: 15px;
     border-radius: 10px;
-    border: 1px solid #eee;
+    border: 1px solid #eee;        /* Viền mảnh tinh tế */
     margin-bottom: 20px;
 }
 
-/* Các ô input trong tab hội viên */
+/* Định dạng các ô nhập thông tin hội viên */
 .member-input {
     width: 100%;
     padding: 12px;
     margin-bottom: 10px;
-    border: 1px solid #eee; /* Viền rất nhạt */
+    border: 1px solid #eee; 
     border-radius: 6px;
     background: #fff;
-    box-sizing: border-box;
-    outline: none;
+    box-sizing: border-box;        /* Đảm bảo padding không làm tràn chiều rộng ô */
+    outline: none;                 /* Bỏ viền xanh mặc định của trình duyệt */
     font-size: 14px;
 }
 
+/* Hiệu ứng khi người dùng nhấn vào ô nhập liệu */
 .member-input:focus {
-    border-color: #2e7d32; /* Đổi màu viền khi click vào */
+    border-color: #2e7d32;         /* Viền chuyển sang xanh lá đậm khi đang nhập */
 }
 
-/* Nút Thêm hội viên mới màu xanh lá */
+/* Nút bấm "Thêm hội viên mới" */
 .btn-add-member {
     width: 100%;
     padding: 12px;
-    background-color: #2e7d32; /* Màu xanh lá đậm như ảnh */
+    background-color: #2e7d32;     /* Màu xanh lá đồng bộ với nhận diện thương hiệu */
     color: white;
     border: none;
     border-radius: 8px;
@@ -564,8 +698,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 8px;                      /* Tạo khoảng cách giữa Icon và Chữ trên nút */
 }
+
 
 .btn-add-member:hover {
     background-color: #1b5e20;
@@ -598,27 +733,34 @@ body {
 .main-wrapper {
     display: flex;
     gap: 15px;             /* Khoảng cách giữa 3 khối */
-    
-    /* ĐIỀU CHỈNH ĐỘ RỘNG Ở ĐÂY */
-    width: 90%;            /* Chiếm 90% màn hình (còn dư 10% làm lề) */
-    max-width: 1300px;     /* Không cho rộng quá 1300px trên màn hình lớn */
-    
-    height: 90vh;          /* Chiều cao chiếm 90% màn hình */
+    width: 100%;           /* Chiều rộng chiếm toàn bộ màn hình */
+    max-width: 1800px;     /* Giới hạn chiều rộng tối đa */
+    height: 98vh;          /* Chiều cao tổng thể là 98% màn hình */
+    align-items: stretch;  /* TIÊU ĐỀ: Ép các cột con luôn có chiều cao bằng nhau */
 }
 
 /* Style cho từng khối để nó thành "Thẻ" */
 .left, .center, .right {
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-    overflow-y: auto;
-    padding: 15px;
+    
+    /* TIÊU ĐỀ: Bo tròn đều 4 góc (Trên-Trái, Trên-Phải, Dưới-Phải, Dưới-Trái) */
+    border-radius: 20px;   /* Bạn có thể tăng lên 25px nếu muốn góc tròn hơn nữa */
+    
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Đổ bóng nhẹ quanh thẻ */
+    
+    /* TIÊU ĐỀ: Đảm bảo chiều cao luôn lấp đầy khung cha và nội dung dài sẽ tự xuất hiện thanh cuộn */
+    height: 100%;          
+    overflow-y: auto;      
+    
+    padding: 15px;         /* Khoảng cách đệm bên trong thẻ */
+    box-sizing: border-box; /* Đảm bảo padding không làm tăng kích thước thực tế của cột */
 }
 
-/* Chia lại tỉ lệ các cột (Bạn có thể chỉnh lại số này) */
-.left { width: 33%; }   /* Cột sơ đồ bàn thu nhỏ lại */
-.center { flex: 33%; }    /* Cột menu tự giãn ở giữa */
-.right { width: 33%; }  /* Cột hóa đơn */
+/* Chia lại tỉ lệ các cột */
+.left { width: 30%; }      /* Cột Sơ đồ bàn */
+.center { flex: 40%; }     /* Cột Thực đơn (tự giãn theo không gian còn lại) */
+.right { width: 30%; }     /* Cột Chi tiết đơn hàng */
+
 
         :root { --empty: #e0e0e0; --ordering: #ffcdd2; --eating: #fff9c4; --clear: #c8e6c9; --primary: #d32f2f; --secondary: #2e7d32; }
         body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f3f3f3; display: flex; height: 100vh; overflow: hidden; }
@@ -664,238 +806,253 @@ body {
     position: relative;                      /* Gốc tọa độ: để sau này gắn thêm badge thông báo ở góc bàn */
 }
 
-/* Text hiển thị */
-.table-name { font-weight: 700; color: #030c14; font-size: 15px; }
-.table-sub { font-size: 11px; color: #030c14; margin-top: 3px; }
+/* --- TIÊU ĐỀ: HIỂN THỊ VĂN BẢN TRÊN THẺ BÀN --- */
+.table-name { 
+    font-weight: 700;    /* Chữ tên bàn in đậm để nổi bật */
+    color: #030c14;      /* Màu đen xanh đậm hiện đại */
+    font-size: 15px; 
+}
 
-/* Các vòng tròn trạng thái */
+.table-sub { 
+    font-size: 11px;     /* Chữ chú thích (số tiền/giờ) nhỏ hơn */
+    color: #030c14; 
+    margin-top: 3px;     /* Tạo khoảng cách nhỏ với tên bàn */
+}
+
+/* --- TIÊU ĐỀ: CÁC VÒNG TRÒN TRẠNG THÁI (STATUS DOT) --- */
 .status-circle {
     width: 18px;
     height: 18px;
-    border-radius: 50%;
-    border: 3px solid #eee;
-    margin: 0 auto 8px;
+    border-radius: 50%;   /* Tạo hình tròn hoàn hảo */
+    border: 3px solid #eee; /* Viền bao ngoài màu xám nhạt */
+    margin: 0 auto 8px;   /* Căn giữa vòng tròn và cách nội dung dưới 8px */
 }
-/* Container chính của bàn */
+
+/* --- TIÊU ĐỀ: KHUNG CHÍNH CỦA THẺ BÀN (TABLE CARD) --- */
 .table-card {
-    position: relative;
-    overflow: hidden; /* Quan trọng để cắt dải sáng */
-    z-index: 1;
-    background: #f5f5f5; /* Màu xám cho bàn trống */
-    border-radius: 18px;
-    padding: 20px 10px;
-    text-align: center;
-    transition: all 0.3s ease;
+    position: relative;   /* Làm gốc tọa độ cho các hiệu ứng ::before/::after */
+    overflow: hidden;     /* Chặn dải màu LED xoay không bị tràn ra ngoài bo góc */
+    z-index: 1;           /* Đảm bảo nội dung nằm trên lớp nền dải sáng */
+    background: #f5f5f5;  /* Màu nền xám mặc định cho bàn trống */
+    border-radius: 18px;  /* Bo góc sâu tạo cảm giác hiện đại, mềm mại */
+    padding: 20px 10px;   /* Khoảng đệm bên trong thẻ */
+    text-align: center;   /* Căn giữa toàn bộ nội dung trong thẻ */
+    transition: all 0.3s ease; /* Hiệu ứng mượt mà khi đổi trạng thái hoặc hover */
     border: none !important;
 }
 
-/* Hiệu ứng dải sáng xoay cho các trạng thái có khách */
+/* --- TIÊU ĐỀ: HIỆU ỨNG DẢI SÁNG LED XOAY (ANIMATION) --- */
 .table-card.ordering::before, 
 .table-card.eating::before, 
 .table-card.paid::before {
     content: '';
     position: absolute;
-    z-index: -2;
-    left: -50%; top: -50%; width: 200%; height: 200%;
-    /* Tăng tốc độ từ 4s xuống 1.5s để lấp lánh hơn */
+    z-index: -2;          /* Nằm lớp dưới cùng nhất */
+    left: -50%; top: -50%; width: 200%; height: 200%; /* Kéo rộng để bao phủ toàn bộ thẻ */
+    /* Chuyển động xoay liên tục trong 1.5 giây tạo hiệu ứng lấp lánh */
     animation: rotate-border 1.5s linear infinite; 
 }
 
-/* 1. MÀU SẮC & ĐỘ SÁNG HÀO QUANG */
-.table-card.ordering { --glow-color: #ff8fab; --bg-light: #fff0f3; } /* Hồng */
-.table-card.waiting  { --glow-color: #ffa726; --bg-light: #fff8e1; } /* Cam */
-.table-card.eating   { --glow-color: #66bb6a; --bg-light: #e8f5e9; } /* Xanh lá */
-.table-card.paid     { --glow-color: #ff4d4d; --bg-light: #fff5f5; } /* Đỏ */
-.table-card.empty    { --glow-color: transparent; --bg-light: #ffffff; }
+/* --- 1. PHÂN LOẠI MÀU SẮC & ĐỘ SÁNG THEO TRẠNG THÁI --- */
+/* Thiết lập biến CSS để dùng chung cho bóng đổ và nền */
+.table-card.ordering { --glow-color: #ff8fab; --bg-light: #fff0f3; } /* Hồng: Đang chọn món */
+.table-card.waiting  { --glow-color: #ffa726; --bg-light: #fff8e1; } /* Cam: Chờ món/Phục vụ */
+.table-card.eating   { --glow-color: #66bb6a; --bg-light: #e8f5e9; } /* Xanh lá: Đang dùng bữa */
+.table-card.paid     { --glow-color: #ff4d4d; --bg-light: #fff5f5; } /* Đỏ: Đã thanh toán - Cần dọn */
+.table-card.empty    { --glow-color: transparent; --bg-light: #ffffff; } /* Trắng: Bàn trống */
 
-/* 2. HIỆU ỨNG PHÁT SÁNG LẤP LÁNH PHÍA SAU (Dùng filter để tạo chiều sâu) */
+/* --- 2. HIỆU ỨNG HÀO QUANG (GLOW EFFECT) --- */
 .table-card:not(.empty) {
+    /* Tạo vầng sáng bao quanh thẻ dựa trên màu trạng thái */
     filter: drop-shadow(0 0 10px var(--glow-color));
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* 3. HIỆU ỨNG XOAY VIỀN ĐA SẮC LIỀN KHỐI */
-/* Đang chọn - Giữ nguyên màu hồng/tím */
+/* --- 3. CHI TIẾT DẢI MÀU LED XOAY (CONIC GRADIENT) --- */
 .table-card.ordering::before { 
     background-image: conic-gradient(transparent, #e91e63, transparent, #f48fb1, transparent); 
 }
-
-/* Chờ món - Đổi sang dải màu Cam/Vàng */
 .table-card.waiting::before { 
     background-image: conic-gradient(transparent, #ff9800, transparent, #ffb74d, transparent); 
 }
-
-/* Đang ăn - Đổi sang dải màu Xanh lá */
 .table-card.eating::before { 
     background-image: conic-gradient(transparent, #2e7d32, transparent, #81c784, transparent); 
 }
-
-/* Chờ dọn - Giữ nguyên màu đỏ xoay nhanh */
+/* Trạng thái thanh toán: Đổi sang dải màu Đỏ và tăng tốc độ xoay (0.8s) để gây chú ý */
 .table-card.paid::before { 
     background-image: conic-gradient(transparent, #ff0000, transparent, #ff8080, transparent); 
     animation-duration: 0.8s !important; 
 }
 
-
-/* 4. LỚP NỀN TRẠNG THÁI (Mặt bàn bên trong viền xoay) */
+/* --- 4. LỚP MẶT BÀN (Lớp nền nằm trên LED xoay) --- */
 .table-card.ordering::after,
 .table-card.waiting::after,
 .table-card.eating::after,
 .table-card.paid::after { 
-    background: var(--bg-light) !important; 
+    content: '';
+    position: absolute;
+    inset: 3px;           /* Tạo viền LED dày 3px bằng cách chừa ra khoảng trống */
+    background: var(--bg-light) !important; /* Đổ màu nền nhạt tương ứng trạng thái */
+    border-radius: 15px;
+    z-index: -1;          /* Nằm dưới văn bản nhưng trên dải sáng xoay */
 }
-/* 5. HIỆU ỨNG KHI DI CHUỘT VÀO (HOVER) */
+
+/* --- 5. HIỆU ỨNG TƯƠNG TÁC KHI DI CHUỘT (HOVER) --- */
 .table-card:hover {
-    transform: translateY(-5px);
-    filter: drop-shadow(0 0 15px var(--glow-color));
+    transform: translateY(-5px); /* Nhấc nhẹ bàn lên tạo hiệu ứng 3D */
+    filter: drop-shadow(0 0 15px var(--glow-color)); /* Tăng cường độ phát sáng */
     z-index: 5;
 }
 
-/* 6. KHI BÀN ĐƯỢC CHỌN (ACTIVE) - NỔI LÊN CAO NHẤT & BỎ OUTLINE */
+/* --- 6. KHI BÀN ĐƯỢC CHỌN (ACTIVE) - NỔI LÊN CAO NHẤT & BỎ OUTLINE --- */
 .active-table {
-    transform: translateY(-12px) scale(1.06) !important;
-    z-index: 10 !important;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;
-    filter: drop-shadow(0 0 20px var(--glow-color)) !important;
-    outline: none !important; /* Đã bỏ viền xanh lá đậm */
-    border: none !important;
+    transform: translateY(-12px) scale(1.06) !important; /* Đẩy lên trên 12px và phóng to 1.06 lần */
+    z-index: 10 !important;                               /* Ưu tiên hiển thị lớp cao hơn các bàn khác */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15) !important;  /* Đổ bóng đậm hơn để tạo độ cao */
+    filter: drop-shadow(0 0 20px var(--glow-color)) !important; /* Tỏa hào quang mạnh theo biến màu */
+    outline: none !important;                             /* Loại bỏ đường viền bao quanh (focus) */
+    border: none !important;                              /* Loại bỏ viền ngoài */
 }
 
-/* 7. GIỮ NGUYÊN CẤU TRÚC XOAY (TỐC ĐỘ 1.5S CHO BÀN THƯỜNG) */
+/* --- 7. GIỮ NGUYÊN CẤU TRÚC XOAY (TỐC ĐỘ 1.5S CHO BÀN THƯỜNG) --- */
 .table-card:not(.empty)::before {
-    content: '';
-    position: absolute;
-    z-index: -2;
-    left: -50%; top: -50%; width: 200%; height: 200%;
-    animation: rotate-border 1.5s linear infinite;
+    content: '';             /* Tạo phần tử giả cho bàn có khách */
+    position: absolute;      /* Định vị tuyệt đối làm nền viền */
+    z-index: -2;             /* Nằm dưới cùng để lộ dải màu */
+    left: -50%; top: -50%; width: 200%; height: 200%; /* Cấu trúc rộng phục vụ xoay */
+    animation: rotate-border 1.5s linear infinite;    /* Chuyển động xoay vòng 1.5s liên tục */
 }
 
 .table-card:not(.empty)::after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    left: 4px; top: 4px; /* Độ dày viền lấp lánh */
-    width: calc(100% - 8px);
-    height: calc(100% - 8px);
-    border-radius: 15px;
+    content: '';             /* Tạo mặt nền đè lên dải màu xoay */
+    position: absolute;      /* Định vị tuyệt đối so với thẻ bàn */
+    z-index: -1;             /* Nằm dưới văn bản nhưng trên dải màu */
+    left: 4px; top: 4px;     /* Vị trí cách mép tạo độ dày viền lấp lánh */
+    width: calc(100% - 8px); /* Tính toán chiều rộng lùi vào 8px */
+    height: calc(100% - 8px);/* Tính toán chiều cao lùi vào 8px */
+    border-radius: 15px;     /* Bo góc cho mặt bàn bên trong */
 }
 
+/* Định nghĩa chuyển động xoay 360 độ */
 @keyframes rotate-border {
     100% { transform: rotate(360deg); }
 }
 
-
-/* Nút xác nhận phục vụ */
+/* --- NÚT XÁC NHẬN PHỤ VỤ (DẤU TÍCH XANH) --- */
 .badge-check {
-    position: absolute; top: -8px; right: -8px;
-    background: #4CAF50; color: white; width: 26px; height: 26px;
-    border-radius: 50%; border: 2px solid #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; z-index: 5;
+    position: absolute; top: -8px; right: -8px; /* Đẩy ra góc trên bên phải */
+    background: #4CAF50; color: white; width: 26px; height: 26px; /* Màu xanh lá và kích thước */
+    border-radius: 50%; border: 2px solid #fff; /* Tạo hình tròn có viền trắng */
+    display: flex; align-items: center; justify-content: center; /* Căn giữa icon bên trong */
+    font-size: 12px; z-index: 5;                /* Kích thước icon và lớp hiển thị */
 }
 
-
-/* Để nút ✅ bám theo góc bàn */
+/* --- ĐỂ NÚT ✅ BÁM THEO GÓC BÀN --- */
 .table {
-    position: relative; 
-    display: flex;
+    position: relative;          /* Làm gốc định vị cho badge-check */
+    display: flex;               /* Sử dụng flexbox dàn hàng dọc */
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    /* ... giữ các style cũ của bạn ... */
+    align-items: center;         /* Căn nội dung giữa theo chiều ngang */
+    justify-content: center;     /* Căn nội dung giữa theo chiều dọc */
 }
- /*Hiển thị bàn-end*/
 
-/* Hiệu ứng nhấp nháy cho icon nếu muốn giống app cũ */
+/* --- HIỆU ỨNG NHẤP NHÁY (BLINK) --- */
 .icon-blink {
-    animation: blink 1s infinite;
+    animation: blink 1s infinite; /* Lặp lại hiệu ứng ẩn hiện trong 1s */
 }
 @keyframes blink {
-    50% { opacity: 0.5; }
+    50% { opacity: 0.5; }        /* Tại nửa chu kỳ, độ mờ còn 50% */
 }
 
-/* Bảng kho hàng hiện đại */
+/* --- BẢNG KHO HÀNG HIỆN ĐẠI --- */
 .stock-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 10px; /* Tạo khoảng cách giữa các hàng */
+    width: 100%;                 /* Chiều rộng bảng full 100% */
+    border-collapse: separate;   /* Tách biệt các đường viền để dùng border-spacing */
+    border-spacing: 0 10px;      /* Tạo khoảng cách giữa các hàng là 10px */
 }
 
 .stock-table td {
-    padding: 12px 10px;
-    background: #fff;
-    border: none;
-    vertical-align: middle;
+    padding: 12px 10px;          /* Khoảng cách đệm bên trong mỗi ô */
+    background: #fff;            /* Nền trắng cho từng ô dữ liệu */
+    border: none;                /* Không sử dụng viền kẻ mặc định */
+    vertical-align: middle;      /* Căn nội dung giữa theo chiều dọc của ô */
 }
 
-/* Xóa viền cho tất cả Input */
+
+
+/* --- XÓA VIỀN CHO TẤT CẢ INPUT TRONG BẢNG KHO --- */
 .stock-table input {
-    border: none !important;
-    background: #f1f3f5; /* Nền xám nhạt thay cho viền */
-    padding: 8px 5px;
-    border-radius: 6px;
-    outline: none;
-    font-weight: bold;
-    color: #444;
+    border: none !important;     /* Loại bỏ hoàn toàn viền mặc định */
+    background: #f1f3f5;         /* Sử dụng nền xám nhạt thay thế cho viền */
+    padding: 8px 5px;            /* Khoảng cách đệm bên trong ô nhập (trên-dưới 8px, trái-phải 5px) */
+    border-radius: 6px;          /* Bo góc 6px cho ô nhập liệu */
+    outline: none;               /* Loại bỏ đường viền xanh khi nhấn vào */
+    font-weight: bold;           /* Chữ in đậm */
+    color: #444;                 /* Màu chữ xám đậm */
 }
 
-/* Container chứa 2 nút cộng trừ nằm ngang */
+/* --- CONTAINER CHỨA 2 NÚT CỘNG TRỪ NẰM NGANG --- */
 .action-group-horizontal {
-    display: flex;
-    gap: 8px;              /* Khoảng cách giữa 2 nút */
-    justify-content: center; /* Căn giữa cột */
-    align-items: center;
+    display: flex;               /* Sử dụng Flexbox để dàn hàng ngang */
+    gap: 8px;                    /* Khoảng cách giữa nút cộng và nút trừ */
+    justify-content: center;     /* Căn giữa các nút theo chiều ngang của cột */
+    align-items: center;         /* Căn giữa các nút theo chiều dọc */
 }
 
+/* --- ĐỊNH DẠNG CHUNG CHO NÚT THAO TÁC (BTN-ACTION) --- */
 .btn-action {
-    border: none !important;
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    transition: 0.2s;
-    display: flex;
+    border: none !important;     /* Không sử dụng viền */
+    width: 30px;                 /* Chiều rộng nút 30px */
+    height: 30px;                /* Chiều cao nút 30px */
+    border-radius: 6px;          /* Bo góc nút 6px */
+    cursor: pointer;             /* Biến con trỏ thành hình bàn tay */
+    font-size: 16px;             /* Kích thước biểu tượng/chữ bên trong */
+    font-weight: bold;           /* Chữ in đậm */
+    transition: 0.2s;            /* Hiệu ứng chuyển đổi mượt 0.2 giây */
+    display: flex;               /* Căn giữa nội dung bên trong bằng Flex */
     align-items: center;
     justify-content: center;
 }
 
-/* Nút cộng xanh lá nhạt */
-.btn-plus { background: #e8f5e9; color: #2e7d32; }
-.btn-plus:hover { background: #2e7d32; color: #fff; }
+/* --- NÚT CỘNG XANH LÁ NHẠT --- */
+.btn-plus { background: #e8f5e9; color: #2e7d32; } /* Màu nền và màu chữ mặc định */
+.btn-plus:hover { background: #2e7d32; color: #fff; } /* Đổi màu khi di chuột vào */
 
-/* Nút trừ đỏ nhạt */
-.btn-minus { background: #ffebee; color: #d32f2f; }
-.btn-minus:hover { background: #d32f2f; color: #fff; }
-/* Con số tồn kho */
+/* --- NÚT TRỪ ĐỎ NHẠT --- */
+.btn-minus { background: #ffebee; color: #d32f2f; } /* Màu nền và màu chữ mặc định */
+.btn-minus:hover { background: #d32f2f; color: #fff; } /* Đổi màu khi di chuột vào */
+
+/* --- CON SỐ TỒN KHO --- */
 .stock-num {
-    font-size: 16px;
-    color: #212529;
+    font-size: 16px;             /* Kích thước chữ cho số lượng tồn kho */
+    color: #212529;              /* Màu chữ đen xám */
 }
 
-/* Hiệu ứng chỉ nhấp nháy chữ đỏ, không màu nền */
+/* --- HIỆU ỨNG CHỈ NHẤP NHÁY CHỮ ĐỎ, KHÔNG MÀU NỀN --- */
 .blink-red {
-    animation: blinker-text 1s linear infinite;
-    color: #d32f2f !important; /* Màu đỏ đậm */
-    background: transparent !important; /* Tắt màu nền */
+    animation: blinker-text 1s linear infinite; /* Chạy hiệu ứng nhấp nháy 1s vô tận */
+    color: #d32f2f !important;   /* Ép màu chữ sang đỏ đậm */
+    background: transparent !important; /* Đảm bảo không có màu nền */
 }
 
+/* Định nghĩa hiệu ứng nhấp nháy bằng độ trong suốt */
 @keyframes blinker-text { 
-    50% { opacity: 0.2; } /* Nhấp nháy bằng cách thay đổi độ trong suốt của chữ */
-}
-/* Style cho ô giới hạn */
-.input-limit {
-    width: 45px;
-    border: 1px dashed #ccc;
-    text-align: center;
-    border-radius: 4px;
-    color: #666;
+    50% { opacity: 0.2; }        /* Tại thời điểm giữa chu kỳ, chữ mờ đi còn 20% */
 }
 
+/* --- STYLE CHO Ô GIỚI HẠN (LIMIT) --- */
+.input-limit {
+    width: 45px;                 /* Độ rộng ô giới hạn */
+    border: 1px dashed #ccc;     /* Viền đứt nét màu xám */
+    text-align: center;          /* Căn giữa con số bên trong */
+    border-radius: 4px;          /* Bo góc 4px */
+    color: #666;                 /* Màu chữ xám */
+}
+
+/* --- HIỆU ỨNG HOVER NÚT TRONG DANH SÁCH HỘI VIÊN --- */
 #ds-hoi-vien-body button:hover {
-    transform: scale(1.2);
-    transition: 0.2s;
+    transform: scale(1.2);       /* Phóng to nút lên 1.2 lần khi di chuột vào */
+    transition: 0.2s;            /* Tốc độ phóng to 0.2 giây */
 }
 
 
@@ -905,22 +1062,51 @@ body {
 <body>
     <div class="main-wrapper">
         
-        <!-- CỘT TRÁI (LEFT) -->
-        <div class="left">
-            <div class="tab-headers">
-                <button class="tab-btn active" onclick="switchTab('tab-so-do', this)">SƠ ĐỒ BÀN</button>
-               
+  <!-- CỘT TRÁI (LEFT) -->
+<div class="left" style="background: #f8f9fa;"> <!-- Đổi nền xám nhẹ cho toàn cột -->
+    
+    <!-- 1. PHẦN LOGO & THÔNG TIN QUÁN (HEADER) -->
+    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #eee;">
+        <div style="width: 45px; height: 45px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            🍜
+        </div>
+        <div style="flex: 1;">
+            <h2 style="margin: 0; font-size: 18px; color: #333;">Phở Túy 11h</h2>
+            <div style="font-size: 11px; color: #888;">Số 11 Bà Triệu, P.Hải Dương, TP. Hải Phòng</div>
+        </div>
+        <div style="text-align: right;">
+    <!-- Thêm ID store-status để đổi màu và chữ -->
+    <div id="store-status" style="font-size: 15px; font-weight: bold;">● Đang mở cửa</div>
+    <!-- Thêm ID store-time-text để đổi màu khung giờ -->
+    <div id="store-time-text" style="font-size: 15px; color: #888;">06:00 - 11:00</div>
+</div>
+    </div>
 
-                <button class="tab-btn" onclick="switchTab('tab-chi-tieu', this)" style="background: #EEEEEE; color: #d32f2f;">Chi tiêu💸</button>
-            </div>
 
-            <div id="tab-so-do" class="tab-content active">
-                <h3 style="text-align:center; color:var(--primary); margin-top:0">📍 Table Map</h3>
-                <div style="font-size:11px; font-weight:bold; margin-bottom:5px">KHU BÀN</div>
-                <div class="grid-tables" id="table-grid"></div>
-                <div style="font-size:11px; font-weight:bold; margin-bottom:10px">QUẦY BAR</div>
-                <div class="grid-tables" id="bar-grid"></div>
-            </div>
+    <!-- TAB -->
+    <div class="tab-headers">
+        <button class="tab-btn active" onclick="switchTab('tab-so-do', this)">SƠ ĐỒ BÀN</button>
+        <button class="tab-btn" onclick="switchTab('tab-chi-tieu', this)" style="background:#EEEEEE;color:#d32f2f;">
+            Chi tiêu💸
+        </button>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="tab-so-do" class="tab-content active">
+     <h3 style="text-align:left; color:#1a1a1a; margin-top:0; display:flex; align-items:center; gap:10px; font-size:18px; text-transform: uppercase; letter-spacing: 0.5px;">
+    <span style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:#f0f0f0; border-radius:8px; font-size:18px;">
+        🏠
+    </span> 
+    SƠ ĐỒ BÀN
+</h3>
+
+        <div style="font-size:11px; font-weight:bold; margin-bottom:5px">🟢KHU BÀN</div>
+        <div class="grid-tables" id="table-grid"></div>
+
+        <div style="font-size:11px; font-weight:bold; margin-bottom:10px">🟠QUẦY BAR</div>
+        <div class="grid-tables" id="bar-grid"></div>
+    </div>
+
 
 
            <!-- MODAL QUẢN LÝ HỘI VIÊN -->
@@ -1041,46 +1227,110 @@ body {
 </div>
 </div>
 
-        </div> <!-- Đóng Left -->
+<!-- 4. THẺ NHÂN VIÊN (ẤN VÀO ĐỂ ĐỔI ĐẠI SỨ) -->
+<div onclick="moModalDoiNgu()" style="margin-top: 20px; margin-bottom: 20px; padding: 12px; background: #fff; border-radius: 12px; border: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;">
+
+    <!-- LEFT: AVATAR + INFO -->
+    <div style="display: flex; align-items: center; gap: 12px;">
+
+        <!-- AVATAR SVG -->
+       <div id="avatar-box-main" style="width: 45px; height: 45px; border-radius: 50%; background: #fdf2f2; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border: 1px solid #f0f0f0;">
+        <svg viewBox="0 0 64 64" width="50" height="50">
+                <path d="M32 6C18 6 12 16 12 28v12c0 5 4 10 10 10h20c6 0 10-5 10-10V28c0-12-6-22-20-22z" fill="#2d1c16"/>
+                <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
+                <path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-8c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v8c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/>
+                <path d="M32 12c-9 0-16 6-17.5 15-.5 3 1.5 1 3.5 0s9-3 14 0c5 3 10 3 14 0s4-1 3.5-0c-1.5-9-9.5-15-17.5-15z" fill="#2d1c16"/>
+                <path d="M14.5 28c-2 5-2 15 4 15 2 0 1-5 1-8 0-4-2-7-5-7z" fill="#2d1c16"/>
+                <path d="M49.5 28c2 5 2 15-4 15-2 0-1-5-1-8 0-4 2-7 5-7z" fill="#2d1c16"/>
+                <circle cx="26" cy="30" r="2.5" fill="#333"/><circle cx="38" cy="30" r="2.5" fill="#333"/>
+                <circle cx="27" cy="29" r="0.8" fill="#fff"/><circle cx="39" cy="29" r="0.8" fill="#fff"/>
+                <circle cx="21" cy="36" r="4" fill="#ff8a80" opacity="0.4"/><circle cx="43" cy="36" r="4" fill="#ff8a80" opacity="0.4"/>
+                <path d="M29 39.5c1.5 1.5 4.5 1.5 6 0" stroke="#d32f2f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                
+                <!-- ID CHO ÁO ĐỂ ĐỔI MÀU -->
+                <path id="main-staff-shirt" d="M12 52c4-6 9-8 13-9l7 4 7-4c4 1 9 3 13 9v12H12V52z" fill="#f8bbd0"/>
+                
+                <path d="M26 54l6-4 6 4" fill="none" stroke="#c62828" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M32 46l-6 8h12l-6-8z" fill="#fbd2c1"/>
+            </svg>
+            <span style="position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; background: #00e676; border-radius: 50%; border: 2px solid white;"></span>
+        </div>
+
+        <!-- TEXT INFO (ĐÃ THÊM ID) -->
+        <div>
+            <div style="font-size: 11px; color: #d32f2f; font-weight: 900; text-transform: uppercase;" id="main-staff-role">Đại sứ ngoại giao 1</div>
+            <div style="font-size: 14px; font-weight: bold; color: #333; line-height: 1.2;" id="main-staff-name">Nhân viên: Thu Ngân</div>
+            <div style="font-size: 11px; color: #888;" id="main-staff-shift">Ca làm: 14:00 - 22:00</div>
+        </div>
+    </div>
+
+    <div style="color: #bbb; padding-right: 5px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+</div>
+</div>
+
+
+
 
 <!-- CỘT GIỮA (CENTER) -->
 <div class="center" id="menu-column" style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
     
     <!-- PHẦN CỐ ĐỊNH (HEADER) -->
-<div style="flex-shrink: 0; padding: 15px 15px 0 15px; background: #fff;">
-    <!-- 1. Tiêu đề & Đồng hồ -->
-    <div id="menu-trigger" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:2px double #d32f2f;padding-bottom:8px;gap:10px; cursor:pointer;">
-        <div style="display:flex;flex-direction:column;">
-            <h2 style="margin:0;font-size:20px;">🍜 Phở Túy 11h</h2>
-            <marquee style="font-size:11px;color:#666;">📍 Số 11 Bà Triệu - 06h-11h</marquee>
+    <div style="flex-shrink: 0; padding: 15px 15px 0 15px; background: #fff;">
+        <!-- 1. Tiêu đề & Đồng hồ -->
+        <div id="menu-trigger" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:2px double #d32f2f;padding-bottom:8px;gap:10px; cursor:pointer;">
+            <div style="display:flex;flex-direction:column;">
+                <h2 style="margin:0;font-size:20px;">THỰC ĐƠN PHỞ TÚY 11h</h2>
+                <marquee style="font-size:11px;color:#666;">Số 11 Bà Triệu, P.Hải Dương, TP. Hải Phòng, Hotline 038.888.8888</marquee>
+            </div>
+            
+            <div style="text-align:right; display: flex; flex-direction: column; align-items: flex-end;">
+                <div id="clock-date" style="font-size: 11px; color: #666; margin-bottom: 2px; font-weight: 500;"></div>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span style="font-size: 12px; color: #d32f2f;">🕒</span>
+                    <div id="clock-time" style="font-size:16px;font-weight:bold;"></div>
+                </div>
+            </div>
         </div>
-       <div style="text-align:right; display: flex; flex-direction: column; align-items: flex-end;">
-    <!-- Thêm icon đồng hồ nhỏ xinh ở đây -->
-    <div style="display: flex; align-items: center; gap: 4px;">
-        <span style="font-size: 12px; color: #d32f2f;">🕒</span>
-        <div id="clock-time" style="font-size:16px;font-weight:bold;"></div>
-    </div>
-</div>
-</div>
+
+        <!-- BỔ SUNG: Thanh tìm kiếm & Bộ lọc (Giống hình mẫu) -->
+        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+            <div style="flex: 1; position: relative; background: #f5f5f5; border-radius: 10px; padding: 8px 12px; display: flex; align-items: center;">
+                <span style="margin-right: 8px; color: #888;">🔍</span>
+               <input type="text" 
+       id="menu-search" 
+       placeholder="Tìm món ăn / đồ uống..." 
+       oninput="renderMenu()" 
+       style="border: none; background: transparent; width: 100%; outline: none; font-size: 13px;">
+
+            </div>
+            <button style="border: 1px solid #ddd; background: #fff; border-radius: 10px; padding: 0 12px; cursor: pointer; font-size: 13px;">
+                Bộ lọc ⏳
+            </button>
+        </div>
 
         <!-- 2. Suất bán ngày -->
-        <div id="stock-counter-section" style="margin-bottom: 10px; padding: 10px; background: #fffdf7; border: 2px dashed #ffd54f; border-radius: 12px;">
-            <h4 style="margin: 0 0 5px 0; color: #d32f2f; text-align: center; font-size: 13px;">
+        <div id="stock-counter-section" style="margin-bottom: 10px; padding: 12px; background: #fffdf7; border: 1px solid #ffe082; border-radius: 15px;">
+            <h4 style="margin: 0 0 10px 0; color: #1a1818; text-align: center; font-size: 12px; font-weight: bold; text-transform: uppercase;">
                 📊 SUẤT BÁN NGÀY: <span id="current-date-display">--/--/----</span>
             </h4>
-            <div id="stock-display-list" style="font-size: 12px;"></div>
+            <div id="stock-display-list" style="font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
+                <!-- Nơi đổ Progress bar từ JS -->
+            </div>
         </div>
 
-        <!-- 3. Nút chuyển Tab -->
-        <div style="display:flex;gap:8px;padding-bottom:10px; background:#fff;">
-            <button id="btn-don" onclick="switchMenuTab('don')" style="flex:1;background:#2e7d32;color:#fff;padding:10px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">🍜 Đơn</button>
-            <button id="btn-combo" onclick="switchMenuTab('combo')" style="flex:1;background:#eee;padding:10px;border:none;border-radius:8px;cursor:pointer;font-weight:bold;">🍱 Combo</button>
+        <!-- 3. Nút chuyển Tab (Đã thêm Đồ uống) -->
+        <div style="display:flex; gap:8px; padding-bottom:10px; background:#fff;">
+            <button id="btn-don" onclick="switchMenuTab('don')" style="flex:1; background:#2e7d32; color:#fff; padding:10px; border:none; border-radius:10px; cursor:pointer; font-weight:bold;">🍜 Đơn</button>
+            <button id="btn-combo" onclick="switchMenuTab('combo')" style="flex:1; background:#eee; color:#333; padding:10px; border:none; border-radius:10px; cursor:pointer; font-weight:bold;">🍱 Combo</button>
+            <button id="btn-do-uong" onclick="switchMenuTab('do-uong')" style="flex:1; background:#eee; color:#333; padding:10px; border:none; border-radius:10px; cursor:pointer; font-weight:bold;">🥤 Đồ uống</button>
         </div>
     </div>
 
     <!-- PHẦN CUỘN (MENU LIST) -->
     <div id="menu-list" style="flex: 1; overflow-y: auto; padding: 0 15px 100px 15px;">
-        <!-- Món ăn sẽ tự động đổ vào đây và cuộn độc lập -->
+        <!-- Món ăn sẽ tự động đổ vào đây -->
     </div>
 </div>
 
@@ -1210,6 +1460,38 @@ body {
 
 
 <script>
+let daDangNhap = false; // Biến kiểm soát trạng thái đăng nhập toàn cục
+
+// Tự động khóa app và bắt chọn đại sứ khi vừa mở trang
+window.addEventListener('DOMContentLoaded', () => {
+    if (!daDangNhap) {
+        const wrapper = document.querySelector('.main-wrapper');
+        if (wrapper) {
+            wrapper.style.pointerEvents = "none";
+            wrapper.style.filter = "blur(4px)";
+        }
+        moModalDoiNgu();
+    }
+});
+
+const PHAN_QUYEN = {
+    "Đại sứ Minh Bạch": ["all"], // Quản lý: Làm được tất cả
+    "Đại sứ Hương Vị": ["view_stock", "edit_stock"], // Bếp: Chỉ xem và chỉnh suất bán
+    "Đại sứ Ngoại Giao 1": ["order", "payment", "discount", "print"], // Thu ngân: Full quyền bán hàng
+    "Đại sứ Ngoại Giao 2": ["order", "print"], // Phục vụ: Chỉ gọi món và in tạm tính
+    "Đại sứ Đón Tiếp": ["order"], // Tiếp tân: Chỉ gọi món
+    "Đại sứ Sạch Sẽ": ["clear_table"] // Vệ sinh: Chỉ được nhấn nút "Đã dọn bàn"
+};
+
+const DANH_SACH_LOGIN = {
+    "Đại sứ Hương Vị": { user: "1", pass: "1" },
+    "Đại sứ Ngoại Giao 1": { user: "2", pass: "2" },
+    "Đại sứ Ngoại Giao 2": { user: "3", pass: "3" },
+    "Đại sứ Đón Tiếp": { user: "4", pass: "4" },
+    "Đại sứ Sạch Sẽ": { user: "5", pass: "5" },
+    "Đại sứ Minh Bạch": { user: "admin", pass: "123" }
+};
+
 
 let dangSuaId = null;
 let currentDiscountPercent = 0;
@@ -2508,11 +2790,11 @@ function xoaHV(id) { if(confirm("Xóa?")) db.ref("hoivien/"+id).remove(); }
 function editKho(i, v) { KHO[i].ton += v; db.ref("kho").set(KHO); }
 
 
-/*31.Cập nhật giờ*/
+/*31.Cập nhật giờ và ngày tháng */
 function updateClock() {
     const now = new Date();
     
-    // 1. Cập nhật GIỜ (Giữ lại)
+    // 1. Cập nhật GIỜ (Giờ:Phút:Giây)
     const timeEl = document.getElementById("clock-time");
     if (timeEl) {
         timeEl.innerText = now.toLocaleTimeString('vi-VN', { 
@@ -2522,12 +2804,22 @@ function updateClock() {
         });
     }
 
-    // 2. Cập nhật NGÀY (Thêm kiểm tra 'if' để không bị lỗi khi đã xóa thẻ HTML)
+    // 2. Cập nhật THỨ, NGÀY/THÁNG/NĂM
     const dateEl = document.getElementById("clock-date");
     if (dateEl) {
-        dateEl.innerText = now.toLocaleDateString('vi-VN');
+        // Lấy tên Thứ (weekday) và định dạng ngày tháng
+        const options = { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' };
+        let dateString = now.toLocaleDateString('vi-VN', options);
+        
+        // Viết hoa chữ cái đầu (Ví dụ: thứ hai -> Thứ Hai)
+        dateString = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        
+        dateEl.innerText = dateString;
     }
 }
+
+// Chạy ngay lập tức khi trang vừa load để không bị trễ 1 giây
+updateClock(); 
 // Chạy đồng hồ mỗi giây
 setInterval(updateClock, 1000);
 
@@ -2571,33 +2863,47 @@ function switchMenuTab(loai) {
     renderMenu(); // Vẽ lại danh sách món
 }
 
-/*34. Vẽ menu đồng bộ App Chính & Phụ*/
+/*34. Vẽ menu đồng bộ App Chính & Phụ - Tìm kiếm TOÀN BỘ menu*/
 function renderMenu() {
     const container = document.getElementById('menu-list');
     if (!container) return;
 
+    // Lấy từ khóa tìm kiếm
+    const searchInput = document.getElementById('menu-search');
+    const filterText = searchInput ? searchInput.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+
     const fragment = document.createDocumentFragment();
 
-    // Lọc món theo Tab hiện tại (Đơn/Combo)
-    const filtered = MENU.filter(mon => (mon.loai || 'don') === currentMenuTab);
+    // LOGIC LỌC MỚI: Nếu đang gõ tìm kiếm thì tìm TRÊN TOÀN BỘ MENU
+    const filtered = MENU.filter(mon => {
+        const tenMonKhongDau = (mon.ten || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const matchesSearch = tenMonKhongDau.includes(filterText);
+
+        // Nếu ô tìm kiếm TRỐNG: Lọc theo Tab như bình thường
+        if (filterText === "") {
+            return (mon.loai || 'don') === currentMenuTab;
+        }
+        
+        // Nếu ĐANG GÕ: Hiển thị tất cả các món khớp với tên (bất kể Đơn hay Combo)
+        return matchesSearch;
+    });
 
     filtered.forEach((mon, index) => {
         const isHet = (Number(mon.limit || 0) - Number(mon.soldToday || 0)) <= 0;
+        const isLastAndOdd = (index === filtered.length - 1) && (filtered.length % 2 !== 0);
 
         const div = document.createElement("div");
-        div.className = `menu-item ${mon.loai === 'combo' ? 'combo-neon-glow' : 'single-neon-glow'}`;
+        div.className = `menu-item food-card ${mon.loai === 'combo' ? 'combo-neon-glow' : 'single-neon-glow'} ${isLastAndOdd ? 'full-width-item' : ''}`;
+        
         div.style.cssText = `
-            display:flex; align-items:center; gap:12px;
-            padding:12px; margin-bottom:12px;
             position:relative; border-radius:15px;
             background:#fff; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             ${isHet ? 'opacity:0.5;' : ''}
         `;
 
-        // Lấy mô tả từ hàm helper (đã sửa lỗi slogan)
         const { moTa, tenLoai } = getMoTa(mon);
 
-        // Nút quà tặng ⭐ (Chỉ hiện ở App chính hoặc cho nhân viên)
+        // Nút quà tặng ⭐
         const dsMonDuocTang = ['hoa_chau', 'tiem_thuy', 'quay'];
         const nutQuaTang = (dsMonDuocTang.includes(mon.id) && !isHet)
             ? `<span onclick="event.stopPropagation(); themQuaTangTrucTiep(${index})"
@@ -2608,47 +2914,44 @@ function renderMenu() {
         const mauGia = laMauDo ? '#d32f2f' : '#000';
 
         div.innerHTML = `
-            <div style="width:75px;height:75px;flex-shrink:0;overflow:hidden;border-radius:12px;background:#f0f0f0;border:1px solid #eee;">
-                <img src="${mon.img || 'https://placeholder.com'}"
-                     style="width:100%;height:100%;object-fit:cover;">
-            </div>
-
-            <div style="flex:1;min-width:0;">
-                <div style="font-weight:bold;font-size:15px;color:#333;display:flex;align-items:center;">
-                    ${mon.ten}
-                    ${tenLoai ? `<span style="font-size:10px;color:#888;margin-left:4px;font-weight:normal;">(${tenLoai})</span>` : ''}
-                    ${nutQuaTang}
-                </div>
-
-                ${moTa}
-
-                <div style="margin-top:6px;">
-                    <span style="background:#ffeb3b;border-radius:20px;font-size:12px;padding:3px 12px;color:${mauGia};font-weight:900;border:1px solid rgba(0,0,0,0.05);">
+            <div class="card-inner-wrapper" style="display:flex; align-items:flex-start; gap:12px; padding:12px;">
+                <div class="food-left-zone" style="display:flex; flex-direction:column; align-items:center; gap:8px; flex-shrink:0; width:80px;">
+                    <div style="width:80px;height:80px;overflow:hidden;border-radius:12px;background:#f0f0f0;border:1px solid #eee;">
+                        <img src="${mon.img || 'https://placeholder.com'}"
+                             style="width:100%;height:100%;object-fit:cover;">
+                    </div>
+                    <span style="background:#ffeb3b; border-radius:8px; font-size:12px; padding:4px 0; color:${mauGia}; font-weight:900; border:1px solid rgba(0,0,0,0.05); width:100%; text-align:center; display:block;">
                         ${(mon.gia || 0).toLocaleString()}đ
                     </span>
+                </div>
+
+                <div class="food-right-zone" style="flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; padding-right:25px;">
+                    <div style="font-weight:bold; font-size:15px; color:#333; display:flex; align-items:center; flex-wrap:wrap; line-height:1.2;">
+                        ${mon.ten}
+                        ${nutQuaTang}
+                    </div>
+                    ${tenLoai ? `<div style="font-size:10px; color:#888; font-weight:normal; background:#f5f5f5; padding:2px 6px; border-radius:4px; width:fit-content;">${tenLoai}</div>` : ''}
+                    <div class="food-description" style="font-size:12px; color:#666; line-height:1.4; margin-top:2px;">
+                        ${moTa}
+                    </div>
                 </div>
             </div>
 
             <button ${isHet ? 'disabled' : ''}
-                style="position:absolute;bottom:10px;right:10px;width:32px;height:32px;border-radius:50%;border:none;color:#fff;font-size:20px;font-weight:bold;cursor:pointer;transition:0.2s;
-                ${isHet ? "background:#ccc;" : (currentMenuTab === 'don' ? "background:#2e7d32;" : "background:#e65100;")}">
+                style="position:absolute; bottom:12px; right:12px; width:35px; height:35px; border-radius:50%; border:none; color:#fff; font-size:22px; font-weight:bold; cursor:pointer; z-index:2;
+                ${isHet ? "background:#ccc;" : (mon.loai === 'combo' ? "background:#e65100;" : "background:#2e7d32;")}">
                 ${isHet ? "✕" : "+"}
             </button>
         `;
 
-         // Gán sự kiện click cho nút thêm món
         const btn = div.querySelector("button");
-if (!isHet) {
-    btn.addEventListener("click", (event) => {
-        event.stopPropagation(); // Ngăn sự kiện nhảy lên các lớp khác
-        
-        // Gọi hiệu ứng bay cả cụm
-        playFlyEffect(event);
-        
-        // Thực hiện thêm món
-        addItem(mon.id); 
-    });
-}
+        if (!isHet) {
+            btn.addEventListener("click", (event) => {
+                event.stopPropagation();
+                playFlyEffect(event);
+                addItem(mon.id); 
+            });
+        }
 
         fragment.appendChild(div);
     });
@@ -3112,13 +3415,14 @@ function xoaGiamGia() {
 	
 
 
+
 /*48.Đếm Ngược số lượng*/
 function renderStockStatus() {
     const displayList = document.getElementById('stock-display-list');
     const warningBox = document.getElementById('stock-warning-box');
     if (!displayList || typeof MENU === 'undefined') return;
 
-    // 1. Cập nhật ngày tháng
+    // 1. Cập nhật ngày tháng (Giữ nguyên logic của bạn)
     const dateEl = document.getElementById('current-date-display');
     if (dateEl) {
         const now = new Date();
@@ -3144,21 +3448,30 @@ function renderStockStatus() {
             if (conLai <= (tenMon.includes('tuy tam') ? 25 : 15)) bgColor = '#ffa000';
             if (conLai <= 0) bgColor = '#d32f2f';
 
-            // UI hiển thị
-            displayList.innerHTML += `
-                <div class="stock-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee; font-weight:bold;">
-                    <span style="color: #333;">🍜 ${mon.ten}</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="background: ${bgColor}; color:white; padding:5px 15px; border-radius:20px; font-size:13px; min-width:110px; text-align:center;">
-                            ${conLai} / ${limit}
-                        </span>
-                        <button onclick="congLaiSuat(${index})" style="width:28px; height:28px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; font-weight:bold;">+</button>
-                    </div>
-                </div>`;
+            let phanTram = (conLai / limit) * 100;
 
-            // 🔥 CẢNH BÁO
+displayList.innerHTML += `
+    <div class="stock-item-row" style="display:flex; align-items:center; padding:10px 0; border-bottom:1px solid #eee; font-weight:bold; gap: 15px;">
+        <!-- 1. Tên món nằm bên trái -->
+        <span style="color: #333; min-width: 100px; flex-shrink: 0;">🍜 ${mon.ten}</span>
+        
+        <!-- 2. Thanh tiến độ nằm ở giữa (Sử dụng margin: 0 auto để cân đối) -->
+        <div style="flex: 1; height: 18px; background: #eee; border-radius: 20px; position: relative; overflow: hidden; margin: 0 auto; min-width: 200px;">
+            <!-- Thanh màu chạy theo số lượng còn lại -->
+            <div style="width: ${phanTram}%; height: 100%; background: ${bgColor}; border-radius: 20px; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center;">
+                <!-- Con số hiển thị đè lên thanh màu -->
+                <span style="color: white; font-size: 11px; white-space: nowrap; position: absolute; left: 50%; transform: translateX(-50%);">
+                    ${conLai} / ${limit}
+                </span>
+            </div>
+        </div>
+        
+        <!-- 3. Nút bấm nằm bên phải -->
+        <button onclick="congLaiSuat(${index})" style="width:28px; height:28px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; font-weight:bold; flex-shrink: 0;">+</button>
+    </div>`;
+
+            // 🔥 CẢNH BÁO (Giữ nguyên logic của bạn)
             let nguong = 10;
-
             if (tenMon.includes('tuy tam')) nguong = 25;
             if (tenMon.includes('tuy thuong')) nguong = 15;
 
@@ -3166,24 +3479,17 @@ function renderStockStatus() {
                 alertMsg += `🏮 Món ${mon.ten} đã hết! --- `;
             } 
             else if (conLai <= nguong) {
-                alertMsg += `
-✨ Món 
-<span style="color:red; font-weight:bold;">${mon.ten}</span> 
-chỉ còn 
-<span style="color:red; font-weight:bold;">${conLai}</span> suất! --- `;
+                alertMsg += `✨ Món <span style="color:red; font-weight:bold;">${mon.ten}</span> chỉ còn <span style="color:red; font-weight:bold;">${conLai}</span> suất! --- `;
             }
-
-        } // ✅ ĐÓNG IF Ở ĐÂY
+        }
     });
 
     if (alertMsg && warningBox) {
         warningBox.style.display = "block";
-        warningBox.innerHTML = `
-<marquee style="color:black; font-weight:bold;">
-    ${alertMsg}
-</marquee>`;
+        warningBox.innerHTML = `<marquee style="color:black; font-weight:bold;">${alertMsg}</marquee>`;
     }
 }
+
 // GỌI HÀM ĐỂ CHẠY
 db.ref("menu").on("value", s => {
     MENU = s.val() || [];
@@ -4197,23 +4503,303 @@ setInterval(() => {
 
 
 
+const now = new Date();
+const dateString = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+document.getElementById('clock-date').innerText = dateString;
 
 
 
 
+/* Cập nhật trạng thái đóng/mở cửa dựa trên giờ hệ thống */
+function updateStoreStatus() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Chuyển thời gian hiện tại sang phút để so sánh cho chính xác
+    const totalMinutes = currentHour * 60 + currentMinute;
+    
+    // Cấu hình giờ mở (06:00) và đóng (11:00) tính theo phút
+    const openTime = 6 * 60;  // 360 phút
+    const closeTime = 11 * 60; // 660 phút
+
+    const statusEl = document.getElementById('store-status');
+    const timeTextEl = document.getElementById('store-time-text');
+
+    if (statusEl && timeTextEl) {
+        if (totalMinutes >= openTime && totalMinutes < closeTime) {
+            // TRẠNG THÁI MỞ CỬA
+            statusEl.innerText = "● Đang mở cửa";
+            statusEl.style.color = "#2e7d32"; // Màu xanh lá
+            timeTextEl.style.color = "#888";
+        } else {
+            // TRẠNG THÁI ĐÓNG CỬA
+            statusEl.innerText = "● Đã đóng cửa";
+            statusEl.style.color = "#d32f2f"; // Màu đỏ
+            timeTextEl.style.color = "#d32f2f"; // Chuyển màu giờ sang đỏ để gây chú ý
+        }
+    }
+}
+
+// Gọi hàm này ngay lập tức khi load trang
+updateStoreStatus();
+
+// Có thể gọi kèm trong setInterval của updateClock() để cập nhật liên tục mỗi giây
+setInterval(updateStoreStatus, 60000); // Kiểm tra lại mỗi phút 1 lần là đủ
 
 
 
 
+/* Hàm hiển thị danh sách Đội ngũ Đại sứ */
+function moModalDoiNgu() {
+    const modal = document.getElementById('modal-container');
+    const title = document.getElementById('modal-title');
+    const body = document.getElementById('modal-body');
+    const nutDongModal = document.querySelector('.modal-close'); 
+    
+    if (!modal || !body) return;
+
+    // --- LOGIC MỚI: ÉP ĐĂNG NHẬP ---
+    // Ẩn nút đóng (X) nếu chưa có ai đăng nhập, hiện nếu đã vào app (để đổi ca)
+    if (nutDongModal) {
+        nutDongModal.style.display = daDangNhap ? "block" : "none";
+    }
+
+    // --- LOGIC MỚI: KHÓA APP NHƯNG GIỮ HIỆN RÕ ---
+    const wrapper = document.querySelector('.main-wrapper');
+    if (wrapper && !daDangNhap) {
+        wrapper.style.pointerEvents = "none"; // Khóa toàn bộ click/tương tác
+        wrapper.style.filter = "none";         // Đảm bảo HIỆN RÕ 100% (không mờ)
+    }
+
+    title.innerText = "✨ ĐỘI NGŨ ĐẠI SỨ PHỞ TÚY";
+    
+    const doiNgu = [
+        { vaiTro: "Đại sứ Hương Vị", ten: "Bếp Trưởng Kim Anh", mauAo: "#ffffff", sub: "Linh hồn của bát phở", ca: "05:00 - 14:00", gioiTinh: 'nam' },
+        { vaiTro: "Đại sứ Ngoại Giao 1", ten: "Tuệ Anh", mauAo: "#f8bbd0", sub: "Phục vụ tận tâm", ca: "14:00 - 22:00", gioiTinh: 'nu' },
+        { vaiTro: "Đại sứ Ngoại Giao 2", ten: "Minh Anh", mauAo: "#a5d6a7", sub: "Niềm vui khách hàng", ca: "05:00 - 14:00", gioiTinh: 'nu' },
+        { vaiTro: "Đại sứ Đón Tiếp", ten: "Bảo An", mauAo: "#fff59d", sub: "Chào đón nồng hậu", ca: "07:00 - 14:00", gioiTinh: 'nam' },
+        { vaiTro: "Đại sứ Sạch Sẽ", ten: "Cô Hoa", mauAo: "#90a4ae", sub: "Không gian chuẩn gu", ca: "05:00 - 14:00", gioiTinh: 'nu' },
+        { vaiTro: "Đại sứ Minh Bạch", ten: "Thu Ngân", mauAo: "#1565c0", sub: "Vận hành chuyên nghiệp", ca: "05:00 - 14:00", gioiTinh: 'nu' }
+    ];
+
+    let html = `<div style="display:flex; flex-direction:column; gap:12px;">`;
+
+    doiNgu.forEach(nv => {
+        let headSvg = nv.gioiTinh === 'nam' ? 
+            `<path d="M32 8C22 8 16 12 16 22v6h32v-6c0-10-6-14-16-14z" fill="#2d1c16"/><path d="M28 42h8v8h-8z" fill="#fbd2c1"/><circle cx="18" cy="34" r="3.5" fill="#fbd2c1"/><circle cx="46" cy="34" r="3.5" fill="#fbd2c1"/><path d="M32 46c-7 0-12.5-5-12.5-12v-8c0-7 5.5-12.5 12.5-12.5s12.5 5.5 12.5 12.5v8c0 7-5.5 12-12.5 12z" fill="#fbd2c1"/><path d="M32 10c-8 0-14 4-15 12 4-2 9-3 15-3s11 1 15 3c-1-8-7-12-15-12z" fill="#2d1c16"/>` :
+            `<path d="M32 8C20 8 12 16 12 30v10c0 8 8 14 20 14s20-6 20-14V30c0-14-8-22-20-22z" fill="#2d1c16"/><path d="M28 42h8v8h-8z" fill="#fbd2c1"/><circle cx="18" cy="32" r="4" fill="#fbd2c1"/><circle cx="46" cy="32" r="4" fill="#fbd2c1"/><path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-10c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v10c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/><path d="M32 10c-10 0-16 5-18 16 3-2 8-4 18-4s15 2 18 4c-2-11-8-16-18-16z" fill="#2d1c16"/><path d="M14 28c-1 4-1 10 3 10 2 0 1-8 1-12 0-2-2-2-4-2z" fill="#2d1c16"/><path d="M50 28c1 4 1 10-3 10-2 0-1-8-1-12 0-2-2-2-4-2z" fill="#2d1c16"/>`;
+
+        html += `
+        <div onclick="hienFormDangNhap('${nv.vaiTro}', '${nv.ten}', '${nv.mauAo}', '${nv.ca}', '${nv.gioiTinh}')" 
+             style="display:flex; align-items:center; gap:15px; padding:12px; background:#f8f9fa; border-radius:12px; border:1px solid #eee; cursor:pointer;">
+            <div style="width:45px; height:45px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #eee;">
+                <svg viewBox="0 0 64 64" width="45" height="45">
+                    ${headSvg}
+                    <circle cx="26" cy="31" r="2.5" fill="#333"/><circle cx="38" cy="31" r="2.5" fill="#333"/>
+                    <circle cx="21" cy="37" r="4" fill="#ff8a80" opacity="0.4"/><circle cx="43" cy="37" r="4" fill="#ff8a80" opacity="0.4"/>
+                    <path d="M12 52c4-6 9-8 13-9l7 4 7-4c4 1 9 3 13 9v12H12V52z" fill="${nv.mauAo}"/>
+                </svg>
+            </div>
+            <div style="flex:1;">
+                <div style="font-size:10px; color:#d32f2f; font-weight:900; text-transform:uppercase;">${nv.vaiTro}</div>
+                <div style="font-size:15px; font-weight:bold; color:#333;">${nv.ten}</div>
+                <div style="font-size:11px; color:#888;">${nv.sub}</div>
+            </div>
+        </div>`;
+    });
+
+    body.innerHTML = html + `</div>`;
+    modal.style.display = 'flex';
+}
+
+// 2. Cập nhật hàm chọn đại sứ để mở khóa App
+function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
+    // ... Giữ nguyên logic cập nhật Text và Avatar của bạn ...
+
+    // --- LOGIC MỚI: MỞ KHÓA APP ---
+    daDangNhap = true; // Đánh dấu đã đăng nhập thành công
+    const wrapper = document.querySelector('.main-wrapper');
+    if (wrapper) {
+        wrapper.style.pointerEvents = "auto"; // Cho phép bấm lại
+        wrapper.style.filter = "none";
+    }
+
+    // Đóng modal
+    const modal = document.getElementById('modal-container');
+    if (modal) modal.style.display = 'none';
+}
+
+// 3. Tự động gọi khi mở trang
+window.onload = function() {
+    moModalDoiNgu();
+};
+
+/* Hàm 2: Hiện Form Nhập Tài khoản / Mật khẩu */
+function hienFormDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
+    const body = document.getElementById('modal-body');
+    const title = document.getElementById('modal-title');
+    
+    title.innerText = "🔑 XÁC NHẬN ĐĂNG NHẬP";
+    
+    body.innerHTML = `
+        <div style="padding:10px; text-align:center;">
+            <div style="font-size:13px; color:#666; margin-bottom:15px;">Đang đăng nhập vị trí:<br><b style="color:#d32f2f;">${vaiTro}</b></div>
+            
+            <input type="text" id="login-user" placeholder="Tên tài khoản" 
+                   style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; outline:none; box-sizing:border-box;">
+            
+            <input type="password" id="login-pass" placeholder="Mật khẩu" 
+                   style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; outline:none; box-sizing:border-box;">
+            
+            <div style="display:flex; gap:10px;">
+                <button onclick="moModalDoiNgu()" style="flex:1; padding:12px; background:#eee; border:none; border-radius:8px; cursor:pointer;">Quay lại</button>
+                <button onclick="xuLyDangNhap('${vaiTro}', '${ten}', '${mauAo}', '${ca}', '${gioiTinh}')" 
+                        style="flex:2; padding:12px; background:#2e7d32; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">XÁC NHẬN</button>
+            </div>
+        </div>
+    `;
+}
+
+/* Hàm 3: Kiểm tra thông tin đăng nhập */
+function xuLyDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    
+    const account = DANH_SACH_LOGIN[vaiTro];
+
+    if (u === account.user && p === account.pass) {
+        // ĐÚNG: Gọi hàm chọn đại sứ của bạn để cập nhật UI
+        chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh);
+        console.log("🔓 Đăng nhập thành công!");
+    } else {
+        // SAI: Báo lỗi
+        alert("❌ Sai tài khoản hoặc mật khẩu, vui lòng thử lại!");
+    }
+}
+
+
+/* Hàm chọn Đại sứ - Đã thêm tính năng đổi kiểu tóc ở màn hình chính */
+function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
+    // 1. Cập nhật các dòng chữ (Giữ nguyên logic của bạn)
+    if(document.getElementById('main-staff-role')) document.getElementById('main-staff-role').innerText = vaiTro;
+    if(document.getElementById('main-staff-name')) document.getElementById('main-staff-name').innerText = "Nhân viên: " + ten;
+    if(document.getElementById('main-staff-shift')) document.getElementById('main-staff-shift').innerText = "Ca làm: " + ca;
+
+    // 2. VẼ LẠI AVATAR (Giữ nguyên logic của bạn)
+    const avatarBox = document.getElementById('avatar-box-main');
+    if (avatarBox) {
+        let headHtml = "";
+        if (gioiTinh === 'nam') {
+            headHtml = `
+                <path d="M32 8C22 8 16 12 16 22v6h32v-6c0-10-6-14-16-14z" fill="#2d1c16"/>
+                <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
+                <circle cx="18" cy="34" r="3.5" fill="#fbd2c1"/><circle cx="46" cy="34" r="3.5" fill="#fbd2c1"/>
+                <path d="M32 46c-7 0-12.5-5-12.5-12v-8c0-7 5.5-12.5 12.5-12.5s12.5 5.5 12.5 12.5v8c0 7-5.5 12-12.5 12z" fill="#fbd2c1"/>
+                <path d="M32 10c-8 0-14 4-15 12 4-2 9-3 15-3s11 1 15 3c-1-8-7-12-15-12z" fill="#2d1c16"/>
+            `;
+        } else {
+            headHtml = `
+                <path d="M32 8C20 8 12 16 12 30v10c0 8 8 14 20 14s20-6 20-14V30c0-14-8-22-20-22z" fill="#2d1c16"/>
+                <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
+                <circle cx="18" cy="32" r="4" fill="#fbd2c1"/><circle cx="46" cy="32" r="4" fill="#fbd2c1"/>
+                <path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-10c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v10c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/>
+                <path d="M32 10c-10 0-16 5-18 16 3-2 8-4 18-4s15 2 18 4c-2-11-8-16-18-16z" fill="#2d1c16"/>
+                <path d="M14 28c-1 4-1 10 3 10 2 0 1-8 1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
+                <path d="M50 28c1 4 1 10-3 10-2 0-1-8-1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
+            `;
+        }
+        avatarBox.innerHTML = `
+            <svg viewBox="0 0 64 64" width="50" height="50">
+                ${headHtml}
+                <circle cx="26" cy="31" r="2.5" fill="#333"/><circle cx="38" cy="31" r="2.5" fill="#333"/>
+                <circle cx="21" cy="37" r="4" fill="#ff8a80" opacity="0.4"/><circle cx="43" cy="37" r="4" fill="#ff8a80" opacity="0.4"/>
+                <path d="M12 52c4-6 9-8 13-9l7 4 7-4c4 1 9 3 13 9v12H12V52z" fill="${mauAo}"/>
+                <path d="M26 54l6-4 6 4" fill="none" stroke="#c62828" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span style="position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; background: #00e676; border-radius: 50%; border: 2px solid white;"></span>
+        `;
+    }
+
+    // --- 3. LOGIC PHÂN QUYỀN & MỞ KHÓA (PHẦN CẬP NHẬT MỚI) ---
+    daDangNhap = true; // Đánh dấu đã chọn người thành công
+
+    // A. Khai báo bảng quyền (Đón tiếp để trống để khóa sạch)
+    const PHAN_QUYEN = {
+        "Đại sứ Đón Tiếp": [],
+        "Đại sứ Hương Vị": ["order", "print"],
+        "Đại sứ Ngoại Giao 1": ["order", "print", "payment", "discount"],
+        "Đại sứ Ngoại Giao 2": ["order", "print", "payment", "discount"],
+        "Đại sứ Sạch Sẽ": ["clear_table"],
+        "Đại sứ Minh Bạch": ["full_control"]
+    };
+
+    const quyenHienTai = PHAN_QUYEN[vaiTro] || [];
+    const coQuyen = (q) => quyenHienTai.includes("full_control") || quyenHienTai.includes(q);
+
+    // B. Mở khóa lớp bảo vệ chính (Hiện rõ 100%, cho phép click)
+    const wrapper = document.querySelector('.main-wrapper');
+    if (wrapper) {
+        wrapper.style.pointerEvents = "auto";
+        wrapper.style.filter = "none"; 
+        wrapper.classList.remove('global-lock');
+    }
+ // KHÓA NÚT XANH (Dấu cộng bạn vừa gửi)
+    const fabBtn = document.getElementById('fab-icon')?.parentElement;
+    if (fabBtn) {
+        fabBtn.style.display = coQuyen("order") ? "flex" : "none";
+    }
 
 
 
+    // C. Khóa các vùng chức năng dựa trên quyền Đại sứ
+    // Khóa Menu list (Hiện rõ nhưng không cho bấm nếu là Đón Tiếp)
+    const menuList = document.getElementById('menu-list');
+    if (menuList) {
+        menuList.style.pointerEvents = coQuyen("order") ? "auto" : "none";
+    }
 
+    // Khóa Cột Order (Giỏ hàng)
+    const orderCol = document.getElementById('order-column');
+    if (orderCol) {
+        orderCol.style.pointerEvents = coQuyen("order") ? "auto" : "none";
+    }
 
+    // Ẩn/Hiện nút Thanh toán và In ấn
+    if (document.getElementById('step-pay')) {
+        document.getElementById('step-pay').style.display = coQuyen("payment") ? "flex" : "none";
+    }
+    if (document.getElementById('step-print')) {
+        document.getElementById('step-print').style.display = (coQuyen("print") || coQuyen("order")) ? "flex" : "none";
+    }
 
+    // D. Đóng Modal
+    const modal = document.getElementById('modal-container');
+    if (modal) modal.style.display = 'none';
+}
 
+function xuLyKhoaApp() {
+    const wrapper = document.querySelector('.main-wrapper'); // Hoặc id/class bao quanh toàn bộ app của bạn
+    if (wrapper) {
+        if (!daDangNhap) {
+            // KHÓA TOÀN BỘ tương tác chuột/cảm ứng
+            wrapper.style.pointerEvents = "none";
+            wrapper.style.filter = "none"; // Đảm bảo KHÔNG LÀM MỜ
+            wrapper.style.userSelect = "none"; // Không cho bôi đen văn bản
+        } else {
+            // MỞ KHÓA khi đã chọn đại sứ
+            wrapper.style.pointerEvents = "auto";
+            wrapper.style.filter = "none";
+            wrapper.style.userSelect = "auto";
+        }
+    }
+}
 
-
+// Gọi khi vừa load trang
+window.onload = function() {
+    xuLyKhoaApp();
+    moModalDoiNgu();
+};
 
 </script>
 
