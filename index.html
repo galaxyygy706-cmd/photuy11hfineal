@@ -1234,33 +1234,24 @@ body {
     <div style="display: flex; align-items: center; gap: 12px;">
 
         <!-- AVATAR SVG -->
-       <div id="avatar-box-main" style="width: 45px; height: 45px; border-radius: 50%; background: #fdf2f2; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border: 1px solid #f0f0f0;">
-        <svg viewBox="0 0 64 64" width="50" height="50">
-                <path d="M32 6C18 6 12 16 12 28v12c0 5 4 10 10 10h20c6 0 10-5 10-10V28c0-12-6-22-20-22z" fill="#2d1c16"/>
-                <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
-                <path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-8c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v8c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/>
-                <path d="M32 12c-9 0-16 6-17.5 15-.5 3 1.5 1 3.5 0s9-3 14 0c5 3 10 3 14 0s4-1 3.5-0c-1.5-9-9.5-15-17.5-15z" fill="#2d1c16"/>
-                <path d="M14.5 28c-2 5-2 15 4 15 2 0 1-5 1-8 0-4-2-7-5-7z" fill="#2d1c16"/>
-                <path d="M49.5 28c2 5 2 15-4 15-2 0-1-5-1-8 0-4 2-7 5-7z" fill="#2d1c16"/>
-                <circle cx="26" cy="30" r="2.5" fill="#333"/><circle cx="38" cy="30" r="2.5" fill="#333"/>
-                <circle cx="27" cy="29" r="0.8" fill="#fff"/><circle cx="39" cy="29" r="0.8" fill="#fff"/>
-                <circle cx="21" cy="36" r="4" fill="#ff8a80" opacity="0.4"/><circle cx="43" cy="36" r="4" fill="#ff8a80" opacity="0.4"/>
-                <path d="M29 39.5c1.5 1.5 4.5 1.5 6 0" stroke="#d32f2f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                
-                <!-- ID CHO ÁO ĐỂ ĐỔI MÀU -->
-                <path id="main-staff-shirt" d="M12 52c4-6 9-8 13-9l7 4 7-4c4 1 9 3 13 9v12H12V52z" fill="#f8bbd0"/>
-                
-                <path d="M26 54l6-4 6 4" fill="none" stroke="#c62828" stroke-width="1.5" stroke-linecap="round"/>
-                <path d="M32 46l-6 8h12l-6-8z" fill="#fbd2c1"/>
+       <div id="avatar-box-main" style="width: 45px; height: 45px; border-radius: 50%; background: #f5f5f5; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; border: 1px solid #f0f0f0;">
+            <!-- SVG TRỐNG MẶC ĐỊNH -->
+            <svg viewBox="0 0 64 64" width="50" height="50">
+                <circle cx="32" cy="32" r="30" fill="#f9f9f9" stroke="#eee" />
+                <path d="M32 15a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM15 50c0-10 8-15 17-15s17 5 17 15" fill="#ddd" />
             </svg>
-            <span style="position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; background: #00e676; border-radius: 50%; border: 2px solid white;"></span>
         </div>
 
-        <!-- TEXT INFO (ĐÃ THÊM ID) -->
+        <!-- TEXT INFO -->
         <div>
-            <div style="font-size: 11px; color: #d32f2f; font-weight: 900; text-transform: uppercase;" id="main-staff-role">Đại sứ ngoại giao 1</div>
-            <div style="font-size: 14px; font-weight: bold; color: #333; line-height: 1.2;" id="main-staff-name">Nhân viên: Thu Ngân</div>
-            <div style="font-size: 11px; color: #888;" id="main-staff-shift">Ca làm: 14:00 - 22:00</div>
+            <div style="font-size: 11px; color: #aaa; font-weight: 900; text-transform: uppercase;" id="main-staff-role">CHƯA ĐĂNG NHẬP</div>
+            <div style="font-size: 14px; font-weight: bold; color: #ccc; line-height: 1.2;" id="main-staff-name">Nhân viên: ---</div>
+            <div style="font-size: 11px; color: #bbb;" id="main-staff-shift">Ca làm: --:--</div>
+            
+            <!-- NÚT ĐĂNG XUẤT (Ẩn mặc định bằng display: none) -->
+            <button id="btn-logout" onclick="event.stopPropagation(); dangXuat()" style="display: none; margin-top: 5px; padding: 4px 8px; background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold;">
+                🚪 Đăng xuất
+            </button>
         </div>
     </div>
 
@@ -4679,36 +4670,39 @@ function xuLyDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
 }
 
 
-/* Hàm chọn Đại sứ - Đã thêm tính năng đổi kiểu tóc ở màn hình chính */
 function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
-    // 1. Cập nhật các dòng chữ (Giữ nguyên logic của bạn)
-    if(document.getElementById('main-staff-role')) document.getElementById('main-staff-role').innerText = vaiTro;
-    if(document.getElementById('main-staff-name')) document.getElementById('main-staff-name').innerText = "Nhân viên: " + ten;
-    if(document.getElementById('main-staff-shift')) document.getElementById('main-staff-shift').innerText = "Ca làm: " + ca;
+    // 1. Cập nhật các dòng chữ & Màu sắc sống động lại
+    if(document.getElementById('main-staff-role')) {
+        document.getElementById('main-staff-role').innerText = vaiTro;
+        document.getElementById('main-staff-role').style.color = "#d32f2f";
+    }
+    if(document.getElementById('main-staff-name')) {
+        document.getElementById('main-staff-name').innerText = "Nhân viên: " + ten;
+        document.getElementById('main-staff-name').style.color = "#333";
+    }
+    if(document.getElementById('main-staff-shift')) {
+        document.getElementById('main-staff-shift').innerText = "Ca làm: " + ca;
+        document.getElementById('main-staff-shift').style.color = "#888";
+    }
 
     // 2. VẼ LẠI AVATAR (Giữ nguyên logic của bạn)
     const avatarBox = document.getElementById('avatar-box-main');
     if (avatarBox) {
-        let headHtml = "";
-        if (gioiTinh === 'nam') {
-            headHtml = `
-                <path d="M32 8C22 8 16 12 16 22v6h32v-6c0-10-6-14-16-14z" fill="#2d1c16"/>
-                <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
-                <circle cx="18" cy="34" r="3.5" fill="#fbd2c1"/><circle cx="46" cy="34" r="3.5" fill="#fbd2c1"/>
-                <path d="M32 46c-7 0-12.5-5-12.5-12v-8c0-7 5.5-12.5 12.5-12.5s12.5 5.5 12.5 12.5v8c0 7-5.5 12-12.5 12z" fill="#fbd2c1"/>
-                <path d="M32 10c-8 0-14 4-15 12 4-2 9-3 15-3s11 1 15 3c-1-8-7-12-15-12z" fill="#2d1c16"/>
-            `;
-        } else {
-            headHtml = `
-                <path d="M32 8C20 8 12 16 12 30v10c0 8 8 14 20 14s20-6 20-14V30c0-14-8-22-20-22z" fill="#2d1c16"/>
-                <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
-                <circle cx="18" cy="32" r="4" fill="#fbd2c1"/><circle cx="46" cy="32" r="4" fill="#fbd2c1"/>
-                <path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-10c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v10c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/>
-                <path d="M32 10c-10 0-16 5-18 16 3-2 8-4 18-4s15 2 18 4c-2-11-8-16-18-16z" fill="#2d1c16"/>
-                <path d="M14 28c-1 4-1 10 3 10 2 0 1-8 1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
-                <path d="M50 28c1 4 1 10-3 10-2 0-1-8-1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
-            `;
-        }
+        let headHtml = (gioiTinh === 'nam') ? `
+            <path d="M32 8C22 8 16 12 16 22v6h32v-6c0-10-6-14-16-14z" fill="#2d1c16"/>
+            <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
+            <circle cx="18" cy="34" r="3.5" fill="#fbd2c1"/><circle cx="46" cy="34" r="3.5" fill="#fbd2c1"/>
+            <path d="M32 46c-7 0-12.5-5-12.5-12v-8c0-7 5.5-12.5 12.5-12.5s12.5 5.5 12.5 12.5v8c0 7-5.5 12-12.5 12z" fill="#fbd2c1"/>
+            <path d="M32 10c-8 0-14 4-15 12 4-2 9-3 15-3s11 1 15 3c-1-8-7-12-15-12z" fill="#2d1c16"/>
+        ` : `
+            <path d="M32 8C20 8 12 16 12 30v10c0 8 8 14 20 14s20-6 20-14V30c0-14-8-22-20-22z" fill="#2d1c16"/>
+            <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
+            <circle cx="18" cy="32" r="4" fill="#fbd2c1"/><circle cx="46" cy="32" r="4" fill="#fbd2c1"/>
+            <path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-10c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v10c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/>
+            <path d="M32 10c-10 0-16 5-18 16 3-2 8-4 18-4s15 2 18 4c-2-11-8-16-18-16z" fill="#2d1c16"/>
+            <path d="M14 28c-1 4-1 10 3 10 2 0 1-8 1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
+            <path d="M50 28c1 4 1 10-3 10-2 0-1-8-1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
+        `;
         avatarBox.innerHTML = `
             <svg viewBox="0 0 64 64" width="50" height="50">
                 ${headHtml}
@@ -4721,10 +4715,8 @@ function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
         `;
     }
 
-    // --- 3. LOGIC PHÂN QUYỀN & MỞ KHÓA (PHẦN CẬP NHẬT MỚI) ---
-    daDangNhap = true; // Đánh dấu đã chọn người thành công
-
-    // A. Khai báo bảng quyền (Đón tiếp để trống để khóa sạch)
+    // 3. LOGIC PHÂN QUYỀN & MỞ KHÓA
+    daDangNhap = true; 
     const PHAN_QUYEN = {
         "Đại sứ Đón Tiếp": [],
         "Đại sứ Hương Vị": ["order", "print"],
@@ -4737,43 +4729,25 @@ function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
     const quyenHienTai = PHAN_QUYEN[vaiTro] || [];
     const coQuyen = (q) => quyenHienTai.includes("full_control") || quyenHienTai.includes(q);
 
-    // B. Mở khóa lớp bảo vệ chính (Hiện rõ 100%, cho phép click)
+    // Mở khóa lớp bảo vệ chính
     const wrapper = document.querySelector('.main-wrapper');
     if (wrapper) {
         wrapper.style.pointerEvents = "auto";
         wrapper.style.filter = "none"; 
-        wrapper.classList.remove('global-lock');
-    }
- // KHÓA NÚT XANH (Dấu cộng bạn vừa gửi)
-    const fabBtn = document.getElementById('fab-icon')?.parentElement;
-    if (fabBtn) {
-        fabBtn.style.display = coQuyen("order") ? "flex" : "none";
     }
 
+    // HIỆN NÚT ĐĂNG XUẤT
+    const btnLogout = document.querySelector('button[onclick*="dangXuat"]');
+    if (btnLogout) btnLogout.style.display = "block";
 
+    // Khóa/Mở vùng chức năng
+    if (document.getElementById('menu-list')) document.getElementById('menu-list').style.pointerEvents = coQuyen("order") ? "auto" : "none";
+    if (document.getElementById('order-column')) document.getElementById('order-column').style.pointerEvents = coQuyen("order") ? "auto" : "none";
+    if (document.getElementById('fab-icon')) document.getElementById('fab-icon').parentElement.style.display = coQuyen("order") ? "flex" : "none";
+    if (document.getElementById('step-pay')) document.getElementById('step-pay').style.display = coQuyen("payment") ? "flex" : "none";
+    if (document.getElementById('step-print')) document.getElementById('step-print').style.display = (coQuyen("print") || coQuyen("order")) ? "flex" : "none";
 
-    // C. Khóa các vùng chức năng dựa trên quyền Đại sứ
-    // Khóa Menu list (Hiện rõ nhưng không cho bấm nếu là Đón Tiếp)
-    const menuList = document.getElementById('menu-list');
-    if (menuList) {
-        menuList.style.pointerEvents = coQuyen("order") ? "auto" : "none";
-    }
-
-    // Khóa Cột Order (Giỏ hàng)
-    const orderCol = document.getElementById('order-column');
-    if (orderCol) {
-        orderCol.style.pointerEvents = coQuyen("order") ? "auto" : "none";
-    }
-
-    // Ẩn/Hiện nút Thanh toán và In ấn
-    if (document.getElementById('step-pay')) {
-        document.getElementById('step-pay').style.display = coQuyen("payment") ? "flex" : "none";
-    }
-    if (document.getElementById('step-print')) {
-        document.getElementById('step-print').style.display = (coQuyen("print") || coQuyen("order")) ? "flex" : "none";
-    }
-
-    // D. Đóng Modal
+    // Đóng Modal
     const modal = document.getElementById('modal-container');
     if (modal) modal.style.display = 'none';
 }
@@ -4800,6 +4774,44 @@ window.onload = function() {
     xuLyKhoaApp();
     moModalDoiNgu();
 };
+
+
+
+function dangXuat() {
+    // 1. Reset trạng thái đăng nhập
+    daDangNhap = false;
+
+    // 2. XÓA TOÀN BỘ THÔNG TIN HIỂN THỊ TRÊN GIAO DIỆN
+    if(document.getElementById('main-staff-role')) document.getElementById('main-staff-role').innerText = "---";
+    if(document.getElementById('main-staff-name')) document.getElementById('main-staff-name').innerText = "Chưa đăng nhập";
+    if(document.getElementById('main-staff-shift')) document.getElementById('main-staff-shift').innerText = "Ca làm: --:--";
+    
+    // Xóa Avatar (Đưa về hình mặc định hoặc để trống)
+    const avatarBox = document.getElementById('avatar-box-main');
+    if (avatarBox) {
+        avatarBox.innerHTML = `
+            <svg viewBox="0 0 64 64" width="50" height="50">
+                <circle cx="32" cy="32" r="30" fill="#f5f5f5" stroke="#eee" />
+                <path d="M32 15a10 10 0 100 20 10 10 0 000-20zM15 50c0-10 8-15 17-15s17 5 17 15" fill="#ddd" />
+            </svg>`;
+    }
+
+    // 3. KHÓA HỆ THỐNG (Hiện rõ nhưng không cho bấm)
+    const wrapper = document.querySelector('.main-wrapper');
+    if (wrapper) {
+        wrapper.style.pointerEvents = "none";
+        wrapper.style.filter = "none"; 
+    }
+
+    // 4. HIỆN LẠI MODAL CHỌN ĐẠI SỨ
+    // Lúc này nutDongModal sẽ tự ẩn vì daDangNhap = false
+    moModalDoiNgu();
+}
+
+
+
+
+
 
 </script>
 
