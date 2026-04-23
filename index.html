@@ -1065,22 +1065,27 @@ body {
   <!-- CỘT TRÁI (LEFT) -->
 <div class="left" style="background: #f8f9fa;"> <!-- Đổi nền xám nhẹ cho toàn cột -->
     
-    <!-- 1. PHẦN LOGO & THÔNG TIN QUÁN (HEADER) -->
-    <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #eee;">
-        <div style="width: 45px; height: 45px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-            🍜
-        </div>
-        <div style="flex: 1;">
-            <h2 style="margin: 0; font-size: 18px; color: #333;">Phở Túy 11h</h2>
-            <div style="font-size: 11px; color: #888;">Số 11 Bà Triệu, P.Hải Dương, TP. Hải Phòng</div>
-        </div>
-        <div style="text-align: right;">
-    <!-- Thêm ID store-status để đổi màu và chữ -->
-    <div id="store-status" style="font-size: 15px; font-weight: bold;">● Đang mở cửa</div>
-    <!-- Thêm ID store-time-text để đổi màu khung giờ -->
-    <div id="store-time-text" style="font-size: 15px; color: #888;">06:00 - 11:00</div>
-</div>
+   <!-- 1. PHẦN LOGO & THÔNG TIN QUÁN (HEADER) - CLICK ĐỂ MỞ SIDEBAR -->
+<div onclick="toggleSideMenu()" style="display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #eee; cursor: pointer;" title="Mở menu hệ thống">
+    
+    <!-- LOGO ICON -->
+    <div style="width: 45px; height: 45px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        🍜
     </div>
+
+    <!-- TÊN QUÁN & ĐỊA CHỈ -->
+    <div style="flex: 1;">
+        <h2 style="margin: 0; font-size: 18px; color: #333;">Phở Túy 11h</h2>
+        <div style="font-size: 11px; color: #888;">Số 11 Bà Triệu, P.Hải Dương, TP. Hải Phòng</div>
+    </div>
+
+    <!-- TRẠNG THÁI CỬA HÀNG -->
+    <div style="text-align: right;">
+        <div id="store-status" style="font-size: 15px; font-weight: bold;">● Đang mở cửa</div>
+        <div id="store-time-text" style="font-size: 15px; color: #888;">06:00 - 11:00</div>
+    </div>
+</div>
+
 
 
     <!-- TAB -->
@@ -1451,6 +1456,7 @@ body {
 
 
 <script>
+
 let daDangNhap = false; // Biến kiểm soát trạng thái đăng nhập toàn cục
 
 // Tự động khóa app và bắt chọn đại sứ khi vừa mở trang
@@ -1464,7 +1470,7 @@ window.addEventListener('DOMContentLoaded', () => {
         moModalDoiNgu();
     }
 });
-
+/*1. PHÂN QUYỀN*/
 const PHAN_QUYEN = {
     "Đại sứ Minh Bạch": ["all"], // Quản lý: Làm được tất cả
     "Đại sứ Hương Vị": ["view_stock", "edit_stock"], // Bếp: Chỉ xem và chỉnh suất bán
@@ -1473,7 +1479,7 @@ const PHAN_QUYEN = {
     "Đại sứ Đón Tiếp": ["order"], // Tiếp tân: Chỉ gọi món
     "Đại sứ Sạch Sẽ": ["clear_table"] // Vệ sinh: Chỉ được nhấn nút "Đã dọn bàn"
 };
-
+/*2. TÀI KHOẢN VÀ MẶT KHẨU ĐĂNG NHẬP*/
 const DANH_SACH_LOGIN = {
     "Đại sứ Hương Vị": { user: "1", pass: "1" },
     "Đại sứ Ngoại Giao 1": { user: "2", pass: "2" },
@@ -1483,7 +1489,7 @@ const DANH_SACH_LOGIN = {
     "Đại sứ Minh Bạch": { user: "admin", pass: "123" }
 };
 
-
+/*3.KHAI BÁO KHO*/
 let dangSuaId = null;
 let currentDiscountPercent = 0;
 // 1. KHAI BÁO DỮ LIỆU KHO MẶC ĐỊNH (Để đẩy lên Firebase lần đầu)
@@ -1496,7 +1502,7 @@ const KHO_MASTER = [
     { id: "sa_sung", ten: "🦑 Sá sùng", ton: 5, limit: 1, dvt: "kg" }
 ];
 
-// 2.KHAI BÁO ĐỊNH LƯỢNG MENU
+/*4. KHAI BÁO ĐỊNH LƯỢNG MÓN*/
 const RECIPES = {
     // --- MÓN ĐƠN ---
     tuy_tam: { banh_pho: 150, thit_bo: 65, nuoc_dung: 350 },
@@ -1520,7 +1526,7 @@ const RECIPES = {
     }
 };
 
-// 3.KHAI BÁO MENU
+/*5.KHAI BÁO MENU*/
 const MENU_MASTER = [
     // --- MENU ĐƠN ---
     { id: "tuy_tam", ten: 'Túy Tâm', gia: 50000, loai: 'don', desc: 'Phở Thường', soldToday: 0, limit: 100, img: "" },
@@ -1611,7 +1617,39 @@ db.ref("menu").once("value").then(s => {
         db.ref("menu").update(updates);
     }
 });
-// 4.KHAI BÁO TABLE
+
+
+let DANH_SACH_NV = [];
+
+// Tự động đồng bộ mỗi khi Firebase có thay đổi
+firebase.database().ref('NhanSu').on('value', (snapshot) => {
+    const data = snapshot.val();
+    
+    if (data) {
+        // 1. Chuyển Object thành mảng
+        DANH_SACH_NV = Object.values(data);
+        console.log("🔄 Đã đồng bộ " + DANH_SACH_NV.length + " nhân sự từ Firebase");
+    } else {
+        DANH_SACH_NV = [];
+    }
+
+    // 2. Luôn cập nhật bảng thống kê (Số lượng, Hiệu suất) kể cả khi đóng hay mở Modal
+    if (typeof capNhatThongKeNhanSu === 'function') {
+        capNhatThongKeNhanSu();
+    }
+
+    // 3. Tự động vẽ lại danh sách nếu Modal đang mở
+    const modalNV = document.getElementById('modal-quan-ly-nhan-su');
+    if (modalNV && modalNV.style.display === 'flex') {
+        if (typeof veDanhSachNhanSu === 'function') {
+            veDanhSachNhanSu();
+        }
+    }
+});
+
+
+
+/*6.KHAI BÁO BÀN*/
 db.ref("tables").on("value", s => {
     if (!s.val()) {
         const defaultTables = [
@@ -1664,8 +1702,7 @@ db.ref("kho").on("value", s => {
 db.ref("hoivien").on("value", s => { HOIVIEN = []; s.forEach(c => { HOIVIEN.push({id:c.key, ...c.val()}) }); renderHoiVien(); });
 db.ref("chitieu").on("value", s => { CHITIEU = []; s.forEach(c => { CHITIEU.push({id:c.key, ...c.val()}) }); renderChiTieu(); });
 
-// TABS
-
+/*7.CHUYỂN TAB*/
 function switchTab(id, btn) {
     // 1. Ẩn tất cả các tab, NHƯNG trừ những tab đang nằm trong Modal
     document.querySelectorAll('.tab-content').forEach(c => {
@@ -1695,7 +1732,7 @@ function switchTab(id, btn) {
     }
 }
 
-/* 5.📦 VẼ KHO */
+/*8.VẼ KHO*/
 function renderKho() {
     let h = ""; 
     // Sử dụng đúng mảng KHO của bạn
@@ -1733,11 +1770,7 @@ function renderKho() {
     });
     document.getElementById("modal-stock-body").innerHTML = h;
 }
-/* 🛠 CẬP NHẬT KHO LÊN FIREBASE */
-/* 🛠 HÀM CẬP NHẬT KHO MỚI (Lấy dữ liệu từ ô Input) */
-/* 🛠 HÀM CẬP NHẬT KHO CÓ XÁC NHẬN */
-
-/* 7.CHANGE KHO */
+/*9.THAY ĐỔI KHO-CẬP NHẬT LÊN FIREBASE*/
 function changeKho(index, direction) {
     const inputElement = document.getElementById(`input-kho-${index}`);
     const amount = parseFloat(inputElement.value); // Dùng parseFloat để nhập được số lẻ (ví dụ 0.5kg thịt)
@@ -1763,7 +1796,7 @@ function changeKho(index, direction) {
     });
 }
 
-/* 8.HÀM CẬP NHẬT GIỚI HẠN */
+/*10.HÀM CẬP NHẬT GIỚI HẠN */
 function updateLimit(index, value) {
     const newLimit = parseInt(value);
     if (isNaN(newLimit)) return;
@@ -1771,7 +1804,7 @@ function updateLimit(index, value) {
     db.ref("kho/" + index).update({ limit: newLimit })
       .then(() => console.log("Đã cập nhật mức giới hạn mới"));
 }
-/* 9. Vẽ hội viên - Giữ nguyên logic & Bổ sung hiển thị Sở thích */
+/*11.Vẽ hội viên*/
 function renderHoiVien() {
     // 1. Lắng nghe dữ liệu thực tế từ Firebase thay vì dùng mảng HOIVIEN
     db.ref("members").on("value", (snapshot) => {
@@ -1844,7 +1877,7 @@ function renderHoiVien() {
 renderHoiVien();
 
 
-/* 10.xóa hội viên*/
+/*12.xóa hội viên*/
 function xoaHoiVien(id) {
     if (!id) return;
 
@@ -1874,7 +1907,7 @@ function xoaHoiVien(id) {
         }
     });
 }
-/* 11.cộng điểm hội viên*/
+/*13.cộng điểm hội viên*/
 function cộngĐiểmHộiViên(sdtKhach, soBatAn) {
     // 1. Tìm hội viên có số điện thoại tương ứng
     const hv = HOIVIEN.find(h => h.sdt === sdtKhach);
@@ -1892,7 +1925,7 @@ function cộngĐiểmHộiViên(sdtKhach, soBatAn) {
     }
 }
 
-/*12. vẽ chi tiêu*/
+/*14.vẽ chi tiêu*/
 function renderChiTieu() {
     let h = "", total = 0;
     CHITIEU.sort((a,b)=> new Date(b.ngay) - new Date(a.ngay)).forEach(c => {
@@ -1907,7 +1940,7 @@ function renderChiTieu() {
 let orderListener = null;
 
 
-/*13. Chọn bàn */
+/*15.Chọn bàn */
 function selectTable(id) {
     currentTableId = id;
     const currentTable = TABLES.find(t => String(t.id) === String(id));
@@ -1945,7 +1978,7 @@ function selectTable(id) {
 
 
 
-/*14.Thêm món - BẢN FIX NHẢY MÓN*/
+/*16.Thêm món - BẢN FIX NHẢY MÓN*/
 function addItem(monId) { // Chuyển tham số từ index sang monId
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
     
@@ -2038,7 +2071,7 @@ function addItem(monId) { // Chuyển tham số từ index sang monId
         });
     });
 }
-// Hàm phụ để đỡ phải viết lặp lại lệnh render
+/*17.HOÀN TẤT ADDITEM*/
 function hoanTatAddItem(items) {
     updateStatus(currentTableId, "ordering");
     if (typeof renderOrder === "function") renderOrder(items);
@@ -2047,7 +2080,7 @@ function hoanTatAddItem(items) {
 
 
 
-/*15.Vẽ order*/
+/*18.VẼ ORDER*/
 function renderOrder(items) {
     const orderItems = items || [];
     let h = "";
@@ -2145,7 +2178,7 @@ function renderOrder(items) {
 }
 
 
-/*16.sửa ghi chú*/
+/*19.SỬA GHI CHÚ MÓN*/
 function suaNote(index, value) {
     if (!currentTableId) return;
 
@@ -2159,10 +2192,7 @@ function suaNote(index, value) {
         db.ref("orders/" + currentTableId).set(items);
     });
 }
-
-/*17.Tặng quà*/
-
-/*18.CHUYỂN BƯỚC (BẢN FULL TỐI ƯU - CHỈ THÊM LOGIC ĐẨY BẾP RIÊNG)*/
+/*20.CHUYỂN BƯỚC TÍNH TOÁN TIỀN*/
 function chuyenBuoc(st) {
     if (!currentTableId) return;
 
@@ -2347,7 +2377,7 @@ function chuyenBuoc(st) {
     });
 }
 
-// 19.Cập nhật hàm updateStatus để xóa tên khách trên Firebase
+/*21.XÓA TÊN KHÁCH TRÊN FIREBASE*/
 function updateStatus(id, st, clearCustomer = false) {
     const idx = TABLES.findIndex(t => t.id == id);
     if (idx === -1) return Promise.resolve(); // Nếu không thấy bàn thì thôi
@@ -2362,7 +2392,7 @@ function updateStatus(id, st, clearCustomer = false) {
     return db.ref("tables/" + idx).update(updateData);
 }
 
-/*20.CẬP NHẬT NÚT*/
+/*22.CẬP NHẬT NÚT*/
 function capNhatNut() {
     if (!currentTableId) return;
 
@@ -2400,20 +2430,20 @@ function capNhatNut() {
     console.log("🔄 Đã cập nhật nút cho bàn:", currentTableId, "Trạng thái:", st);
 }
 
-/*21.PAY*/
+/*23.PAY*/
 function pay() {
     if(!currentTableId) return;
     updateStatus(currentTableId, "clear");
     setTimeout(() => { db.ref("orders/" + currentTableId).remove(); updateStatus(currentTableId, "empty"); alert("Xong!"); }, 1000);
 }
 
-/*22.ĐỊNH DẠNG TIỀN*/
+/*24.ĐỊNH DẠNG TIỀN*/
 function dinhDangTien(el) {
     let v = el.value.replace(/\D/g, "");
     el.value = v.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
-/*23.Thêm chi tiêu*/
+/*25.THÊM CHI TIÊU*/
 function themChiTieu() {
     const ten = document.getElementById('cp-ten').value;
     const sl = document.getElementById('cp-sl').value;
@@ -2449,7 +2479,7 @@ function themChiTieu() {
     }).catch(e => alert("Lỗi: " + e.message));
 }
 
-/*23.1 load lịch sử chi tiêu*/
+/*26.LOAD LỊCH SỬ CHI TIÊU*/
 function loadLichSuChiTieu() {
     // Lắng nghe nhánh 'expenses' trên Firebase
     db.ref("expenses").on("value", (snapshot) => {
@@ -2500,13 +2530,13 @@ function loadLichSuChiTieu() {
 loadLichSuChiTieu();
 
 
-/*23.2 xóa chi tiêu*/
+/*27.XÓA CHI TIÊU*/
 function xoaChiTieu(id) {
     if (confirm("Bạn có chắc chắn muốn xóa khoản chi này?")) {
         db.ref("expenses/" + id).remove();
     }
 }
-/*23.3 lấy đơn vị hàng trong chi tiêu*/
+/*28.LẤY ĐƠN VI CHI TIÊU*/
 function layDonVi(tenMon) {
     const ten = tenMon.toLowerCase();
     if (ten.includes("thịt bò") || ten.includes("bánh phở") || ten.includes("sá sùng")) {
@@ -2524,7 +2554,7 @@ function layDonVi(tenMon) {
 
 
 
-/*24.SỬA HÔI VIÊN*/
+/*29.SỬA HÔI VIÊN*/
 function chuanBiSua(id) {
     if (!id) return;
 
@@ -2558,16 +2588,14 @@ function chuanBiSua(id) {
         console.error("Lỗi khi lấy dữ liệu sửa:", err);
     });
 }
-/*25.1.chuẩn hóa tên*/
+/*30.CHUẨN HÓA TÊN*/
 function chuanHoaTen(str) {
     return str.toLowerCase().split(' ').map(word => {
         return word.charAt(0).toUpperCase() + word.slice(1);
     }).join(' ');
 }
 
-
-
-/*25.Thêm hội viên*/
+/*31.THÊM HVIEN*/
 function themHoiVien() {
     const tenRaw = document.getElementById('hv-ten').value.trim();
     const ten = chuanHoaTen(tenRaw);
@@ -2636,7 +2664,7 @@ function themHoiVien() {
         }
     });
 }
-//25.Hàm xóa trắng form sau khi làm xong
+/*31.RS FORM HỘI VIÊN KHI LÀM XONG*/
 function resetFormHoiVien() {
     document.getElementById('hv-ten').value = "";
     document.getElementById('hv-sdt').value = "";
@@ -2648,7 +2676,7 @@ function resetFormHoiVien() {
     btn.innerHTML = "+ THÊM HỘI VIÊN MỚI";
     btn.style.backgroundColor = "#2e7d32"; // Trả về màu xanh lá
 }
-//26.Hàm tìm kiếm hội viên khi gõ
+/*32.TÌM KIẾM HV KHI GÕ*/
 function searchHoiVien(keyword) {
     const val = keyword.toLowerCase().trim();
     const dropdown = document.getElementById("customer-dropdown");
@@ -2715,7 +2743,7 @@ document.addEventListener("click", function(e) {
 });
 
 
-/*26.1 gợi ý tìm hội viên */
+/*33.GỢI Ý TÌM KIẾM HV*/
 function goiYTimKhach(val) {
     const resultsDiv = document.getElementById("search-results-dropdown");
     if (!val || val.trim().length === 0) {
@@ -2755,7 +2783,7 @@ function goiYTimKhach(val) {
 
 
 
-//27.Hàm gắn khách vào bàn đang chọn
+/*34.CHỌN HV VÀO BÀN*/
 // Thêm onchange="ganKhachVaoBan(this.value)" vào thẻ input ở Bước 1
 function chonKhachVaoBan(id, ten) {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
@@ -2774,14 +2802,14 @@ function chonKhachVaoBan(id, ten) {
     }
 }
 
-/*29.xóa hội viên*/
+/*35.XÓA HV*/
 function xoaHV(id) { if(confirm("Xóa?")) db.ref("hoivien/"+id).remove(); }
 
-/*30.Sửa kho*/
+/*36.SƯA KHO*/
 function editKho(i, v) { KHO[i].ton += v; db.ref("kho").set(KHO); }
 
 
-/*31.Cập nhật giờ và ngày tháng */
+/*37.UPDATE NGÀY THÁNG*/
 function updateClock() {
     const now = new Date();
     
@@ -2814,7 +2842,7 @@ updateClock();
 // Chạy đồng hồ mỗi giây
 setInterval(updateClock, 1000);
 
-/*32.vẽ stock*/
+/*38.VẼ KHO*/
 function renderStock(){
     let h = "";
     let warning = "";
@@ -2835,7 +2863,7 @@ function renderStock(){
 let currentMenuTab = 'don'; // Mặc định tab đầu tiên
 
 
-/*33.switchMenuTab*/
+/*39.SWITCH MENU TAB*/
 function switchMenuTab(loai) {
     currentMenuTab = loai;
 
@@ -2854,7 +2882,7 @@ function switchMenuTab(loai) {
     renderMenu(); // Vẽ lại danh sách món
 }
 
-/*34. Vẽ menu đồng bộ App Chính & Phụ - Tìm kiếm TOÀN BỘ menu*/
+/*40.VẼ MENU*/
 function renderMenu() {
     const container = document.getElementById('menu-list');
     if (!container) return;
@@ -2952,7 +2980,7 @@ function renderMenu() {
 }
 
 
-
+/*41.MÔ TẢ MÓN*/
 function getMoTa(mon) {
     let moTa = "";
     let tenLoai = "";
@@ -2991,7 +3019,7 @@ function getMoTa(mon) {
 }
 
 
-/*35.Xóa món*/
+/*42.XÓA MÓN*
 function xoaMon(index) {
     if (!currentTableId) return;
 
@@ -3054,7 +3082,7 @@ function xoaMon(index) {
 }
 
 
-/*36.Vẽ bàn*/
+/*43.VẼ BÀN*/
 function renderTables() {
     let tH = "", bH = "";
 
@@ -3142,7 +3170,7 @@ function renderTables() {
     document.getElementById("bar-grid").innerHTML = bH;
 }
 
-/*37.Xác nhận phục vụ*/
+/*44. XÁC NHẬN PHỤ VỤ*/
 function xacNhanPhucVu(event, tableId) {
     // Ngăn việc nhấn vào nút ✅ bị tính là nhấn vào chọn bàn
     event.stopPropagation();
@@ -3161,7 +3189,7 @@ function xacNhanPhucVu(event, tableId) {
     }
 }
 
-
+/*45.- KHO*/
 function truKhoMoi(itemId, sl) {
     if (typeof RECIPES === 'undefined') return;
 
@@ -3201,7 +3229,7 @@ function truKhoMoi(itemId, sl) {
     }
 }
 
-//39.HÀM GỘP BÀN ---
+/*46.GỘP BÀN*/
 function moModalGop() {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
     
@@ -3232,7 +3260,7 @@ function moModalGop() {
     });
 }
 
-/*40.GỘP BÀN*/
+/*47.THỰC HIỆN GỘP*/
 function thucHienGopBan(targetId) {
     if(!confirm(`Chuyển tất cả món sang bàn ${targetId}?`)) return;
 
@@ -3270,7 +3298,7 @@ function thucHienGopBan(targetId) {
     });
 }
 
-/*41.TÁCH MÓN*/
+/*48.TÁCH MÓN*/
 function moModalTachMon() {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
     
@@ -3296,7 +3324,7 @@ function moModalTachMon() {
         modal.style.zIndex = '999999';
     });
 }
-/*42.CHỌN BÀN ĐÍCH TÁCH*/
+/*49.CHỌN BÀN ĐÍCH TÁCH*/
 function moModalChonBanDichTach(idx) {
     mónĐangTách = idx;
     const title = document.getElementById('modal-title');
@@ -3325,14 +3353,14 @@ function moModalChonBanDichTach(idx) {
     }
 }
 
-/*43.TẠO HIỆU ỨNG NỐI LÊN KHI CHỌN*/
+/*50.TẠO HIỆU ỨNG NỐI LÊN KHI CHỌN*/
 function setActiveChoice(el) {
     // Xóa trạng thái active của các bàn khác trong modal
     document.querySelectorAll('.modal-item-table').forEach(item => item.classList.remove('active-choice'));
     // Thêm class active cho bàn vừa nhấn
     el.classList.add('active-choice');
 }
-/*44.THỰC HIỆN TÁCH*/
+/*51.THỰC HIỆN TÁCH*/
 function thucHienTach(targetId) {
     const refGoc = db.ref("orders/" + currentTableId);
     const refDich = db.ref("orders/" + targetId);
@@ -3368,12 +3396,12 @@ function thucHienTach(targetId) {
         });
     });
 }
-/*45. ĐÓNG MÓN*/
+/*52.ĐÓNG MÓN*/
 function dongModal() {
     document.getElementById('modal-container').style.display = 'none';
 }
 
-/*46.Giảm giá*/
+/*53.ÁP DỤNG GIẢM GIÁ*/
 function apDungGiamGia() {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
     
@@ -3395,7 +3423,7 @@ function apDungGiamGia() {
         });
     }
 }
-/*47.XÓA GIẢM GIÁ*/
+/*54.XÓA GIẢM GIÁ*/
 function xoaGiamGia() {
     currentDiscountPercent = 0;
     document.getElementById("coupon-select").value = "0";
@@ -3407,7 +3435,7 @@ function xoaGiamGia() {
 
 
 
-/*48.Đếm Ngược số lượng*/
+/*55.RENDER ĐẾM NGƯỢC MÓN*/
 function renderStockStatus() {
     const displayList = document.getElementById('stock-display-list');
     const warningBox = document.getElementById('stock-warning-box');
@@ -3488,7 +3516,7 @@ db.ref("menu").on("value", s => {
     renderStockStatus(); // 🔥 thêm dòng này
 });
 
-/*48.tặng quà*/
+/*56.TẶNG QUÀ NGÔI SAO*/
 /* Hàm thêm quà tặng 0đ khi nhấn vào ngôi sao - Đã thêm xác nhận */
 function themQuaTangTrucTiep(index) {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
@@ -3525,7 +3553,7 @@ function themQuaTangTrucTiep(index) {
     });
 }
 
-/*49.cộng lại suất*/
+/*57.CỘNG LẠI SUẤT*/
 function congLaiSuat(index) {
     if (!MENU || !MENU[index]) return;
 
@@ -3544,7 +3572,7 @@ function congLaiSuat(index) {
     });
 }
 
-/*50.xác nhận giao món*/
+/*58.XÁC NHẬN GIAO MÓN XONG*/
 function xacNhanGiaoMon(tableId) {
     // 1. Tìm index của bàn trong mảng TABLES
     const tableIdx = TABLES.findIndex(t => t.id == tableId);
@@ -3564,7 +3592,7 @@ function xacNhanGiaoMon(tableId) {
 }
 
 
-/*51.lịch sử ăn của hội viên*/
+/*59.HISTORY HVIEN*/
 function xemLichSuKhach(cid, name) {
     const modal = document.getElementById("modal-lich-su-khach");
     const content = document.getElementById("content-lich-su-khach");
@@ -3650,7 +3678,7 @@ function xemLichSuKhach(cid, name) {
 }
 
 
-/*52.modle báo cáo*/
+/*60.MODAL BÁO CÁO*/
 function moModalBaoCao() {
     document.getElementById('modal-bao-cao-tong').style.display = 'flex';
     
@@ -3664,9 +3692,8 @@ function moModalBaoCao() {
 }
 
 
-/*52.báo cáo doanh thu*/
+/*60.TẢI BÁO CÁO DANH THU*/
 let myChart = null; 
-
 function taiBaoCaoDoanhThu() {
     const fromDate = document.getElementById("report-from").value;
     const toDate = document.getElementById("report-to").value;
@@ -3817,7 +3844,7 @@ function taiBaoCaoDoanhThu() {
     });
 }
 
-/*53.chuyển tới tab hội viên từ lịch sử */
+/*61.CHUYỂN ĐẾN TAB HV TỪ LỊCH SỬ ĐƠN HÀNG*/
 function denHoiVien(customerId, phone) {
     if (!customerId || customerId === "undefined" || customerId === "null") {
         alert("Đây là khách vãng lai, không có dữ liệu hội viên.");
@@ -3847,7 +3874,7 @@ function denHoiVien(customerId, phone) {
     }, 200);
 }
 
-// Lắng nghe số lượng đơn chờ để hiện Badge (số thông báo)
+/*62.LẮNG NGHE QR ORDER*/
 let soLuongDonCu = 0; // Biến để theo dõi số lượng đơn
 
 function khoiTaoLangNgheQR() {
@@ -3887,14 +3914,14 @@ function khoiTaoLangNgheQR() {
     });
 }
 
-
+/*63.MỞ DANH SÁCH QR*/
 function moDanhSachChoQR() {
     document.getElementById("modal-qr-list").style.display = "flex";
     db.ref("pending_qr_orders").once("value", (snap) => {
         veDanhSachChoQR(snap.val());
     });
 }
-
+/*64. VẼ DANH SÁCH CHO QR*/
 function veDanhSachChoQR(data) {
     const container = document.getElementById("qr-pending-container");
     if (!data) {
@@ -3922,7 +3949,7 @@ function veDanhSachChoQR(data) {
     });
     container.innerHTML = html;
 }
-
+/*65.XỬ LÝ ĐƠN QR*/
 function xuLyDonQR(orderId, action) {
     db.ref("pending_qr_orders/" + orderId).once("value").then(snap => {
         const data = snap.val();
@@ -4001,7 +4028,7 @@ function xuLyDonQR(orderId, action) {
     });
 }
 
-
+/*65.ĐÓNG QR OD*/
 function dongModalQRList() {
     document.getElementById("modal-qr-list").style.display = "none";
 }
@@ -4010,7 +4037,7 @@ function dongModalQRList() {
 khoiTaoLangNgheQR();
 
 
-
+/*66.LINK FIRDE BASE*/
 function syncMenuToFirebase() {
     const updates = {};
     
@@ -4022,7 +4049,7 @@ function syncMenuToFirebase() {
         .then(() => console.log("✅ Menu đã sync Firebase"))
         .catch(err => console.error(err));
 }
-
+/*67.MỞ KHO*/
 function moKhoHang() {
     // 1. Hiện cái hộp Modal lên
     document.getElementById('modal-kho-hang').style.display = 'flex';
@@ -4037,7 +4064,7 @@ function dongKhoHang() {
 
 
 
-// Hàm mở Modal Hội Viên
+/*68.MỞ HVIEN*/
 function moHoiVien() {
     document.getElementById('modal-hoivien').style.display = 'flex';
     
@@ -4050,7 +4077,7 @@ function moHoiVien() {
     });
 }
 
-// Hàm đóng Modal
+/*69.ĐÓNG HVIEN*/
 function dongHoiVien() {
     document.getElementById('modal-hoivien').style.display = 'none';
     db.ref("members").off(); // Tắt lắng nghe khi đóng để nhẹ máy
@@ -4077,7 +4104,7 @@ db.ref("members").on("value", snapshot => {
 });
 
 
-
+/*70.MÀN HÌNH BẾP*/
 let bepTimer = null;
 
 function moManHinhBep() {
@@ -4147,7 +4174,7 @@ function moManHinhBep() {
     if(window.bepTimer) clearInterval(window.bepTimer);
     window.bepTimer = setInterval(updateAllTimers, 1000);
 }
-// Hàm tính toán độ lệch thời gian
+/*71.TÍNH TOÁN ĐỘ LỆCH TIME*/
 function updateAllTimers() {
     const now = Date.now();
     document.querySelectorAll('.bep-timer').forEach(el => {
@@ -4178,6 +4205,7 @@ function updateAllTimers() {
         }
     });
 }
+/*72.DONE MEAL KITCHEN*/
 function xongMonBep(ticketId, tableId) {
     if(!confirm("Xác nhận đã nấu xong phiếu này?")) return;
     
@@ -4192,13 +4220,15 @@ function xongMonBep(ticketId, tableId) {
     })
     .catch(err => alert("Lỗi: " + err));
 }
+
+/*73.ĐÓNG MÀN HÌNH BẾP*/
 function dongManHinhBep() {
     document.getElementById('modal-bep').style.display = 'none';
     db.ref("orders").off(); // Ngắt lắng nghe cho nhẹ máy
 }
 
 
-
+/*74.XÁC NHẬN MÓN GIAO*/
 function xacNhanGiaoMon(tableId) {
     const tableIndex = TABLES.findIndex(t => String(t.id) === String(tableId));
     if (tableIndex === -1) return;
@@ -4223,8 +4253,7 @@ function xacNhanGiaoMon(tableId) {
         console.log("Bàn " + tableId + " đã giao món xong và bắt đầu tính giờ!");
     });
 }
-// B. KHI ẤN TÊN BÀN TRÊN LÁ SỚ -> Hiện Menu để thêm món
-// A. HÀM MỞ MENU (GIỮ NGUYÊN NHƯNG THÊM STOP PROPAGATION)
+/*75.MỞ MENU TỪ TÊN BÀN CHO MOBILE*/
 function moMenuTuTenBan() {
     if (!currentTableId) return;
     const menuSheet = document.getElementById('menu-column');
@@ -4318,8 +4347,6 @@ document.getElementById('menu-column').onclick = function(e) { e.stopPropagation
 document.getElementById('order-column').onclick = function(e) { e.stopPropagation(); };
 
 
-
-// --- BỘ CẢM BIẾN VUỐT CHO LÁ SỚ (SWIPE GESTURE) ---
 function handleSwipe(elementId) {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -4369,6 +4396,7 @@ document.addEventListener("contextmenu", e => e.preventDefault());
 
 
 
+/*76.CHỌN MÓN THẺ BAY VÀO*/
 function playFlyEffect(e) {
     // 1. Tìm cái khung món ăn (menu-item) bao quanh nút bấm vừa nhấn
     const originalItem = e.currentTarget.closest('.menu-item');
@@ -4415,7 +4443,7 @@ function playFlyEffect(e) {
 }
 
 
-
+/*77.THÔNG BÁO CHUÔNG KHI CÓ ORDER QR*/
 function updateQRCount(count) {
     const mainBadge = document.getElementById('fab-main-badge'); // Badge ngoài nút +
     const innerBadge = document.getElementById('qr-count-badge'); // Badge trong nút chuông
@@ -4439,7 +4467,7 @@ function updateQRCount(count) {
 }
 
 
-
+/*78.TẠO QR*/
 function capNhatQRThanhToan(tongTien) {
     const qrImg = document.getElementById('qr-image');
     const qrZone = document.getElementById('qr-payment-zone');
@@ -4469,6 +4497,8 @@ function capNhatQRThanhToan(tongTien) {
     if (qrImgBig) qrImgBig.src = qrUrl;
 }
 
+
+/*78.PHÓNG TO QR*/
 function phongToQR() {
     const modal = document.getElementById('modal-qr-big');
     if (document.getElementById('qr-image').src) {
@@ -4484,7 +4514,7 @@ function phongToQR() {
 
 
 
-
+/*79.BỘ LĂP TIME*/
 setInterval(() => {
     if (typeof renderTables === "function") {
         renderTables();
@@ -4493,15 +4523,14 @@ setInterval(() => {
 
 
 
-
+/*80.HIỂN THỊ NGÀY THÁNG ĐỒNG HỒ*/
 const now = new Date();
 const dateString = now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 document.getElementById('clock-date').innerText = dateString;
 
 
 
-
-/* Cập nhật trạng thái đóng/mở cửa dựa trên giờ hệ thống */
+/*81.UPDATE TRẠNG THÁI ĐÓNG MỞ CỬA*/
 function updateStoreStatus() {
     const now = new Date();
     const currentHour = now.getHours();
@@ -4541,7 +4570,7 @@ setInterval(updateStoreStatus, 60000); // Kiểm tra lại mỗi phút 1 lần l
 
 
 
-/* Hàm hiển thị danh sách Đội ngũ Đại sứ */
+/*82.DANH SÁCH ĐỘI NGŨ*/
 function moModalDoiNgu() {
     const modal = document.getElementById('modal-container');
     const title = document.getElementById('modal-title');
@@ -4604,7 +4633,7 @@ function moModalDoiNgu() {
     modal.style.display = 'flex';
 }
 
-// 2. Cập nhật hàm chọn đại sứ để mở khóa App
+/*83.CHỌN ĐẠI SỨ ĐỂ MỞ KHÓA APP*/
 function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
     // ... Giữ nguyên logic cập nhật Text và Avatar của bạn ...
 
@@ -4626,7 +4655,7 @@ window.onload = function() {
     moModalDoiNgu();
 };
 
-/* Hàm 2: Hiện Form Nhập Tài khoản / Mật khẩu */
+/*84. HIỆN FORM ĐĂNG NHẬP MK*/
 function hienFormDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
     const body = document.getElementById('modal-body');
     const title = document.getElementById('modal-title');
@@ -4652,7 +4681,7 @@ function hienFormDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
     `;
 }
 
-/* Hàm 3: Kiểm tra thông tin đăng nhập */
+/*85.CHECK THÔNG TIN ĐĂNG NHẬP*/
 function xuLyDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
     const u = document.getElementById('login-user').value;
     const p = document.getElementById('login-pass').value;
@@ -4669,7 +4698,7 @@ function xuLyDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
     }
 }
 
-
+/*86.CHỌN ĐẠI SỨ*/
 function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
     // 1. Cập nhật các dòng chữ & Màu sắc sống động lại
     if(document.getElementById('main-staff-role')) {
@@ -4752,6 +4781,8 @@ function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
     if (modal) modal.style.display = 'none';
 }
 
+
+/*87. XỬ LÝ KHÓA APP*/
 function xuLyKhoaApp() {
     const wrapper = document.querySelector('.main-wrapper'); // Hoặc id/class bao quanh toàn bộ app của bạn
     if (wrapper) {
@@ -4776,7 +4807,7 @@ window.onload = function() {
 };
 
 
-
+/*88.ĐĂNG XUẤT*/
 function dangXuat() {
     // 1. Reset trạng thái đăng nhập
     daDangNhap = false;
@@ -4807,6 +4838,311 @@ function dangXuat() {
     // Lúc này nutDongModal sẽ tự ẩn vì daDangNhap = false
     moModalDoiNgu();
 }
+
+
+
+
+/* HÀM ĐIỀU KHIỂN SIDEBAR */
+function toggleSideMenu() {
+    const side = document.getElementById('sidebar-den');
+    const overlay = document.getElementById('side-overlay');
+    
+    if (!side || !overlay) return;
+
+    // Mở menu
+    side.style.left = '0px';
+    overlay.style.display = 'block';
+
+    // Đổ dữ liệu từ thẻ nhân viên chính sang thẻ đen
+    if(document.getElementById('side-role')) 
+        document.getElementById('side-role').innerText = document.getElementById('main-staff-role')?.innerText || "ĐẠI SỨ";
+    
+    if(document.getElementById('side-name')) 
+        document.getElementById('side-name').innerText = (document.getElementById('main-staff-name')?.innerText || "").replace("Nhân viên: ", "");
+    
+    if(document.getElementById('side-shift')) 
+        document.getElementById('side-shift').innerText = document.getElementById('main-staff-shift')?.innerText || "Ca làm: --:--";
+    
+    if(document.getElementById('side-avatar')) 
+        document.getElementById('side-avatar').innerHTML = document.getElementById('avatar-box-main')?.innerHTML || "";
+}
+
+function dongSideMenu() {
+    const side = document.getElementById('sidebar-den');
+    const overlay = document.getElementById('side-overlay');
+    if (side) side.style.left = '-300px';
+    if (overlay) overlay.style.display = 'none';
+}
+
+// Đã loại bỏ phần ghi đè hàm dangXuat cũ
+
+
+
+function doiTabActive(element) {
+    // 1. Tìm tất cả các menu-item và xóa class 'active'
+    const items = document.querySelectorAll('.menu-item');
+    items.forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // 2. Thêm class 'active' vào ô vừa được bấm
+    element.classList.add('active');
+    
+    // (Tùy chọn) Thêm logic chuyển màn hình tương ứng tại đây nếu cần
+    console.log("Đã chọn tab:", element.innerText);
+}
+
+
+
+
+/* HÀM MỞ HỘI VIÊN TỪ SIDEBAR */
+function moHoiVienTuSidebar() {
+    // 1. Đóng Sidebar đen lại cho thoáng màn hình
+    if (typeof dongSideMenu === 'function') {
+        dongSideMenu();
+    } else {
+        document.getElementById('sidebar-den').style.left = '-300px';
+        document.getElementById('side-overlay').style.display = 'none';
+    }
+
+    // 2. Gọi hàm mở Modal Hội viên của bạn
+    // (Dựa trên hình ảnh, hàm của bạn thường là moHoiVien() hoặc moModalHoiVien())
+    if (typeof moHoiVien === 'function') {
+        moHoiVien();
+    } else {
+        // Nếu bạn dùng ID để mở trực tiếp
+        const modalHoiVien = document.getElementById('modal-hoivien-container'); // Thay ID đúng của bạn
+        if (modalHoiVien) modalHoiVien.style.display = 'flex';
+    }
+}
+
+
+
+function moQuanLyNhanSu() {
+    const modal = document.getElementById('modal-quan-ly-nhan-su');
+    if (modal) {
+        modal.style.display = 'flex';
+        veDanhSachNhanSu(); // Gọi hàm vẽ bảng
+    }
+}
+
+
+function veDanhSachNhanSu() {
+    const container = document.getElementById('nhan-su-list-body');
+    if (!container) return;
+
+    container.innerHTML = DANH_SACH_NV.map((nv, index) => {
+        // Tạo thanh hiệu suất ngẫu nhiên hoặc theo dữ liệu (VD: 85%)
+        const perf = Math.floor(Math.random() * 40) + 60; 
+        const perfColor = perf > 80 ? '#10b981' : '#f59e0b';
+
+        return `
+        <div style="background:#0f172a; margin-bottom:12px; padding:15px; border-radius:12px; display:flex; align-items:center; gap:20px; border:1px solid #334155; transition:0.3s;" onmouseover="this.style.borderColor='#10b981'">
+            <!-- Avatar -->
+            <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; border:2px solid #334155;">
+                <img src="${nv.avatarUrl || 'https://placeholder.com'}" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+            
+            <!-- Thông tin chính -->
+            <div style="flex:1;">
+                <div style="font-weight:bold; font-size:15px; color:#fff;">${nv.ten}</div>
+                <div style="font-size:12px; color:#94a3b8; margin-top:4px;">📞 ${nv.sdt || '---'}</div>
+            </div>
+
+            <!-- Vai trò & Ca làm -->
+            <div style="width:150px;">
+                <div style="color:#10b981; font-size:12px; font-weight:bold;">${nv.vaiTro}</div>
+                <div style="font-size:11px; color:#64748b; margin-top:4px;">🕒 ${nv.ca || '--:--'}</div>
+            </div>
+
+            <!-- Hiệu suất (KPI Bar) -->
+            <div style="width:180px;">
+                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
+                    <span style="color:#94a3b8;">Hiệu suất</span>
+                    <span style="color:#fff; font-weight:bold;">${perf}%</span>
+                </div>
+                <div style="width:100%; height:6px; background:#1e293b; border-radius:10px; overflow:hidden;">
+                    <div style="width:${perf}%; height:100%; background:${perfColor}; box-shadow: 0 0 10px ${perfColor}55;"></div>
+                </div>
+            </div>
+
+            <!-- Hành động -->
+            <div style="display:flex; gap:10px;">
+    <button onclick="chuanBiSua(${index})" style="background:transparent; border:none; color:#64748b; cursor:pointer; font-size:18px;">✏️</button>
+    <button onclick="xoaNhanSu('${nv.ten}')" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:18px;">🗑️</button>
+</div>
+        </div>
+        `;
+    }).join('');
+}
+
+
+
+/* CẬP NHẬT HÀM LƯU NHÂN VIÊN */
+function themNhanSuMoi() {
+    let tenRaw = document.getElementById('ins-ten').value.trim();
+    const sdt = document.getElementById('ins-sdt').value.trim();
+    const vaiTro = document.getElementById('ins-vaitro').value;
+    const ca = document.getElementById('ins-ca').value; // Lấy giá trị từ select
+
+    if (!tenRaw) return alert("⚠️ Vui lòng nhập tên nhân viên!");
+
+    // TỰ ĐỘNG VIẾT HOA CHỮ CÁI ĐẦU
+    const tenChuan = chuanHoaTen(tenRaw);
+
+    // Nếu đang sửa thì dùng ID cũ, nếu thêm mới thì tạo ID từ tên chuẩn
+    const id = dangSuaId || tenChuan.replace(/\s+/g, '_');
+
+    const data = {
+        ten: tenChuan,
+        sdt: sdt || "Chưa có SĐT",
+        vaiTro: vaiTro,
+        ca: ca,
+        donHang: 0, 
+        danhGia: 100 // Hiệu suất mặc định
+    };
+
+    firebase.database().ref('NhanSu/' + id).update(data)
+    .then(() => {
+        alert(dangSuaId ? "✅ Đã cập nhật thành công!" : "✅ Đã thêm nhân sự mới!");
+        resetFormNV();
+    });
+}
+
+// Hàm dọn dẹp form về trạng thái ban đầu
+function resetFormNV() {
+    dangSuaId = null;
+    document.getElementById('ins-ten').value = "";
+    document.getElementById('ins-sdt').value = "";
+    document.getElementById('ins-ca').value = "";
+    
+    const btnLuu = document.querySelector('button[onclick="themNhanSuMoi()"]');
+    if (btnLuu) {
+        btnLuu.innerText = "💾 LƯU THÔNG TIN NHÂN VIÊN";
+        btnLuu.style.background = "#10b981"; // Trả lại màu xanh lá
+    }
+}
+
+function xoaNhanSu(ten) {
+    if (confirm(`⚠️ Bạn có chắc chắn muốn xóa nhân sự "${ten}" khỏi hệ thống?`)) {
+        const id = ten.replace(/\s+/g, '_');
+        firebase.database().ref('NhanSu/' + id).remove()
+        .then(() => {
+            alert("✅ Đã xóa nhân sự thành công!");
+        })
+        .catch(err => alert("❌ Lỗi xóa: " + err.message));
+    }
+}
+
+
+
+function chuanBiSua(index) {
+    const nv = DANH_SACH_NV[index];
+    
+    // Đổ dữ liệu vào các ô input bên trái
+    document.getElementById('ins-ten').value = nv.ten;
+    document.getElementById('ins-sdt').value = nv.sdt;
+    document.getElementById('ins-vaitro').value = nv.vaiTro;
+    document.getElementById('ins-ca').value = nv.ca;
+
+    // Lưu lại ID đang sửa
+    dangSuaId = nv.ten.replace(/\s+/g, '_');
+
+    // Đổi giao diện nút Lưu thành nút Cập nhật
+    const btnLuu = document.querySelector('button[onclick="themNhanSuMoi()"]');
+    if (btnLuu) {
+        btnLuu.innerText = "🆙 CẬP NHẬT THÔNG TIN";
+        btnLuu.style.background = "#3b82f6"; // Đổi sang màu xanh dương cho dễ phân biệt
+    }
+}
+
+
+
+/* HÀM CHUẨN HÓA VIẾT HOA CHỮ CÁI ĐẦU */
+function chuanHoaTen(str) {
+    if (!str) return "";
+    return str.toLowerCase().split(' ')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
+}
+
+
+function capNhatThongKeNhanSu() {
+    if (!DANH_SACH_NV || DANH_SACH_NV.length === 0) return;
+
+    // 1. Tổng nhân viên
+    const tongNV = DANH_SACH_NV.length;
+
+    // 2. Nhân viên đang hoạt động (Online - Dựa trên logic của bạn)
+    const dangTrucCa = document.getElementById('main-staff-name')?.innerText.replace("Nhân viên: ", "");
+    // Giả sử ở đây ta đếm những người có thuộc tính đang làm việc hoặc đơn giản là tổng số
+    const dangHoatDong = DANH_SACH_NV.length; 
+
+    // 3. Tính hiệu suất trung bình
+    const tongHieuSuat = DANH_SACH_NV.reduce((sum, nv) => sum + (Number(nv.danhGia) || 0), 0);
+    const avgPerf = Math.round(tongHieuSuat / tongNV);
+
+    // Đổ dữ liệu ra màn hình
+    if(document.getElementById('stat-total-nv')) document.getElementById('stat-total-nv').innerText = tongNV;
+    if(document.getElementById('stat-active-nv')) document.getElementById('stat-active-nv').innerText = dangHoatDong;
+    if(document.getElementById('stat-avg-perf')) document.getElementById('stat-avg-perf').innerText = avgPerf + "%";
+    
+    // Cập nhật thanh bar cho đẹp
+    if(document.getElementById('stat-perf-bar')) document.getElementById('stat-perf-bar').style.width = avgPerf + "%";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* HÀM ĐIỀU PHỐI MỞ CHỨC NĂNG CHÍNH XÁC */
+function moChucNangTuSidebar(type) {
+    console.log("--- Chuyển mục: " + type + " ---");
+
+    // 1. Tuyệt đối KHÔNG gọi dongSideMenu() ở đây để Side luôn hiện
+
+    // 2. Dọn dẹp: Ẩn tất cả các Modal đang mở để tránh đè nhau
+    const dsModal = ['modal-quan-ly-nhan-su', 'modal-qr-list', 'modal-baocao-container', 'modal-hoivien-container'];
+    dsModal.forEach(id => {
+        const m = document.getElementById(id);
+        if (m) m.style.display = 'none';
+    });
+
+    // 3. Mở chức năng tương ứng
+    switch (type) {
+        case 'baocao':
+            if (typeof moModalBaoCao === 'function') moModalBaoCao();
+            break;
+        case 'kho':
+            if (typeof moKhoHang === 'function') moKhoHang();
+            break;
+        case 'bep':
+            if (typeof moManHinhBep === 'function') moManHinhBep();
+            break;
+        case 'qr':
+            if (typeof moDanhSachChoQR === 'function') moDanhSachChoQR();
+            break;
+        case 'nhansu':
+            if (typeof moQuanLyNhanSu === 'function') moQuanLyNhanSu();
+            break;
+    }
+}
+
+
+
+
+
+
+
 
 
 
@@ -5374,6 +5710,188 @@ document.addEventListener('click', function(e) {
 </script>
 
 
+
+<!-- SIDEBAR ĐEN (SIDEBAR-MENU) -->
+<div id="sidebar-den" style="position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: #1c2529; color: #fff; z-index: 10000; transition: all 0.4s ease; padding: 20px; display: flex; flex-direction: column; font-family: 'Segoe UI', Roboto, sans-serif; box-shadow: 10px 0 30px rgba(0,0,0,0.5);">
+    
+    <!-- 1. Logo & Địa chỉ -->
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding-left: 5px;">
+        <div style="width: 42px; height: 42px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 22px;">🍜</div>
+        <div>
+            <div style="font-weight: bold; font-size: 17px; letter-spacing: 0.5px;">PHỞ TÚY 11H</div>
+            <div style="font-size: 10px; color: #99aab5;">Số 11 Bà Triệu, Hải Phòng</div>
+        </div>
+    </div>
+
+    <!-- 2. Danh sách Menu (Đã chỉnh vùng chữ theo yêu cầu) -->
+<!-- 2. Danh sách Menu -->
+<div style="flex: 1; display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
+    <div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">🏠</span> Tổng quan</div>
+    <div class="menu-item" onclick="moChucNangTuSidebar('bep')"><span class="menu-icon">🖥️</span> Màn Hình Bếp</div>
+    <div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">🪑</span> Sơ Đồ Bàn</div>
+  <div class="menu-item" onclick="moChucNangTuSidebar('qr')">
+    <span class="menu-icon">📋</span> Đơn hàng <span id="count-qr-sidebar" style="margin-left:auto; background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10px; display:none;">0</span>
+</div>
+    <div class="menu-item" onclick="moHoiVienTuSidebar()"><span class="menu-icon">💳</span> Hội viên</div>
+    <div class="menu-item" onclick="moChucNangTuSidebar('kho')"><span class="menu-icon">📦</span> Kho Hàng</div>
+    <div class="menu-item" onclick="moChucNangTuSidebar('nhansu')">
+    <span class="menu-icon">👥</span> Nhân Sự
+</div>
+   <div class="menu-item" onclick="moChucNangTuSidebar('baocao')">
+    <span class="menu-icon">📊</span> Báo Cáo
+</div>
+    <div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">⚙️</span> Cài Đặt</div>
+</div>
+
+    <!-- 3. Thẻ nhân viên phía dưới (Đẩy lên cao bằng margin-bottom) -->
+    <div style="background: #252f35; border-radius: 16px; padding: 15px; margin-top: 20px; margin-bottom: 50px; border: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+            <div id="side-avatar" style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden; background: #fff; border: 2px solid #3d4b53;"></div>
+            <div>
+                <div id="side-role" style="font-size: 9px; color: #99aab5; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">ĐẠI SỨ</div>
+                <div id="side-name" style="font-weight: bold; font-size: 15px; margin: 2px 0; color: #fff;">---</div>
+                <div style="font-size: 10px; color: #4caf50; font-weight: bold;">● Đang làm ca</div>
+            </div>
+        </div>
+        <div style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05);">
+            <div id="side-shift" style="font-size: 11px; color: #99aab5; text-align: center;">Ca làm: --:--</div>
+        </div>
+        <button onclick="dangXuat()" style="width: 100%; padding: 12px; background: #d32f2f; color: #fff; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 14px;">Đăng xuất</button>
+    </div>
+</div>
+
+<!-- Lớp phủ tối màn hình -->
+<div id="side-overlay" onclick="dongSideMenu()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; display: none; backdrop-filter: blur(2px);"></div>
+
+
+<style>
+    /* TIÊU DIỆT NỀN TRẮNG TỪ PHẦN TỬ GIẢ */
+    .menu-item::after, 
+    .menu-item::before {
+        content: none !important;
+        display: none !important;
+        background: none !important;
+        visibility: hidden !important;
+    }
+
+    /* ĐẢM BẢO CHỮ TRẮNG TRÊN NỀN ĐEN */
+    .menu-item {
+        background: transparent !important;
+        color: #ffffff !important;
+        position: relative; /* Giữ vị trí chuẩn */
+        z-index: 1;
+    }
+
+    /* HIỆN NỀN XANH KHI ACTIVE */
+    .menu-item.active {
+        background-color: #2d5a27 !important;
+        color: #ffffff !important;
+    }
+</style>
+
+
+<!-- GIAO DIỆN QUẢN LÝ NHÂN SỰ PREMIUM -->
+<div id="modal-quan-ly-nhan-su" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.95); z-index:20000; align-items:center; justify-content:center; font-family: 'Inter', sans-serif; color: #f8fafc;">
+    <div style="background:#0f172a; width:98%; max-width:1200px; height:90vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; border:1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+        
+        <!-- HEADER -->
+        <div style="padding: 20px 30px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b;">
+            <div>
+                <h2 style="margin:0; font-size:22px; color:#fff;">👥 Quản lý nhân sự đại sứ</h2>
+                <p style="margin:5px 0 0; font-size:12px; color:#94a3b8;">Quản lý thông tin và hiệu suất làm việc của nhân viên</p>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+                
+                <button style="background:#10b981; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">+ Thêm nhân sự mới</button>
+<button onclick="document.getElementById('modal-quan-ly-nhan-su').style.display='none'" style="background:transparent; border:1px solid #334155; color:#94a3b8; padding:8px 20px; border-radius:8px; cursor:pointer;">Đóng</button>
+            </div>
+        </div>
+
+        <!-- MAIN BODY -->
+        <div style="display:flex; flex:1; overflow:hidden; padding:20px; gap:20px;">
+            
+            <!-- CỘT TRÁI: FORM NHẬP & THỐNG KÊ (400px) -->
+            <div style="width:400px; display:flex; flex-direction:column; gap:20px;">
+                
+                <!-- Form Nhập -->
+                <div style="background:#1e293b; padding:20px; border-radius:12px; border:1px solid #334155;">
+                    <h4 style="margin:0 0 15px; color:#05f74e; font-size:14px; text-transform:uppercase;">📝 Thông tin nhân viên</h4>
+                    <div style="display:flex; flex-direction:column; gap:15px;">
+                        <div>
+                            <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Tên nhân viên</label>
+                            <input type="text" id="ins-ten" placeholder="Nhập tên..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none;">
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <div style="flex:1;">
+                                <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Số điện thoại</label>
+                                <input type="text" id="ins-sdt" placeholder="09xxx..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff;">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Vai trò</label>
+                                <select id="ins-vaitro" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff;">
+                                    <option>Đại sứ Hương Vị</option>
+                                    <option>Đại sứ Ngoại Giao</option>
+                                    <option>Đại sứ Đón Tiếp</option>
+                                     <option>Đại sứ Sạch Sẽ</option>
+                                     <option>Đại sứ Minh Bạch</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+    <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Ca làm việc</label>
+    <select id="ins-ca" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none; cursor:pointer;">
+        <option value="05:00 - 12:00">Ca sáng: 05:00 - 12:00</option>
+        <option value="17:00 - 00:00">Ca tối: 17:00 - 00:00</option>
+    </select>
+</div>
+                        <button onclick="themNhanSuMoi()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:10px;">💾 LƯU THÔNG TIN NHÂN VIÊN</button>
+                    </div>
+                </div>
+
+              <!-- Thống kê nhanh -->
+<div style="background:#1e293b; padding:20px; border-radius:12px; flex:1; border:1px solid #334155;">
+    <h4 style="margin:0 0 15px; color:#05f74e; font-size:14px; text-transform:uppercase;">📊 Thống kê nhân sự</h4>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        
+        <div style="text-align:center; padding:12px; background:#0f172a; border-radius:10px; border:1px solid #1e293b;">
+            <div id="stat-total-nv" style="font-size:20px; font-weight:bold; color:#fff;">0</div>
+            <div style="font-size:9px; color:#94a3b8;">TỔNG NHÂN VIÊN</div>
+        </div>
+
+        <div style="text-align:center; padding:12px; background:#0f172a; border-radius:10px; border:1px solid #1e293b;">
+            <div id="stat-active-nv" style="font-size:20px; font-weight:bold; color:#10b981;">0</div>
+            <div style="font-size:9px; color:#94a3b8;">ĐANG HOẠT ĐỘNG</div>
+        </div>
+
+        <!-- CỘT HIỆU SUẤT TRUNG BÌNH (CHIẾM FULL CHIỀU NGANG) -->
+        <div style="grid-column: span 2; text-align:center; padding:12px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius:10px; border:1px solid #334155; margin-top:5px;">
+            <div id="stat-avg-perf" style="font-size:22px; font-weight:bold; color:#3b82f6;">0%</div>
+            <div style="font-size:10px; color:#94a3b8; letter-spacing:1px;">HIỆU SUẤT TRUNG BÌNH</div>
+            <!-- Thanh tiến trình nhỏ -->
+            <div style="width:80%; height:4px; background:#0f172a; border-radius:10px; margin:8px auto 0; overflow:hidden;">
+                <div id="stat-perf-bar" style="width:0%; height:100%; background:#3b82f6; transition:0.5s;"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+            <!-- CỘT PHẢI: DANH SÁCH NHÂN VIÊN (Scrollable) -->
+            <div style="flex:1; background:#1e293b; border-radius:12px; border:1px solid #334155; display:flex; flex-direction:column; overflow:hidden;">
+                <div style="padding:15px; border-bottom:1px solid #334155; display:flex; gap:10px;">
+                    <input type="text" placeholder="🔍 Tìm kiếm nhân viên..." style="flex:1; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff;">
+                    <select style="background:#0f172a; border:1px solid #334155; color:#fff; padding:0 15px; border-radius:8px;"><option>Tất cả vai trò</option></select>
+                </div>
+                <div id="nhan-su-list-body" style="flex:1; overflow-y:auto; padding:15px;">
+                    <!-- Danh sách nhân viên sẽ render vào đây -->
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 
 
