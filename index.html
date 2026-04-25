@@ -7,6 +7,225 @@
 
     <style>
 
+#modal-quan-ly-nhan-su {
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    /* Đẩy sang phải 260px (bằng độ rộng Sidebar của bạn) */
+    left: 260px; 
+    right: 0;
+    bottom: 0;
+    /* Tắt lớp nền đen bao phủ toàn màn hình */
+    background: transparent !important; 
+    z-index: 9999;
+    padding: 20px;
+    /* Đảm bảo nội dung bên trong co giãn theo phần diện tích còn lại */
+    align-items: stretch; 
+    justify-content: flex-start;
+}
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+/* Tùy chỉnh thanh cuộn cho toàn bộ trang hoặc các vùng chứa có overflow */
+::-webkit-scrollbar {
+    width: 6px; /* Độ rộng thanh cuộn dọc */
+    height: 6px; /* Độ cao thanh cuộn ngang */
+}
+
+/* Phần đường ray của thanh cuộn */
+::-webkit-scrollbar-track {
+    background: #0f172a; /* Màu nền của thanh cuộn (trùng với màu nền app) */
+    border-radius: 10px;
+}
+
+/* Phần tay kéo (thanh chạy) */
+::-webkit-scrollbar-thumb {
+    background: #334155; /* Màu của thanh kéo */
+    border-radius: 10px;
+    border: 1px solid #0f172a; /* Tạo khoảng cách nhẹ */
+}
+
+/* Hiệu ứng khi di chuột vào thanh kéo */
+::-webkit-scrollbar-thumb:hover {
+    background: #475569; /* Sáng lên một chút khi hover */
+}
+
+
+
+
+
+
+
+
+ /* Tổng thể hàng nhân viên */
+    .staff-item {
+        background: #1e252b;
+        border-radius: 12px;
+        padding: 12px 20px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid #2d353c;
+        transition: 0.3s;
+    }
+    .staff-item:hover { border-color: #4caf50; background: #252d35; }
+
+    /* Cột 1: Avatar & Tên */
+    .col-info { display: flex; align-items: center; gap: 15px; width: 250px; }
+    .avatar-wrapper { position: relative; width: 45px; height: 45px; }
+    .avatar-wrapper img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid #3e444a; }
+    .status-online { 
+        position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; 
+        background: #4caf50; border-radius: 50%; border: 2px solid #1e252b; 
+    }
+
+    /* Tên và SĐT */
+  /* Tên nhân viên: Nhỏ lại, 1 dòng, có dấu ... nếu dài */
+    .info-text .name { 
+        color: #fff; 
+        font-weight: bold; 
+        font-size: 13px; /* Cho nhỏ lại */
+        margin-bottom: 2px; 
+        white-space: nowrap; /* Ép trên 1 dòng */
+        overflow: hidden; /* Ẩn phần thừa */
+        text-overflow: ellipsis; /* Hiện dấu ... nếu quá dài */
+        max-width: 180px; /* Giới hạn độ rộng vùng tên */
+    }
+
+    /* Chỉnh lại độ rộng cột Info để tên có không gian */
+    .col-info { width: 220px !important; }
+    .info-text .phone { color: #8a9198; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+
+    /* Cột 2: Vai trò & Ca làm */
+    .col-role { width: 180px; text-align: center; }
+    .role-badge { 
+        display: inline-block; padding: 4px 12px; border-radius: 6px; 
+        font-size: 11px; font-weight: bold; margin-bottom: 8px; 
+    }
+    .shift-text { color: #8a9198; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+
+    /* Cột 3: Hiệu suất */
+    .col-perf { width: 200px; padding: 0 20px; }
+    .perf-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: #fff; }
+    .progress-bg { width: 100%; height: 6px; background: #343a40; border-radius: 10px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 10px; transition: 0.5s; }
+
+    /* Cột 4: Nút bấm */
+    .col-btns { display: flex; gap: 10px; }
+    .btn-action { 
+        background: #2d353c; border: 1px solid #3e444a; color: #fff; 
+        width: 35px; height: 35px; border-radius: 8px; cursor: pointer; 
+        display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .btn-action:hover { background: #3e444a; }
+    .btn-delete-x:hover { background: #e53935; border-color: #e53935; }
+
+
+
+
+
+
+
+
+
+
+/* GROUP */
+.action-group {
+    display: flex;
+    gap: 8px;
+}
+
+/* BASE BUTTON */
+.btn-icon {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.25s;
+}
+
+/* ICON */
+.btn-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+    fill: none;
+    transition: 0.25s;
+}
+
+/* EDIT STYLE */
+.btn-edit svg {
+    stroke: #64748b;
+}
+.btn-edit:hover {
+    background: rgba(56,189,248,0.15);
+    box-shadow: 0 0 10px rgba(56,189,248,0.4);
+}
+.btn-edit:hover svg {
+    stroke: #38bdf8;
+    transform: scale(1.15);
+}
+
+/* DELETE STYLE */
+.btn-delete svg {
+    stroke: #94a3b8;
+}
+.btn-delete:hover {
+    background: rgba(239,68,68,0.15);
+    box-shadow: 0 0 10px rgba(239,68,68,0.5);
+}
+.btn-delete:hover svg {
+    stroke: #ef4444;
+    transform: scale(1.15);
+}
+
+/* CLICK EFFECT */
+.btn-icon:active {
+    transform: scale(0.9);
+}
+
+/* TOOLTIP */
+.tooltip {
+    position: absolute;
+    bottom: 120%;
+    background: #111;
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(5px);
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.btn-icon:hover .tooltip {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
+
+.btn-delete svg {
+    fill: white;
+    transition: 0.2s;
+}
+.btn-delete:hover svg {
+    fill: #ef4444;
+    transform: scale(1.15);
+}
+
 /* Lớp phủ chặn thao tác toàn màn hình */
 .global-lock {
     pointer-events: none !important; /* Chặn click */
@@ -1457,6 +1676,7 @@ body {
 
 <script>
 
+
 let daDangNhap = false; // Biến kiểm soát trạng thái đăng nhập toàn cục
 
 // Tự động khóa app và bắt chọn đại sứ khi vừa mở trang
@@ -1471,23 +1691,25 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 /*1. PHÂN QUYỀN*/
-const PHAN_QUYEN = {
-    "Đại sứ Minh Bạch": ["all"], // Quản lý: Làm được tất cả
-    "Đại sứ Hương Vị": ["view_stock", "edit_stock"], // Bếp: Chỉ xem và chỉnh suất bán
-    "Đại sứ Ngoại Giao 1": ["order", "payment", "discount", "print"], // Thu ngân: Full quyền bán hàng
-    "Đại sứ Ngoại Giao 2": ["order", "print"], // Phục vụ: Chỉ gọi món và in tạm tính
-    "Đại sứ Đón Tiếp": ["order"], // Tiếp tân: Chỉ gọi món
-    "Đại sứ Sạch Sẽ": ["clear_table"] // Vệ sinh: Chỉ được nhấn nút "Đã dọn bàn"
+const HE_THONG_QUYEN = {
+    "ADMIN": ["full_control", "manage_staff", "view_history", "edit_menu", "delete_order"],
+    "Đại sứ Minh Bạch": ["payment", "order", "view_history", "print_bill"], // Thu ngân
+    "Đại sứ Ngoại Giao": ["order", "print_kitchen", "view_table"],         // Phục vụ
+    "Đại sứ Hương Vị": ["view_kitchen", "confirm_done"],                 // Đầu bếp
+    "Đại sứ Đón Tiếp": ["view_table", "status_check"],                   // Bảo vệ
+    "Đại sứ Sạch Sẽ": ["clear_table_status"]                             // Vệ sinh
 };
-/*2. TÀI KHOẢN VÀ MẶT KHẨU ĐĂNG NHẬP*/
-const DANH_SACH_LOGIN = {
-    "Đại sứ Hương Vị": { user: "1", pass: "1" },
-    "Đại sứ Ngoại Giao 1": { user: "2", pass: "2" },
-    "Đại sứ Ngoại Giao 2": { user: "3", pass: "3" },
-    "Đại sứ Đón Tiếp": { user: "4", pass: "4" },
-    "Đại sứ Sạch Sẽ": { user: "5", pass: "5" },
-    "Đại sứ Minh Bạch": { user: "admin", pass: "123" }
+
+const BANG_LUONG = {
+    "Bếp trưởng": 12000000,
+    "Bếp phó": 8000000,
+    "Phục vụ 1": 7500000,
+    "Phục vụ 2": 7500000,
+    "Thu ngân": 7500000,
+    "Bảo an": 6500000,
+    "Vệ sinh": 6500000
 };
+
 
 /*3.KHAI BÁO KHO*/
 let dangSuaId = null;
@@ -1554,6 +1776,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
 
 let TABLES = [], MENU = [], KHO = [], HOIVIEN = [], CHITIEU = [], currentTableId = null;
 
@@ -1732,44 +1955,110 @@ function switchTab(id, btn) {
     }
 }
 
-/*8.VẼ KHO*/
+/* 8. VẼ KHO PREMIUM - NÂNG CẤP TỪ BẢN CŨ */
 function renderKho() {
-    let h = ""; 
-    // Sử dụng đúng mảng KHO của bạn
-    KHO.forEach((k, i) => {
-        const isLow = k.ton <= (k.limit || 0);
-        const warningClass = isLow ? "blink-red" : "";
+    const container = document.getElementById("kho-list-body");
+    if (!container) return;
 
-        h += `<tr>
-                <td style="text-align:left; font-weight:500; padding:10px; padding-left:15px; border-bottom:1px solid #eee;">${k.ten}</td>
-                <td class="${warningClass}" style="text-align:center; border-bottom:1px solid #eee;"><b>${Number(k.ton).toFixed(1)}</b></td>
-                
-                <!-- Số lượng thêm -->
-                <td style="text-align:center; border-bottom:1px solid #eee;">
-                    <input type="number" id="input-kho-${i}" value="0" 
-                           style="width:50px; text-align:center; border:none; background:#f1f3f5; border-radius:6px; padding:6px 0;">
-                </td>
-                
-                <!-- Nút bấm ngang -->
-                <td style="text-align:center; border-bottom:1px solid #eee;">
-                    <div style="display:flex; gap:5px; justify-content:center;">
-                        <button onclick="changeKho(${i}, 1)" style="background:#2e7d32; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">+</button>
-                        <button onclick="changeKho(${i}, -1)" style="background:#d32f2f; color:#fff; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">-</button>
-                    </div>
-                </td>
-                
-                <!-- Giới hạn -->
-                <td style="text-align:center; border-bottom:1px solid #eee;">
-                    <input type="number" value="${k.limit || 0}" 
-                           style="width:40px; text-align:center; border:none; background:transparent; color:#bbb;"
-                           onchange="updateLimit(${i}, this.value)">
-                </td>
-                
-                <td style="color:#ccc; font-size:12px; text-align:center; border-bottom:1px solid #eee;">${k.dvt}</td>
-              </tr>`; 
+    let h = "";
+    let s = { tong: 0, sapHet: 0, hetHang: 0, duHang: 0 };
+
+    KHO.forEach((k, i) => {
+        const ton = Number(k.ton) || 0;
+        const limit = Number(k.limit) || 0;
+        
+        // Tính % tồn kho (Dựa trên định mức hiện tại)
+        const phanTram = limit > 0 ? Math.min(100, Math.round((ton / (limit * 2)) * 100)) : 0;
+        
+        // Logic màu sắc và trạng thái
+        let color = "#10b981"; 
+        let statusText = "Đủ hàng";
+        
+        s.tong++;
+        if (ton <= 0) {
+            color = "#ef4444"; 
+            statusText = "Hết hàng";
+            s.hetHang++;
+        } else if (ton <= limit) {
+            color = "#fbbf24"; 
+            statusText = "Sắp hết";
+            s.sapHet++;
+        } else {
+            s.duHang++;
+        }
+
+       h += `
+        <tr style="border-bottom:1px solid #0f172a55;">
+            <!-- Nguyên liệu -->
+            <td style="padding:12px 20px;">
+                <div style="display:flex; flex-direction:column;">
+                    <b style="color:#fff; font-size:14px; display:flex; align-items:center; gap:8px;">${k.ten}</b>
+                    <div style="font-size:11px; color:#64748b;">${k.dvt}</div>
+                </div>
+            </td>
+
+            <!-- Tồn kho & Progress Bar -->
+            <td style="padding:12px 20px;">
+                <div style="color:${color}; font-weight:bold; font-size:15px;">${ton.toFixed(1)} <small>${k.dvt}</small></div>
+                <div style="width:120px; height:6px; background:#0f172a; border-radius:10px; margin-top:6px; overflow:hidden;">
+                    <div style="width:${phanTram}%; height:100%; background:${color}; border-radius:10px; transition:0.5s;"></div>
+                </div>
+                <div style="font-size:10px; color:#64748b; margin-top:4px;">${phanTram}%</div>
+            </td>
+
+            <!-- ĐỊNH MỨC (Ô NHẬP LIỆU MỚI) -->
+            <td style="padding:12px 20px;">
+                <div style="display:flex; align-items:center; gap:5px; background:#0f172a; padding:5px 10px; border-radius:8px; border:1px solid #334155; width: fit-content;">
+                    <input type="number" 
+                           value="${limit}" 
+                           onchange="updateLimitKho(${i}, this.value)"
+                           style="width:45px; background:transparent; border:none; color:#fff; text-align:center; font-weight:bold; outline:none; font-size:13px;"
+                    >
+                    <span style="color:#64748b; font-size:11px;">${k.dvt}</span>
+                </div>
+            </td>
+
+            <!-- Trạng thái -->
+            <td style="padding:12px 20px;">
+                <span style="background:${color}22; color:${color}; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:bold; border:1px solid ${color}33;">
+                    ${statusText}
+                </span>
+            </td>
+
+            <!-- Thao tác -->
+            <td style="padding:12px 20px; text-align:center;">
+                <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
+                    <button onclick="changeKho(${i}, -1)" style="background:#0f172a; border:1px solid #334155; color:#fff; width:30px; height:30px; border-radius:8px; cursor:pointer;">-</button>
+                    <input type="number" id="input-kho-${i}" value="0" style="width:45px; background:transparent; border:none; color:#fff; text-align:center; font-weight:bold; outline:none;">
+                    <button onclick="changeKho(${i}, 1)" style="background:#0f172a; border:1px solid #334155; color:#fff; width:30px; height:30px; border-radius:8px; cursor:pointer;">+</button>
+                    <button style="background:transparent; border:none; color:#64748b; margin-left:8px; cursor:pointer;"><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+            </td>
+        </tr>`;
     });
-    document.getElementById("modal-stock-body").innerHTML = h;
+
+    container.innerHTML = h;
+    
+    // Cập nhật thống kê
+    document.getElementById('stat-kho-tong').innerText = s.tong;
+    document.getElementById('stat-kho-saphet').innerText = s.sapHet;
+    document.getElementById('stat-kho-hethang').innerText = s.hetHang;
+    document.getElementById('stat-kho-duhang').innerText = s.duHang;
 }
+
+
+function moFormNhapKho() {
+    const search = prompt("Nhập tên nguyên liệu muốn tìm nhanh:");
+    if (!search) return;
+    const index = KHO.findIndex(k => k.ten.toLowerCase().includes(search.toLowerCase()));
+    if (index !== -1) {
+        document.getElementById(`input-kho-${index}`).focus();
+        document.getElementById(`input-kho-${index}`).style.borderColor = "#3b82f6";
+    } else {
+        alert("Không tìm thấy nguyên liệu này!");
+    }
+}
+
 /*9.THAY ĐỔI KHO-CẬP NHẬT LÊN FIREBASE*/
 function changeKho(index, direction) {
     const inputElement = document.getElementById(`input-kho-${index}`);
@@ -1797,13 +2086,27 @@ function changeKho(index, direction) {
 }
 
 /*10.HÀM CẬP NHẬT GIỚI HẠN */
-function updateLimit(index, value) {
-    const newLimit = parseInt(value);
-    if (isNaN(newLimit)) return;
+function updateLimitKho(index, giaTriMoi) {
+    const val = parseFloat(giaTriMoi);
+    
+    if (isNaN(val) || val < 0) {
+        alert("⚠️ Vui lòng nhập định mức hợp lệ!");
+        renderKho(); // Vẽ lại để khôi phục số cũ
+        return;
+    }
 
-    db.ref("kho/" + index).update({ limit: newLimit })
-      .then(() => console.log("Đã cập nhật mức giới hạn mới"));
+    // 1. Cập nhật vào mảng KHO cục bộ
+    KHO[index].limit = val;
+
+    // 2. (Tùy chọn) Cập nhật lên Firebase nếu bạn đang dùng
+    // firebase.database().ref('Kho/' + KHO[index].id).update({ limit: val });
+
+    // 3. Vẽ lại bảng để cập nhật màu sắc/trạng thái và thống kê ngay lập tức
+    renderKho();
+    console.log(`✅ Đã đổi định mức món [${KHO[index].ten}] thành: ${val}`);
 }
+
+
 /*11.Vẽ hội viên*/
 function renderHoiVien() {
     // 1. Lắng nghe dữ liệu thực tế từ Firebase thay vì dùng mảng HOIVIEN
@@ -2860,8 +3163,10 @@ function renderStock(){
     document.getElementById("stock-display-list").innerHTML = h;
     document.getElementById("stock-warning-box").innerHTML = warning;
 }
-let currentMenuTab = 'don'; // Mặc định tab đầu tiên
 
+
+
+let currentMenuTab = 'don'; // Mặc định tab đầu tiên
 
 /*39.SWITCH MENU TAB*/
 function switchMenuTab(loai) {
@@ -3019,7 +3324,7 @@ function getMoTa(mon) {
 }
 
 
-/*42.XÓA MÓN*
+/*42.XÓA MÓN*/
 function xoaMon(index) {
     if (!currentTableId) return;
 
@@ -4571,67 +4876,59 @@ setInterval(updateStoreStatus, 60000); // Kiểm tra lại mỗi phút 1 lần l
 
 
 /*82.DANH SÁCH ĐỘI NGŨ*/
-function moModalDoiNgu() {
+async function moModalDoiNgu() {
     const modal = document.getElementById('modal-container');
-    const title = document.getElementById('modal-title');
     const body = document.getElementById('modal-body');
+    const title = document.getElementById('modal-title');
     const nutDongModal = document.querySelector('.modal-close'); 
     
     if (!modal || !body) return;
 
-    // --- LOGIC MỚI: ÉP ĐĂNG NHẬP ---
-    // Ẩn nút đóng (X) nếu chưa có ai đăng nhập, hiện nếu đã vào app (để đổi ca)
-    if (nutDongModal) {
-        nutDongModal.style.display = daDangNhap ? "block" : "none";
-    }
+    // Ép đăng nhập
+    if (nutDongModal) nutDongModal.style.display = daDangNhap ? "block" : "none";
 
-    // --- LOGIC MỚI: KHÓA APP NHƯNG GIỮ HIỆN RÕ ---
-    const wrapper = document.querySelector('.main-wrapper');
-    if (wrapper && !daDangNhap) {
-        wrapper.style.pointerEvents = "none"; // Khóa toàn bộ click/tương tác
-        wrapper.style.filter = "none";         // Đảm bảo HIỆN RÕ 100% (không mờ)
-    }
-
-    title.innerText = "✨ ĐỘI NGŨ ĐẠI SỨ PHỞ TÚY";
-    
-    const doiNgu = [
-        { vaiTro: "Đại sứ Hương Vị", ten: "Bếp Trưởng Kim Anh", mauAo: "#ffffff", sub: "Linh hồn của bát phở", ca: "05:00 - 14:00", gioiTinh: 'nam' },
-        { vaiTro: "Đại sứ Ngoại Giao 1", ten: "Tuệ Anh", mauAo: "#f8bbd0", sub: "Phục vụ tận tâm", ca: "14:00 - 22:00", gioiTinh: 'nu' },
-        { vaiTro: "Đại sứ Ngoại Giao 2", ten: "Minh Anh", mauAo: "#a5d6a7", sub: "Niềm vui khách hàng", ca: "05:00 - 14:00", gioiTinh: 'nu' },
-        { vaiTro: "Đại sứ Đón Tiếp", ten: "Bảo An", mauAo: "#fff59d", sub: "Chào đón nồng hậu", ca: "07:00 - 14:00", gioiTinh: 'nam' },
-        { vaiTro: "Đại sứ Sạch Sẽ", ten: "Cô Hoa", mauAo: "#90a4ae", sub: "Không gian chuẩn gu", ca: "05:00 - 14:00", gioiTinh: 'nu' },
-        { vaiTro: "Đại sứ Minh Bạch", ten: "Thu Ngân", mauAo: "#1565c0", sub: "Vận hành chuyên nghiệp", ca: "05:00 - 14:00", gioiTinh: 'nu' }
-    ];
-
-    let html = `<div style="display:flex; flex-direction:column; gap:12px;">`;
-
-    doiNgu.forEach(nv => {
-        let headSvg = nv.gioiTinh === 'nam' ? 
-            `<path d="M32 8C22 8 16 12 16 22v6h32v-6c0-10-6-14-16-14z" fill="#2d1c16"/><path d="M28 42h8v8h-8z" fill="#fbd2c1"/><circle cx="18" cy="34" r="3.5" fill="#fbd2c1"/><circle cx="46" cy="34" r="3.5" fill="#fbd2c1"/><path d="M32 46c-7 0-12.5-5-12.5-12v-8c0-7 5.5-12.5 12.5-12.5s12.5 5.5 12.5 12.5v8c0 7-5.5 12-12.5 12z" fill="#fbd2c1"/><path d="M32 10c-8 0-14 4-15 12 4-2 9-3 15-3s11 1 15 3c-1-8-7-12-15-12z" fill="#2d1c16"/>` :
-            `<path d="M32 8C20 8 12 16 12 30v10c0 8 8 14 20 14s20-6 20-14V30c0-14-8-22-20-22z" fill="#2d1c16"/><path d="M28 42h8v8h-8z" fill="#fbd2c1"/><circle cx="18" cy="32" r="4" fill="#fbd2c1"/><circle cx="46" cy="32" r="4" fill="#fbd2c1"/><path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-10c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v10c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/><path d="M32 10c-10 0-16 5-18 16 3-2 8-4 18-4s15 2 18 4c-2-11-8-16-18-16z" fill="#2d1c16"/><path d="M14 28c-1 4-1 10 3 10 2 0 1-8 1-12 0-2-2-2-4-2z" fill="#2d1c16"/><path d="M50 28c1 4 1 10-3 10-2 0-1-8-1-12 0-2-2-2-4-2z" fill="#2d1c16"/>`;
-
-        html += `
-        <div onclick="hienFormDangNhap('${nv.vaiTro}', '${nv.ten}', '${nv.mauAo}', '${nv.ca}', '${nv.gioiTinh}')" 
-             style="display:flex; align-items:center; gap:15px; padding:12px; background:#f8f9fa; border-radius:12px; border:1px solid #eee; cursor:pointer;">
-            <div style="width:45px; height:45px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #eee;">
-                <svg viewBox="0 0 64 64" width="45" height="45">
-                    ${headSvg}
-                    <circle cx="26" cy="31" r="2.5" fill="#333"/><circle cx="38" cy="31" r="2.5" fill="#333"/>
-                    <circle cx="21" cy="37" r="4" fill="#ff8a80" opacity="0.4"/><circle cx="43" cy="37" r="4" fill="#ff8a80" opacity="0.4"/>
-                    <path d="M12 52c4-6 9-8 13-9l7 4 7-4c4 1 9 3 13 9v12H12V52z" fill="${nv.mauAo}"/>
-                </svg>
-            </div>
-            <div style="flex:1;">
-                <div style="font-size:10px; color:#d32f2f; font-weight:900; text-transform:uppercase;">${nv.vaiTro}</div>
-                <div style="font-size:15px; font-weight:bold; color:#333;">${nv.ten}</div>
-                <div style="font-size:11px; color:#888;">${nv.sub}</div>
-            </div>
-        </div>`;
-    });
-
-    body.innerHTML = html + `</div>`;
+    title.innerText = "✨ CHỌN ĐẠI SỨ LÀM VIỆC";
+    body.innerHTML = `<div style="text-align:center; padding:20px; color:#888;">Đang tải danh sách đại sứ...</div>`;
     modal.style.display = 'flex';
+
+    // LẤY DỮ LIỆU THỰC TỪ FIREBASE
+    firebase.database().ref('NhanSu').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            body.innerHTML = `<div style="padding:20px; text-align:center; color:#ef4444;">Chưa có nhân sự nào. Vui lòng thêm nhân sự trước!</div>`;
+            return;
+        }
+
+        let html = `<div style="display:flex; flex-direction:column; gap:12px; padding:5px;">`;
+        
+        Object.values(data).forEach(nv => {
+            // Xác định màu theo vai trò (giống bảng quản lý)
+            const roleColors = { "Đại sứ Hương Vị": "#fb7185", "Đại sứ Đón Tiếp": "#34d399", "Đại sứ Ngoại Giao": "#60a5fa" };
+            const color = roleColors[nv.vaiTro] || "#94a3b8";
+
+            html += `
+            <div onclick="hienFormDangNhap('${nv.ten.replace(/'/g, "\\'")}')" 
+                 style="display:flex; align-items:center; gap:15px; padding:12px; background:#fff; border-radius:15px; border:1px solid #eee; cursor:pointer; transition:0.2s;"
+                 onmouseover="this.style.borderColor='${color}'; this.style.background='#fcfcfc'">
+                
+                <div style="position:relative; width:45px; height:45px; flex-shrink:0;">
+                    <img src="${nv.avatarUrl || 'https://placeholder.com'}" style="width:100%; height:100%; border-radius:12px; object-fit:cover; border:2px solid #eee;">
+                    <span style="position:absolute; bottom:-2px; right:-2px; width:10px; height:10px; background:${nv.isOnline ? '#10b981' : '#ccc'}; border:2px solid #fff; border-radius:50%;"></span>
+                </div>
+
+                <div style="flex:1;">
+                    <div style="font-size:9px; color:${color}; font-weight:900; text-transform:uppercase;">${nv.vaiTro}</div>
+                    <div style="font-size:15px; font-weight:bold; color:#333;">${nv.ten}</div>
+                    <div style="font-size:11px; color:#888;">🕒 Ca: ${nv.ca}</div>
+                </div>
+                <div style="color:#eee;">❯</div>
+            </div>`;
+        });
+
+        body.innerHTML = html + `</div>`;
+    });
 }
+
 
 /*83.CHỌN ĐẠI SỨ ĐỂ MỞ KHÓA APP*/
 function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
@@ -4656,91 +4953,87 @@ window.onload = function() {
 };
 
 /*84. HIỆN FORM ĐĂNG NHẬP MK*/
-function hienFormDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
+function hienFormDangNhap(tenNhanVien) {
     const body = document.getElementById('modal-body');
     const title = document.getElementById('modal-title');
     
-    title.innerText = "🔑 XÁC NHẬN ĐĂNG NHẬP";
+    title.innerText = "🔑 XÁC THỰC ĐẠI SỨ";
     
     body.innerHTML = `
         <div style="padding:10px; text-align:center;">
-            <div style="font-size:13px; color:#666; margin-bottom:15px;">Đang đăng nhập vị trí:<br><b style="color:#d32f2f;">${vaiTro}</b></div>
+            <div style="font-size:13px; color:#666; margin-bottom:15px;">Xin chào đại sứ: <br><b style="color:#2e7d32; font-size:18px;">${tenNhanVien}</b></div>
             
-            <input type="text" id="login-user" placeholder="Tên tài khoản" 
-                   style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px; outline:none; box-sizing:border-box;">
+            <input type="text" id="login-user" placeholder="Tên đăng nhập (ID)" 
+                   style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:10px; outline:none; box-sizing:border-box;">
             
             <input type="password" id="login-pass" placeholder="Mật khẩu" 
-                   style="width:100%; padding:12px; margin-bottom:15px; border:1px solid #ddd; border-radius:8px; outline:none; box-sizing:border-box;">
+                   style="width:100%; padding:12px; margin-bottom:20px; border:1px solid #ddd; border-radius:10px; outline:none; box-sizing:border-box;">
             
             <div style="display:flex; gap:10px;">
-                <button onclick="moModalDoiNgu()" style="flex:1; padding:12px; background:#eee; border:none; border-radius:8px; cursor:pointer;">Quay lại</button>
-                <button onclick="xuLyDangNhap('${vaiTro}', '${ten}', '${mauAo}', '${ca}', '${gioiTinh}')" 
-                        style="flex:2; padding:12px; background:#2e7d32; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">XÁC NHẬN</button>
+                <button onclick="moModalDoiNgu()" style="flex:1; padding:12px; background:#f5f5f5; border:none; border-radius:10px; cursor:pointer; color:#666;">Quay lại</button>
+                <button onclick="xuLyDangNhap('${tenNhanVien.replace(/'/g, "\\'")}')" 
+                        style="flex:2; padding:12px; background:#10b981; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);">ĐĂNG NHẬP NGAY</button>
             </div>
         </div>
     `;
 }
 
-/*85.CHECK THÔNG TIN ĐĂNG NHẬP*/
-function xuLyDangNhap(vaiTro, ten, mauAo, ca, gioiTinh) {
-    const u = document.getElementById('login-user').value;
-    const p = document.getElementById('login-pass').value;
+/*85. CHECK THÔNG TIN ĐĂNG NHẬP (FIX LỖI UNDEFINED)*/
+function xuLyDangNhap(ten) {
+    const uInput = document.getElementById('login-user').value.trim();
+    const pInput = document.getElementById('login-pass').value.trim();
     
-    const account = DANH_SACH_LOGIN[vaiTro];
+    // Tạo ID từ tên (Nguyễn Kim Anh -> Nguyen_Kim_Anh)
+    const idFirebase = ten.replace(/\s+/g, '_');
 
-    if (u === account.user && p === account.pass) {
-        // ĐÚNG: Gọi hàm chọn đại sứ của bạn để cập nhật UI
-        chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh);
-        console.log("🔓 Đăng nhập thành công!");
-    } else {
-        // SAI: Báo lỗi
-        alert("❌ Sai tài khoản hoặc mật khẩu, vui lòng thử lại!");
-    }
+    // Lấy dữ liệu nhân viên này từ Firebase
+    firebase.database().ref('NhanSu/' + idFirebase).once('value', (snapshot) => {
+        const nv = snapshot.val();
+
+        // Kiểm tra xem nhân viên có tồn tại và khớp User/Pass không
+        if (nv && uInput === nv.username && pInput === nv.password) {
+            
+            // 1. Cập nhật trạng thái ONLINE
+            firebase.database().ref('NhanSu/' + idFirebase).update({ isOnline: true });
+
+            // 2. Gọi hàm chọn đại sứ để cập nhật giao diện & phân quyền
+            // Truyền đủ: Vai trò, Tên, Ảnh, Ca làm
+            chonDaiSu(nv.vaiTro, nv.ten, nv.avatarUrl, nv.ca);
+
+            console.log("🔓 Đăng nhập thành công!");
+        } else {
+            // Nếu sai tài khoản hoặc mật khẩu
+            alert("❌ Sai tài khoản hoặc mật khẩu, vui lòng kiểm tra lại!");
+        }
+    }).catch(error => {
+        console.error("Lỗi Firebase:", error);
+        alert("❌ Không thể kết nối dữ liệu!");
+    });
 }
 
-/*86.CHỌN ĐẠI SỨ*/
-function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
-    // 1. Cập nhật các dòng chữ & Màu sắc sống động lại
+/*86.CHỌN ĐẠI SỨ (PHIÊN BẢN PREMIUM)*/
+function chonDaiSu(vaiTro, ten, avatarUrl, ca) {
+    // 1. CẬP NHẬT GIAO DIỆN HỒ SƠ (Profile Card)
+    // Cập nhật text
     if(document.getElementById('main-staff-role')) {
-        document.getElementById('main-staff-role').innerText = vaiTro;
-        document.getElementById('main-staff-role').style.color = "#d32f2f";
+        document.getElementById('main-staff-role').innerText = vaiTro.toUpperCase();
     }
     if(document.getElementById('main-staff-name')) {
-        document.getElementById('main-staff-name').innerText = "Nhân viên: " + ten;
-        document.getElementById('main-staff-name').style.color = "#333";
+        document.getElementById('main-staff-name').innerText = ten;
     }
     if(document.getElementById('main-staff-shift')) {
         document.getElementById('main-staff-shift').innerText = "Ca làm: " + ca;
-        document.getElementById('main-staff-shift').style.color = "#888";
     }
 
-    // 2. VẼ LẠI AVATAR (Giữ nguyên logic của bạn)
+    // 2. CẬP NHẬT AVATAR THỰC TẾ
     const avatarBox = document.getElementById('avatar-box-main');
     if (avatarBox) {
-        let headHtml = (gioiTinh === 'nam') ? `
-            <path d="M32 8C22 8 16 12 16 22v6h32v-6c0-10-6-14-16-14z" fill="#2d1c16"/>
-            <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
-            <circle cx="18" cy="34" r="3.5" fill="#fbd2c1"/><circle cx="46" cy="34" r="3.5" fill="#fbd2c1"/>
-            <path d="M32 46c-7 0-12.5-5-12.5-12v-8c0-7 5.5-12.5 12.5-12.5s12.5 5.5 12.5 12.5v8c0 7-5.5 12-12.5 12z" fill="#fbd2c1"/>
-            <path d="M32 10c-8 0-14 4-15 12 4-2 9-3 15-3s11 1 15 3c-1-8-7-12-15-12z" fill="#2d1c16"/>
-        ` : `
-            <path d="M32 8C20 8 12 16 12 30v10c0 8 8 14 20 14s20-6 20-14V30c0-14-8-22-20-22z" fill="#2d1c16"/>
-            <path d="M28 42h8v8h-8z" fill="#fbd2c1"/>
-            <circle cx="18" cy="32" r="4" fill="#fbd2c1"/><circle cx="46" cy="32" r="4" fill="#fbd2c1"/>
-            <path d="M32 46c-7.5 0-13.5-5.5-13.5-12.5v-10c0-7.5 6-13.5 13.5-13.5s13.5 6 13.5 13.5v10c0 7-6 12.5-13.5 12.5z" fill="#fbd2c1"/>
-            <path d="M32 10c-10 0-16 5-18 16 3-2 8-4 18-4s15 2 18 4c-2-11-8-16-18-16z" fill="#2d1c16"/>
-            <path d="M14 28c-1 4-1 10 3 10 2 0 1-8 1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
-            <path d="M50 28c1 4 1 10-3 10-2 0-1-8-1-12 0-2-2-2-4-2z" fill="#2d1c16"/>
-        `;
+        avatarBox.style.position = "relative";
         avatarBox.innerHTML = `
-            <svg viewBox="0 0 64 64" width="50" height="50">
-                ${headHtml}
-                <circle cx="26" cy="31" r="2.5" fill="#333"/><circle cx="38" cy="31" r="2.5" fill="#333"/>
-                <circle cx="21" cy="37" r="4" fill="#ff8a80" opacity="0.4"/><circle cx="43" cy="37" r="4" fill="#ff8a80" opacity="0.4"/>
-                <path d="M12 52c4-6 9-8 13-9l7 4 7-4c4 1 9 3 13 9v12H12V52z" fill="${mauAo}"/>
-                <path d="M26 54l6-4 6 4" fill="none" stroke="#c62828" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <span style="position: absolute; bottom: 2px; right: 2px; width: 10px; height: 10px; background: #00e676; border-radius: 50%; border: 2px solid white;"></span>
+            <img src="${avatarUrl || 'https://placeholder.com'}" 
+                 style="width: 60px; height: 60px; border-radius: 50%; border: 2px solid #10b981; object-fit: cover; display: block;">
+            <!-- Đèn báo đang làm việc (Xanh lá) -->
+            <span style="position: absolute; bottom: 2px; right: 2px; width: 12px; height: 12px; background: #10b981; border: 2px solid #1e293b; border-radius: 50%;"></span>
         `;
     }
 
@@ -4749,8 +5042,7 @@ function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
     const PHAN_QUYEN = {
         "Đại sứ Đón Tiếp": [],
         "Đại sứ Hương Vị": ["order", "print"],
-        "Đại sứ Ngoại Giao 1": ["order", "print", "payment", "discount"],
-        "Đại sứ Ngoại Giao 2": ["order", "print", "payment", "discount"],
+        "Đại sứ Ngoại Giao": ["order", "print", "payment", "discount"],
         "Đại sứ Sạch Sẽ": ["clear_table"],
         "Đại sứ Minh Bạch": ["full_control"]
     };
@@ -4765,20 +5057,34 @@ function chonDaiSu(vaiTro, ten, mauAo, ca, gioiTinh) {
         wrapper.style.filter = "none"; 
     }
 
-    // HIỆN NÚT ĐĂNG XUẤT
-    const btnLogout = document.querySelector('button[onclick*="dangXuat"]');
-    if (btnLogout) btnLogout.style.display = "block";
+    // HIỆN/ẨN CÁC VÙNG CHỨC NĂNG THEO QUYỀN
+    const setDisplay = (id, condition) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = condition ? "flex" : "none";
+    };
 
-    // Khóa/Mở vùng chức năng
-    if (document.getElementById('menu-list')) document.getElementById('menu-list').style.pointerEvents = coQuyen("order") ? "auto" : "none";
-    if (document.getElementById('order-column')) document.getElementById('order-column').style.pointerEvents = coQuyen("order") ? "auto" : "none";
-    if (document.getElementById('fab-icon')) document.getElementById('fab-icon').parentElement.style.display = coQuyen("order") ? "flex" : "none";
-    if (document.getElementById('step-pay')) document.getElementById('step-pay').style.display = coQuyen("payment") ? "flex" : "none";
-    if (document.getElementById('step-print')) document.getElementById('step-print').style.display = (coQuyen("print") || coQuyen("order")) ? "flex" : "none";
+    const setPointer = (id, condition) => {
+        const el = document.getElementById(id);
+        if (el) el.style.pointerEvents = condition ? "auto" : "none";
+    };
 
-    // Đóng Modal
+    setPointer('menu-list', coQuyen("order"));
+    setPointer('order-column', coQuyen("order"));
+    setDisplay('step-pay', coQuyen("payment"));
+    setDisplay('step-print', coQuyen("print") || coQuyen("order"));
+
+    // Hiện nút Đăng xuất (màu đỏ như trong ảnh)
+    const btnLogout = document.getElementById('btn-logout-main');
+    if (btnLogout) {
+        btnLogout.style.display = "block";
+        btnLogout.onclick = () => xuLyDangXuat(ten); // Gọi hàm đăng xuất đã viết trước đó
+    }
+
+    // Đóng Modal chọn đại sứ
     const modal = document.getElementById('modal-container');
     if (modal) modal.style.display = 'none';
+
+    console.log(`✅ ${ten} (${vaiTro}) đã vào ca thành công!`);
 }
 
 
@@ -4806,43 +5112,74 @@ window.onload = function() {
     moModalDoiNgu();
 };
 
-
-/*88.ĐĂNG XUẤT*/
+/*88. ĐĂNG XUẤT (CẬP NHẬT FIREBASE & KHÓA HỆ THỐNG)*/
 function dangXuat() {
-    // 1. Reset trạng thái đăng nhập
-    daDangNhap = false;
-
-    // 2. XÓA TOÀN BỘ THÔNG TIN HIỂN THỊ TRÊN GIAO DIỆN
-    if(document.getElementById('main-staff-role')) document.getElementById('main-staff-role').innerText = "---";
-    if(document.getElementById('main-staff-name')) document.getElementById('main-staff-name').innerText = "Chưa đăng nhập";
-    if(document.getElementById('main-staff-shift')) document.getElementById('main-staff-shift').innerText = "Ca làm: --:--";
+    // 1. LẤY TÊN NHÂN VIÊN ĐANG ĐĂNG NHẬP ĐỂ SET OFFLINE
+    const staffNameEl = document.getElementById('main-staff-name');
+    let tenNhanVien = "";
     
-    // Xóa Avatar (Đưa về hình mặc định hoặc để trống)
-    const avatarBox = document.getElementById('avatar-box-main');
-    if (avatarBox) {
-        avatarBox.innerHTML = `
-            <svg viewBox="0 0 64 64" width="50" height="50">
-                <circle cx="32" cy="32" r="30" fill="#f5f5f5" stroke="#eee" />
-                <path d="M32 15a10 10 0 100 20 10 10 0 000-20zM15 50c0-10 8-15 17-15s17 5 17 15" fill="#ddd" />
-            </svg>`;
+    if (staffNameEl) {
+        // Lấy tên từ chuỗi "Nhân viên: Nguyễn Kim Anh" -> "Nguyễn Kim Anh"
+        tenNhanVien = staffNameEl.innerText.replace("Nhân viên: ", "").trim();
     }
 
-    // 3. KHÓA HỆ THỐNG (Hiện rõ nhưng không cho bấm)
-    const wrapper = document.querySelector('.main-wrapper');
-    if (wrapper) {
-        wrapper.style.pointerEvents = "none";
-        wrapper.style.filter = "none"; 
-    }
+    const thucHienThoat = () => {
+        // 2. RESET TRẠNG THÁI HỆ THỐNG
+        daDangNhap = false;
 
-    // 4. HIỆN LẠI MODAL CHỌN ĐẠI SỨ
-    // Lúc này nutDongModal sẽ tự ẩn vì daDangNhap = false
-    moModalDoiNgu();
+        // 3. XÓA TOÀN BỘ THÔNG TIN HIỂN THỊ
+        if(document.getElementById('main-staff-role')) document.getElementById('main-staff-role').innerText = "---";
+        if(document.getElementById('main-staff-name')) document.getElementById('main-staff-name').innerText = "Chưa đăng nhập";
+        if(document.getElementById('main-staff-shift')) document.getElementById('main-staff-shift').innerText = "Ca làm: --:--";
+        
+        // 4. ĐÓNG THẺ PROFILE (Nếu bạn dùng modal hoặc box ẩn hiện)
+        const profileBox = document.getElementById('user-profile-box'); 
+        if (profileBox) profileBox.style.display = "none";
+
+        // Xóa Avatar về mặc định
+        const avatarBox = document.getElementById('avatar-box-main');
+        if (avatarBox) {
+            avatarBox.innerHTML = `
+                <svg viewBox="0 0 64 64" width="50" height="50">
+                    <circle cx="32" cy="32" r="30" fill="#1e293b" stroke="#334155" />
+                    <path d="M32 15a10 10 0 100 20 10 10 0 000-20zM15 50c0-10 8-15 17-15s17 5 17 15" fill="#334155" />
+                </svg>`;
+        }
+
+        // 5. KHÓA HỆ THỐNG (Hiện rõ nhưng không cho bấm)
+        const wrapper = document.querySelector('.main-wrapper');
+        if (wrapper) {
+            wrapper.style.pointerEvents = "none";
+            wrapper.style.filter = "grayscale(0.5)"; // Làm xám nhẹ để báo hiệu đang khóa
+        }
+
+        // 6. HIỆN LẠI MODAL CHỌN ĐẠI SỨ
+        moModalDoiNgu();
+        
+        console.log("🔒 Hệ thống đã đóng ca làm việc.");
+    };
+
+    // LOGIC CẬP NHẬT FIREBASE TRƯỚC KHI THOÁT
+    if (tenNhanVien && tenNhanVien !== "Chưa đăng nhập") {
+        const idFirebase = tenNhanVien.replace(/\s+/g, '_');
+        firebase.database().ref('NhanSu/' + idFirebase).update({ 
+            isOnline: false 
+        }).then(() => {
+            thucHienThoat();
+        }).catch(err => {
+            console.error("Lỗi cập nhật Offline:", err);
+            thucHienThoat(); // Vẫn thoát nếu lỗi mạng
+        });
+    } else {
+        thucHienThoat();
+    }
 }
 
 
 
 
-/* HÀM ĐIỀU KHIỂN SIDEBAR */
+
+/*89.HÀM ĐIỀU KHIỂN SIDEBAR */
 function toggleSideMenu() {
     const side = document.getElementById('sidebar-den');
     const overlay = document.getElementById('side-overlay');
@@ -4877,7 +5214,7 @@ function dongSideMenu() {
 // Đã loại bỏ phần ghi đè hàm dangXuat cũ
 
 
-
+/*90.đổi tab active*/
 function doiTabActive(element) {
     // 1. Tìm tất cả các menu-item và xóa class 'active'
     const items = document.querySelectorAll('.menu-item');
@@ -4895,29 +5232,33 @@ function doiTabActive(element) {
 
 
 
-/* HÀM MỞ HỘI VIÊN TỪ SIDEBAR */
+/*91.HÀM MỞ HỘI VIÊN TỪ SIDEBAR */
 function moHoiVienTuSidebar() {
-    // 1. Đóng Sidebar đen lại cho thoáng màn hình
-    if (typeof dongSideMenu === 'function') {
-        dongSideMenu();
-    } else {
-        document.getElementById('sidebar-den').style.left = '-300px';
-        document.getElementById('side-overlay').style.display = 'none';
-    }
+    // 1. KHÔNG gọi dongSideMenu() để Sidebar luôn hiện
 
-    // 2. Gọi hàm mở Modal Hội viên của bạn
-    // (Dựa trên hình ảnh, hàm của bạn thường là moHoiVien() hoặc moModalHoiVien())
+    // 2. Ẩn các modal khác để tránh chồng chéo (ví dụ: Nhân sự)
+    const modalNhanSu = document.getElementById('modal-quan-ly-nhan-su');
+    if (modalNhanSu) modalNhanSu.style.display = 'none';
+
+    // 3. Mở Modal Hội viên
     if (typeof moHoiVien === 'function') {
         moHoiVien();
     } else {
-        // Nếu bạn dùng ID để mở trực tiếp
-        const modalHoiVien = document.getElementById('modal-hoivien-container'); // Thay ID đúng của bạn
-        if (modalHoiVien) modalHoiVien.style.display = 'flex';
+        const modalHoiVien = document.getElementById('modal-hoivien-container');
+        if (modalHoiVien) {
+            modalHoiVien.style.display = 'flex';
+            
+            // Đảm bảo khung hội viên cũng né sidebar giống nhân sự
+            modalHoiVien.style.left = '260px'; 
+            modalHoiVien.style.position = 'fixed';
+            modalHoiVien.style.width = 'calc(100% - 260px)';
+        }
     }
 }
 
 
 
+/*92. MỞ QUẢN LÝ NHÂN SỰ*/
 function moQuanLyNhanSu() {
     const modal = document.getElementById('modal-quan-ly-nhan-su');
     if (modal) {
@@ -4927,108 +5268,163 @@ function moQuanLyNhanSu() {
 }
 
 
-function veDanhSachNhanSu() {
-    const container = document.getElementById('nhan-su-list-body');
-    if (!container) return;
-
-    container.innerHTML = DANH_SACH_NV.map((nv, index) => {
-        // Tạo thanh hiệu suất ngẫu nhiên hoặc theo dữ liệu (VD: 85%)
-        const perf = Math.floor(Math.random() * 40) + 60; 
-        const perfColor = perf > 80 ? '#10b981' : '#f59e0b';
-
-        return `
-        <div style="background:#0f172a; margin-bottom:12px; padding:15px; border-radius:12px; display:flex; align-items:center; gap:20px; border:1px solid #334155; transition:0.3s;" onmouseover="this.style.borderColor='#10b981'">
-            <!-- Avatar -->
-            <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; border:2px solid #334155;">
-                <img src="${nv.avatarUrl || 'https://placeholder.com'}" style="width:100%; height:100%; object-fit:cover;">
-            </div>
-            
-            <!-- Thông tin chính -->
-            <div style="flex:1;">
-                <div style="font-weight:bold; font-size:15px; color:#fff;">${nv.ten}</div>
-                <div style="font-size:12px; color:#94a3b8; margin-top:4px;">📞 ${nv.sdt || '---'}</div>
-            </div>
-
-            <!-- Vai trò & Ca làm -->
-            <div style="width:150px;">
-                <div style="color:#10b981; font-size:12px; font-weight:bold;">${nv.vaiTro}</div>
-                <div style="font-size:11px; color:#64748b; margin-top:4px;">🕒 ${nv.ca || '--:--'}</div>
-            </div>
-
-            <!-- Hiệu suất (KPI Bar) -->
-            <div style="width:180px;">
-                <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
-                    <span style="color:#94a3b8;">Hiệu suất</span>
-                    <span style="color:#fff; font-weight:bold;">${perf}%</span>
-                </div>
-                <div style="width:100%; height:6px; background:#1e293b; border-radius:10px; overflow:hidden;">
-                    <div style="width:${perf}%; height:100%; background:${perfColor}; box-shadow: 0 0 10px ${perfColor}55;"></div>
-                </div>
-            </div>
-
-            <!-- Hành động -->
-            <div style="display:flex; gap:10px;">
-    <button onclick="chuanBiSua(${index})" style="background:transparent; border:none; color:#64748b; cursor:pointer; font-size:18px;">✏️</button>
-    <button onclick="xoaNhanSu('${nv.ten}')" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:18px;">🗑️</button>
-</div>
-        </div>
-        `;
-    }).join('');
-}
-
-
-
-/* CẬP NHẬT HÀM LƯU NHÂN VIÊN */
+/*93. THÊM / CẬP NHẬT NHÂN SỰ (FULL DATA + TÍNH LƯƠNG TỰ ĐỘNG)*/
 function themNhanSuMoi() {
-    let tenRaw = document.getElementById('ins-ten').value.trim();
+    // 1. Lấy dữ liệu cơ bản
+    const ten = document.getElementById('ins-ten').value.trim();
     const sdt = document.getElementById('ins-sdt').value.trim();
+    const ngaySinh = document.getElementById('ins-ngaysinh').value;
+    const cccd = document.getElementById('ins-cccd').value.trim();
+    const diachi = document.getElementById('ins-diachi').value.trim();
+    
+    // 2. Lấy dữ liệu đăng nhập & phân quyền
+    const user = document.getElementById('ins-username').value.trim();
+    const pass = document.getElementById('ins-password').value.trim();
+    const capDoEl = document.getElementById('ins-capdo');
+    const capDo = capDoEl ? capDoEl.value : "STAFF";
+
+    // 3. Lấy dữ liệu công việc
     const vaiTro = document.getElementById('ins-vaitro').value;
-    const ca = document.getElementById('ins-ca').value; // Lấy giá trị từ select
+    const ca = document.getElementById('ins-ca').value;
+    const viTri = document.getElementById('ins-vitri').value;
 
-    if (!tenRaw) return alert("⚠️ Vui lòng nhập tên nhân viên!");
+    // 4. FIX LỖI: Lấy giá trị chuỗi (vd: "12,000,000") -> Xóa dấu phẩy -> Chuyển thành số
+    const luongThangRaw = document.getElementById('ins-luong').value;
+    const luongThang = Number(luongThangRaw.replace(/,/g, "")) || 0;
+    
+    // Công thức: Lương tháng / 26 ngày / 8 tiếng (làm tròn)
+    const luongGio = Math.round((luongThang / 26) / 8);
 
-    // TỰ ĐỘNG VIẾT HOA CHỮ CÁI ĐẦU
-    const tenChuan = chuanHoaTen(tenRaw);
+    // 5. Kiểm tra bắt buộc
+    if (!ten || !user) return alert("⚠️ Vui lòng nhập ít nhất Tên và ID đăng nhập!");
 
-    // Nếu đang sửa thì dùng ID cũ, nếu thêm mới thì tạo ID từ tên chuẩn
-    const id = dangSuaId || tenChuan.replace(/\s+/g, '_');
+    // 6. Xác định ID Firebase (Dùng ID đăng nhập làm khóa cho an toàn)
+    const id = dangSuaId || user;
 
+    // 7. Đóng gói dữ liệu gửi lên Firebase
     const data = {
-        ten: tenChuan,
-        sdt: sdt || "Chưa có SĐT",
+        ten: ten,
+        sdt: sdt,
+        ngaySinh: ngaySinh,
+        cccd: cccd,
+        diachi: diachi,
+        username: user,
+        password: pass,
+        capDo: capDo,
         vaiTro: vaiTro,
         ca: ca,
-        donHang: 0, 
-        danhGia: 100 // Hiệu suất mặc định
+        viTri: viTri,
+        luongCoBan: luongThang,
+        luong: luongGio
     };
 
-    firebase.database().ref('NhanSu/' + id).update(data)
+    // NẾU LÀ THÊM MỚI (không có dangSuaId) THÌ MỚI KHỞI TẠO TRẠNG THÁI
+    if (!dangSuaId) {
+        data.danhGia = 100;
+        data.lastCheckInDate = "chưa có";
+        data.daVaoCa = false;
+        data.daTanCa = false;
+        data.isOnline = false;
+    }
+
+  // 8. Thực hiện lưu
+      firebase.database().ref('NhanSu/' + id).update(data)
     .then(() => {
-        alert(dangSuaId ? "✅ Đã cập nhật thành công!" : "✅ Đã thêm nhân sự mới!");
-        resetFormNV();
+        alert(dangSuaId ? "✅ Cập nhật hồ sơ thành công!" : "✅ Thêm nhân sự thành công!");
+        resetFormNV(); 
+    })
+    .catch(err => {
+        console.error("Lỗi:", err);
+        alert("❌ Lỗi lưu dữ liệu: " + err.message);
     });
 }
 
-// Hàm dọn dẹp form về trạng thái ban đầu
+/*94.CẬP NHẬT THỐNG KÊ DATA*/
+function capNhatThongKe(data) {
+    document.getElementById('stat-total-nv').innerText = data.length;
+    const avg = data.length ? Math.round(data.reduce((a, b) => a + (b.danhGia || 0), 0) / data.length) : 0;
+    document.getElementById('stat-avg-perf').innerText = avg + "%";
+}
+
+// Giả lập sync Firebase
+firebase.database().ref('NhanSu').on('value', (snap) => {
+    DANH_SACH_NV = snap.val() ? Object.values(snap.val()) : [];
+    renderDanhSach(DANH_SACH_NV);
+});
+
+
+/*95.RS FORM NV*/
 function resetFormNV() {
     dangSuaId = null;
+    
+    // 1. Xóa trắng các trường nhập văn bản
     document.getElementById('ins-ten').value = "";
     document.getElementById('ins-sdt').value = "";
-    document.getElementById('ins-ca').value = "";
+    document.getElementById('ins-ngaysinh').value = "";
+    document.getElementById('ins-cccd').value = "";
+    document.getElementById('ins-diachi').value = "";
+    document.getElementById('ins-username').value = "";
+    document.getElementById('ins-password').value = "";
     
-    const btnLuu = document.querySelector('button[onclick="themNhanSuMoi()"]');
+    // 2. Reset các trường lựa chọn về mặc định
+    document.getElementById('ins-vaitro').selectedIndex = 0; // Về vai trò đầu tiên
+    
+    // 3. QUAN TRỌNG: Gọi lại hàm cập nhật vị trí để đồng bộ lại danh sách và lương
+    // Việc này giúp ô Vị trí và ô Lương không bị dính dữ liệu cũ
+    if (typeof capNhatViTriTuDong === "function") {
+        capNhatViTriTuDong(); 
+    }
+
+    // 4. Đưa nút Lưu về trạng thái thêm mới
+    const btnLuu = document.querySelector('button[onclick*="themNhanSuMoi"]');
     if (btnLuu) {
         btnLuu.innerText = "💾 LƯU THÔNG TIN NHÂN VIÊN";
-        btnLuu.style.background = "#10b981"; // Trả lại màu xanh lá
+        btnLuu.style.background = "#10b981"; 
+        btnLuu.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.3)";
     }
 }
 
+/*96.CHUẨN BỊ SỬA */
+function chuanBiSua(index) {
+    const nv = DANH_SACH_NV[index];
+    if (!nv) return;
+
+    dangSuaId = nv.ten.replace(/\s+/g, '_');
+
+    // Đổ dữ liệu vào các ô input
+    document.getElementById('ins-ten').value = nv.ten || "";
+    document.getElementById('ins-sdt').value = nv.sdt || "";
+    document.getElementById('ins-ngaysinh').value = nv.ngaySinh || "";
+    document.getElementById('ins-cccd').value = nv.cccd || "";
+    document.getElementById('ins-diachi').value = nv.diachi || "";
+    document.getElementById('ins-username').value = nv.username || "";
+    document.getElementById('ins-password').value = nv.password || "";
+    document.getElementById('ins-vaitro').value = nv.vaiTro || "Đại sứ Hương Vị";
+    document.getElementById('ins-ca').value = nv.ca || "05:00 - 12:00";
+    
+    // CẬP NHẬT VỊ TRÍ VÀ LƯƠNG
+    capNhatViTriTuDong(); // Gọi hàm này để nó load danh sách vị trí tương ứng
+    document.getElementById('ins-vitri').value = nv.viTri || "";
+    document.getElementById('ins-luong').value = nv.luongCoBan || 0; // ĐỔ LƯƠNG VÀO ĐÂY
+
+    // Đổi màu nút Lưu thành nút Cập nhật
+    const btnLuu = document.querySelector('button[onclick="themNhanSuMoi()"]');
+    if (btnLuu) {
+        btnLuu.innerText = "🆙 CẬP NHẬT HỒ SƠ";
+        btnLuu.style.background = "#3b82f6";
+    }
+}
+
+
+
+/*97.XÓA NHÂN SỰ*/
 function xoaNhanSu(ten) {
-    if (confirm(`⚠️ Bạn có chắc chắn muốn xóa nhân sự "${ten}" khỏi hệ thống?`)) {
+    if (confirm(`⚠️ Bạn có chắc chắn muốn xóa nhân sự "${ten}"?\nHành động này không thể hoàn tác!`)) {
         const id = ten.replace(/\s+/g, '_');
         firebase.database().ref('NhanSu/' + id).remove()
         .then(() => {
-            alert("✅ Đã xóa nhân sự thành công!");
+            console.log("Đã xóa ID:", id);
+            // Thông báo nhỏ xinh thay vì alert truyền thống nếu muốn
         })
         .catch(err => alert("❌ Lỗi xóa: " + err.message));
     }
@@ -5036,29 +5432,8 @@ function xoaNhanSu(ten) {
 
 
 
-function chuanBiSua(index) {
-    const nv = DANH_SACH_NV[index];
-    
-    // Đổ dữ liệu vào các ô input bên trái
-    document.getElementById('ins-ten').value = nv.ten;
-    document.getElementById('ins-sdt').value = nv.sdt;
-    document.getElementById('ins-vaitro').value = nv.vaiTro;
-    document.getElementById('ins-ca').value = nv.ca;
 
-    // Lưu lại ID đang sửa
-    dangSuaId = nv.ten.replace(/\s+/g, '_');
-
-    // Đổi giao diện nút Lưu thành nút Cập nhật
-    const btnLuu = document.querySelector('button[onclick="themNhanSuMoi()"]');
-    if (btnLuu) {
-        btnLuu.innerText = "🆙 CẬP NHẬT THÔNG TIN";
-        btnLuu.style.background = "#3b82f6"; // Đổi sang màu xanh dương cho dễ phân biệt
-    }
-}
-
-
-
-/* HÀM CHUẨN HÓA VIẾT HOA CHỮ CÁI ĐẦU */
+/*98.HÀM CHUẨN HÓA VIẾT HOA CHỮ CÁI ĐẦU */
 function chuanHoaTen(str) {
     if (!str) return "";
     return str.toLowerCase().split(' ')
@@ -5067,6 +5442,7 @@ function chuanHoaTen(str) {
 }
 
 
+/*99. CẬP NHẬT THỐNG KÊ NHÂN SỰ*/
 function capNhatThongKeNhanSu() {
     if (!DANH_SACH_NV || DANH_SACH_NV.length === 0) return;
 
@@ -5092,12 +5468,585 @@ function capNhatThongKeNhanSu() {
 }
 
 
+/*100.FUNCTION TÌM KIẾM NHÂN VIÊN */
+function timKiemNhanSu() {
+    const tuKhoa = document.getElementById('search-nhan-su').value.toLowerCase().trim();
+    const vaiTroLoc = document.getElementById('filter-vaitro').value;
+    const container = document.getElementById('nhan-su-list-body');
+
+    // 1. Lọc danh sách dựa trên từ khóa và vai trò
+    const danhSachLoc = DANH_SACH_NV.filter(nv => {
+        const matchesName = nv.ten.toLowerCase().includes(tuKhoa);
+        const matchesSdt = (nv.sdt || "").includes(tuKhoa);
+        const matchesRole = (vaiTroLoc === "Tất cả" || nv.vaiTro === vaiTroLoc);
+        
+        return (matchesName || matchesSdt) && matchesRole;
+    });
+
+    // 2. Vẽ lại danh sách đã lọc
+    if (danhSachLoc.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:#64748b; padding:20px;">Không tìm thấy nhân viên nào phù hợp.</div>`;
+        return;
+    }
+
+    // Tận dụng lại logic vẽ của veDanhSachNhanSu nhưng truyền mảng đã lọc vào
+    renderDanhSach(danhSachLoc);
+}
+
+
+/*101. RENDER DANH SÁCH NHÂN SỰ*/
+function renderDanhSach(mangDuLieu) {
+    const container = document.getElementById('nhan-su-list-body');
+    const paginationContainer = document.getElementById('pagination-controls'); // Cần 1 div id này ở dưới list
+    if (!container) return;
+
+    const ngayHomNay = new Date().toLocaleDateString('sv-SE'); 
+    const roleConfig = { "Đại sứ Hương Vị": "#fb7185", "Đại sứ Đón Tiếp": "#34d399", "Đại sứ Ngoại Giao": "#60a5fa", "Đại sứ Minh Bạch": "#a855f7", "Đại sứ Sạch Sẽ": "#22d3ee" };
+
+    // --- BƯỚC A: LOGIC CẮT DỮ LIỆU ---
+    const tongSoNV = mangDuLieu.length;
+    const tongSoTrang = Math.ceil(tongSoNV / soNhanVienMoiTrang);
+    
+    // Đảm bảo trang hiện tại không vượt quá tổng số trang khi xóa bớt nhân viên
+    if (trangHienTai > tongSoTrang && tongSoTrang > 0) trangHienTai = tongSoTrang;
+
+    const batDau = (trangHienTai - 1) * soNhanVienMoiTrang;
+    const ketThuc = batDau + soNhanVienMoiTrang;
+    const duLieuTrangNay = mangDuLieu.slice(batDau, ketThuc);
+
+    // --- BƯỚC B: VẼ DANH SÁCH ---
+    container.innerHTML = duLieuTrangNay.map((nv) => {
+        const color = roleConfig[nv.vaiTro] || "#94a3b8";
+        const statusColor = nv.isOnline ? "#10b981" : "#64748b"; 
+        const originalIndex = DANH_SACH_NV.findIndex(item => item.username === nv.username);
+
+        const laNgayMoi = nv.lastCheckInDate !== ngayHomNay;
+        const daVaoCa = !laNgayMoi && nv.daVaoCa === true;
+        const daTanCa = !laNgayMoi && nv.daTanCa === true;
+
+        let vungNutBam = "";
+        if (daTanCa) {
+            vungNutBam = `<div style="color:#94a3b8; font-size:9px; font-weight:bold; text-align:center; width:100%; border:1px dashed #334155; padding:5px; border-radius:6px;">✨ HOÀN THÀNH</div>`;
+        } else if (daVaoCa) {
+            vungNutBam = `<button onclick="chamCong('${nv.ten}', 'ra')" style="width:100%; background:#ef4444; color:#fff; border:none; padding:6px; border-radius:6px; font-size:9px; cursor:pointer; font-weight:bold;">TAN CA</button>`;
+        } else {
+            vungNutBam = `<button onclick="chamCong('${nv.ten}', 'vao')" style="width:100%; background:#10b981; color:#fff; border:none; padding:6px; border-radius:6px; font-size:9px; cursor:pointer; font-weight:bold;">VÀO CA</button>`;
+        }
+
+        return `
+        <div style="display:flex; align-items:center; padding:15px; background:#1e293b; border:1px solid #334155; border-radius:16px; margin-bottom:12px; transition:0.3s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);">
+            <!-- Cột 1: Profile (40%) -->
+            <div style="width:40%; display:flex; align-items:flex-start; gap:15px;">
+                <div onclick="document.getElementById('file-input-${originalIndex}').click()" style="position:relative; width:52px; height:52px; cursor:pointer; flex-shrink:0;">
+                    <img src="${nv.avatarUrl || 'https://placeholder.com'}" style="width:100%; height:100%; border-radius:12px; object-fit:cover; border:2px solid ${nv.isOnline ? '#10b981' : '#334155'};">
+                    <span style="position:absolute; bottom:-2px; right:-2px; width:10px; height:10px; background:${statusColor}; border:2px solid #1e293b; border-radius:50%;"></span>
+                    <input type="file" id="file-input-${originalIndex}" style="display:none" accept="image/*" onchange="uploadAvatarFirebase(event, ${originalIndex})">
+                </div>
+                <div style="display:flex; flex-direction:column; gap:4px; min-width: 0; flex: 1;">
+                    <div style="font-weight:bold; color:#fff; font-size:14px; display:flex; align-items:center; gap:8px;">${nv.ten}</div>
+                    <div style="display:flex; align-items:center; gap:12px; font-size:11px; color:#94a3b8;">
+                        <span>📞 ${nv.sdt || '---'}</span>
+                        <span style="color:#3b82f6;">🔑 ${nv.username || '---'}</span>
+                    </div>
+                    <div style="font-size:10px; color:#94a3b8; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">🏠 ${nv.diachi || 'Chưa có địa chỉ'}</div>
+                </div>
+            </div>
+
+            <!-- Cột 2: Chức danh (25%) -->
+            <div style="width:25%; display:flex; flex-direction:column; gap:6px;">
+    <div>
+        <span style="background:${color}15; color:${color}; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:bold; border:1px solid ${color}33;">
+            ${nv.vaiTro}
+        </span>
+        <div style="font-size:12px; color:#fff; font-weight:bold; margin-top:5px; padding-left:2px;">📍 ${nv.viTri || '---'}</div>
+        
+        <!-- THÊM DÒNG HIỂN THỊ LƯƠNG DƯỚI ĐÂY -->
+       <div style="font-size:11px; color:#fbbf24; font-weight:bold; margin-top:2px; padding-left:2px;">
+    💰 Lương: ${ 
+        (() => {
+            // Lấy giá trị từ Firebase (chấp nhận cả luong hoặc luongCoBan)
+            let val = nv.luongCoBan || nv.luong || 0; 
+            // Nếu là chuỗi "7,500,000", xóa dấu phẩy đi để thành số
+            let soThuan = typeof val === 'string' ? val.replace(/,/g, "") : val;
+            return (Number(soThuan) || 0).toLocaleString('vi-VN');
+        })()
+    }đ
+</div>
+</div>
+    <div style="font-size:10px; color:#64748b; margin-top:2px;">🕒 Ca: ${nv.ca}</div>
+    <div style="display:flex; gap:6px;">${vungNutBam}</div>
+</div>
+
+            <!-- Cột 3: Hiệu suất (20%) -->
+            <div style="width:20%; padding:0 15px;">
+                <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px; color:#94a3b8;">
+                    <span>Hiệu suất</span><b style="color:#fff;">${nv.danhGia}%</b>
+                </div>
+                <div style="width:100%; height:6px; background:#0f172a; border-radius:10px; overflow:hidden;">
+                    <div style="width:${nv.danhGia}%; height:100%; background:linear-gradient(90deg, ${color}, #fff);"></div>
+                </div>
+            </div>
+
+            <!-- Cột 4: Thao tác (120px) -->
+            <div style="width:120px; display:flex; justify-content: flex-start; align-items: center; gap: 8px; padding-left: 5px; flex-shrink: 0;">
+               <button onclick="resetChamCongThuCong('${nv.username}', '${nv.ten}')" style="background:#161e2e; border:1px solid #334155; color:#94a3b8; padding:7px; border-radius:8px; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+                <button onclick="chuanBiSua(${originalIndex})" style="background:#161e2e; border:1px solid #334155; color:#94a3b8; padding:7px; border-radius:8px; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                <button onclick="xoaNhanSu('${nv.ten}')" style="background:#161e2e; border:1px solid #334155; color:#ef4444; padding:7px; border-radius:8px; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+            </div>
+        </div>
+        `;
+    }).join('');
+
+    // --- BƯỚC C: VẼ CỤM NÚT PHÂN TRANG Ở DƯỚI CÙNG ---
+    if (paginationContainer) {
+        let pHTML = "";
+        // Nút lùi
+        pHTML += `<button onclick="doiTrang(${trangHienTai - 1})" ${trangHienTai === 1 ? 'disabled' : ''} style="padding:6px 10px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;"> < </button>`;
+        
+        // Các con số
+        for (let i = 1; i <= tongSoTrang; i++) {
+            const active = i === trangHienTai;
+            pHTML += `<button onclick="doiTrang(${i})" style="width:30px; height:30px; margin:0 3px; border-radius:6px; border:none; background:${active ? '#10b981' : '#161e2e'}; color:${active ? '#fff' : '#94a3b8'}; cursor:pointer; font-weight:bold;">${i}</button>`;
+        }
+
+        // Nút tiến
+        pHTML += `<button onclick="doiTrang(${trangHienTai + 1})" ${trangHienTai === tongSoTrang ? 'disabled' : ''} style="padding:6px 10px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;"> > </button>`;
+        
+        paginationContainer.innerHTML = pHTML;
+    }
+
+    capNhatThongKe(mangDuLieu); // Thống kê vẫn dựa trên toàn bộ mảng
+}
+
+
+// 2. Thêm hàm đổi trang này vào Script
+function doiTrang(so) {
+    trangHienTai = so;
+    renderDanhSach(DANH_SACH_NV);
+}
+
+
+/* HÀM RESET THỦ CÔNG DÀNH CHO ADMIN */
+function resetChamCongThuCong(username, tenHienThi) {
+    if (confirm(`🔄 Reset trạng thái ca làm cho ${tenHienThi}?\nNhân viên sẽ có thể "Vào ca" lại ngay lập tức.`)) {
+        // Dùng trực tiếp username làm ID vì nó là key trên Firebase
+        firebase.database().ref('NhanSu/' + username).update({
+            daVaoCa: false,
+            daTanCa: false,
+            isOnline: false,
+            lastCheckInDate: "reseted"
+        }).then(() => {
+            alert(`✅ Đã reset trạng thái cho ${tenHienThi}`);
+        }).catch(err => alert("❌ Lỗi: " + err.message));
+    }
+}
+/*102. UPLOAD AVATA*/
+function uploadAvatarFirebase(event, index) {
+    const file = event.target.files[0]; // Lấy đúng 1 file ảnh
+    if (!file) return;
+
+    // 1. Kiểm tra dung lượng (Rất quan trọng vì lưu vào DB)
+    if (file.size > 500 * 1024) { // Giới hạn 500KB để không làm chậm App
+        alert("⚠️ Ảnh quá nặng! Vui lòng chọn ảnh dưới 500KB hoặc ảnh chụp màn hình.");
+        return;
+    }
+
+    const reader = new FileReader();
+    
+    // 2. Khi trình duyệt đọc xong ảnh
+    reader.onloadend = async function() {
+        const base64String = reader.result; // Đây là cái ảnh đã biến thành chữ
+        const nv = DANH_SACH_NV[index];
+        const idNhanVien = nv.ten.replace(/\s+/g, '_');
+
+        try {
+            // 3. Lưu trực tiếp vào Realtime Database (nhánh NhanSu)
+            await firebase.database().ref('NhanSu/' + idNhanVien).update({
+                avatarUrl: base64String
+            });
+
+            // 4. Cập nhật dữ liệu tại chỗ để hiện ảnh ngay
+            nv.avatarUrl = base64String;
+            alert("✅ Đã cập nhật ảnh nhân viên thành công!");
+            
+            // Vẽ lại danh sách
+            if (typeof renderDanhSach === 'function') renderDanhSach(DANH_SACH_NV);
+            
+        } catch (error) {
+            console.error("Lỗi lưu ảnh:", error);
+            alert("❌ Không thể lưu ảnh vào Database!");
+        }
+    };
+
+    // Bắt đầu đọc file
+    reader.readAsDataURL(file);
+}
+
+
+/*103. VẼ DANH SÁCH NS*/
+// Sửa lại hàm veDanhSachNhanSu gốc để gọi hàm render chung này
+function veDanhSachNhanSu() {
+    renderDanhSach(DANH_SACH_NV);
+}
+
+
+function chamCong(ten, loai) {
+    const idNV = ten.replace(/\s+/g, '_');
+    const bayGio = new Date();
+    const gioHienTai = bayGio.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const ngayHienTai = bayGio.toLocaleDateString('sv-SE'); // Định dạng YYYY-MM-DD (Ví dụ: 2023-10-25)
+
+    const pathChamCong = `ChamCong/${ngayHienTai}/${idNV}`;
+    const pathNhanSu = `NhanSu/${idNV}`;
+
+    if (loai === 'vao') {
+        // 1. GHI NHẬN LỊCH SỬ VÀO CA (Nhánh ChamCong)
+        const dataVao = {
+            ten: ten,
+            gioVao: gioHienTai,
+            trangThai: "Đang làm việc"
+        };
+
+        firebase.database().ref(pathChamCong).set(dataVao).then(() => {
+            // 2. CẬP NHẬT TRẠNG THÁI HỒ SƠ (Nhánh NhanSu)
+            return firebase.database().ref(pathNhanSu).update({ 
+                daVaoCa: true, 
+                daTanCa: false,
+                isOnline: true,
+                lastCheckInDate: ngayHienTai // <--- QUAN TRỌNG: Lưu ngày để tự động Reset
+            });
+        }).then(() => {
+            alert(`✅ Chào ${ten}! Hệ thống ghi nhận VÀO CA lúc: ${gioHienTai}`);
+        });
+
+    } else if (loai === 'ra') {
+        // 1. GHI NHẬN LỊCH SỬ TAN CA (Nhánh ChamCong)
+        firebase.database().ref(pathChamCong).update({
+            gioRa: gioHienTai,
+            trangThai: "Đã hoàn thành"
+        }).then(() => {
+            // 2. CẬP NHẬT TRẠNG THÁI HỒ SƠ (Nhánh NhanSu)
+            return firebase.database().ref(pathNhanSu).update({ 
+                daVaoCa: true, 
+                daTanCa: true,
+                isOnline: false 
+                // Không xóa lastCheckInDate ở đây để giữ trạng thái "Đã tan ca" cho đến hết ngày
+            });
+        }).then(() => {
+            alert(`🏁 Tạm biệt ${ten}! Hệ thống ghi nhận TAN CA lúc: ${gioHienTai}`);
+        });
+    }
+}
+
+
+
+/* HÀM HIỆN LỊCH SỬ CHẤM CÔNG - PHIÊN BẢN FULL THÔNG TIN */
+function hienLichSuChamCong() {
+    const body = document.getElementById('nhan-su-list-body');
+    const headerContainer = document.getElementById('search-nhan-su').parentElement.nextElementSibling;
+    
+    // 1. ĐIỀU KHIỂN NÚT BẤM
+    document.getElementById('btn-back-to-list').style.display = 'block';
+    document.getElementById('btn-show-history').style.display = 'none';
+    document.getElementById('search-nhan-su').style.display = 'none';
+
+    // 2. THAY ĐỔI TIÊU ĐỀ CỘT
+    headerContainer.innerHTML = `
+        <div style="width:45%;">Đại sứ & Thông tin hồ sơ</div>
+        <div style="width:15%;">Ngày làm</div>
+        <div style="width:15%;">Vào ca</div>
+        <div style="width:15%;">Tan ca</div>
+        <div style="width:10%; text-align:right;">Trạng thái</div>
+    `;
+
+    body.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">🔍 Đang trích xuất dữ liệu lịch sử...</div>`;
+
+    // 3. LẤY DỮ LIỆU TỪ FIREBASE
+    firebase.database().ref('ChamCong').once('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            body.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Chưa có lịch sử chấm công nào được ghi nhận.</div>`;
+            return;
+        }
+
+        let html = "";
+        // Duyệt ngược thời gian (Ngày mới nhất hiện lên đầu)
+        const sortedDates = Object.keys(data).sort().reverse();
+
+        sortedDates.forEach(ngay => {
+            Object.values(data[ngay]).forEach(log => {
+                // TÌM THÔNG TIN CHI TIẾT TỪ DANH SÁCH NHÂN VIÊN
+                const infoGoc = DANH_SACH_NV.find(nv => nv.ten === log.ten) || {};
+
+                html += `
+                <div style="display:flex; align-items:center; padding:15px; background:#1e293b; border:1px solid #334155; border-radius:16px; margin-bottom:10px; transition:0.2s;">
+                    
+                    <!-- Cột 1: Profile đầy đủ -->
+                    <div style="width:45%; display:flex; align-items:center; gap:12px;">
+                        <img src="${infoGoc.avatarUrl || 'https://placeholder.com'}" 
+                             style="width:45px; height:45px; border-radius:10px; object-fit:cover; border:1px solid #334155;">
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <div style="font-weight:bold; color:#fff; font-size:14px;">${log.ten}</div>
+                            <div style="font-size:10px; color:#94a3b8; display:flex; gap:10px;">
+                                <span>📞 ${infoGoc.sdt || '---'}</span>
+                                <span style="color:#3b82f6;">🔑 ID: ${infoGoc.username || '---'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột 2: Ngày làm -->
+                    <div style="width:15%; color:#94a3b8; font-size:12px; font-weight:500;">
+                        📅 ${ngay}
+                    </div>
+
+                    <!-- Cột 3: Giờ vào (Màu xanh) -->
+                    <div style="width:15%; color:#10b981; font-family: 'Courier New', monospace; font-weight:bold; font-size:15px;">
+                        ${log.gioVao || '--:--'}
+                    </div>
+
+                    <!-- Cột 4: Giờ ra (Màu đỏ) -->
+                    <div style="width:15%; color:#ef4444; font-family: 'Courier New', monospace; font-weight:bold; font-size:15px;">
+                        ${log.gioRa || '--:--'}
+                    </div>
+
+                    <!-- Cột 5: Badge Trạng thái -->
+                    <div style="width:10%; text-align:right;">
+                        <span style="font-size:9px; padding:4px 8px; border-radius:6px; font-weight:900; text-transform:uppercase;
+                                     background:${log.gioRa ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; 
+                                     color:${log.gioRa ? '#10b981' : '#f59e0b'}; border: 1px solid ${log.gioRa ? '#10b98133' : '#f59e0b33'};">
+                            ${log.gioRa ? 'Xong' : 'Đang làm'}
+                        </span>
+                    </div>
+                </div>`;
+            });
+        });
+        body.innerHTML = html;
+    });
+}
+
+
+/* HÀM QUAY LẠI DANH SÁCH NHÂN SỰ */
+function quayLaiDanhSach() {
+    // 1. Hiện lại tiêu đề cột chuẩn của nhân sự
+    const headerContainer = document.getElementById('search-nhan-su').parentElement.nextElementSibling;
+    headerContainer.innerHTML = `
+        <div style="flex:1;">Hồ sơ đại sứ</div>
+        <div style="width:200px;">Vai trò & Ca làm</div>
+        <div style="width:150px;">Hiệu suất</div>
+        <div style="width:120px; text-align:left; padding-left: 5px;">Thao tác</div>
+    `;
+
+    // 2. Điều khiển ẩn/hiện nút
+    document.getElementById('btn-back-to-list').style.display = 'none';
+    document.getElementById('btn-show-history').style.display = 'block';
+    document.getElementById('search-nhan-su').style.display = 'block';
+
+    // 3. Vẽ lại danh sách nhân sự
+    renderDanhSach(DANH_SACH_NV);
+}
+
+let trangHienTai = 1;
+const soNhanVienMoiTrang = 5; // Bạn có thể chỉnh con số này (ví dụ: 5 người/trang)
+
+// 3. Hàm xử lý khi đổi Vai trò
+function capNhatViTriTuDong() {
+    const elVaiTro = document.getElementById('ins-vaitro');
+    const elViTri = document.getElementById('ins-vitri');
+    const elLuong = document.getElementById('ins-luong');
+
+    // Kiểm tra xem các thẻ có tồn tại không trước khi chạy
+    if (!elVaiTro || !elViTri || !elLuong) return;
+
+    const vaiTro = elVaiTro.value;
+    const mapViTri = {
+        "Đại sứ Hương Vị": ["Bếp trưởng", "Bếp phó"],
+        "Đại sứ Ngoại Giao": ["Phục vụ 1", "Phục vụ 2"],
+        "Đại sứ Minh Bạch": ["Thu ngân"],
+        "Đại sứ Đón Tiếp": ["Bảo an"],
+        "Đại sứ Sạch Sẽ": ["Vệ sinh"]
+    };
+
+    const dsViTri = mapViTri[vaiTro] || [];
+    
+    // Cập nhật Option
+    elViTri.innerHTML = dsViTri.map(vt => `<option value="${vt.trim()}">${vt.trim()}</option>`).join('');
+
+    // Tự động gọi hàm cập nhật lương luôn, không cần đợi listener
+    capNhatLuongHienTai(); 
+}
+
+
+function capNhatLuongHienTai() {
+    const elViTri = document.getElementById('ins-vitri');
+    const elLuong = document.getElementById('ins-luong');
+    if (!elViTri || !elLuong) return;
+
+    const vitri = elViTri.value.trim();
+    const soTien = BANG_LUONG[vitri] || 0;
+    elLuong.value = dinhDangTien(soTien);
+}
+/* HÀM VẼ PHÂN TRANG */
+function veNutPhanTrang(tongSoNV) {
+    const tongSoTrang = Math.ceil(tongSoNV / soNhanVienMoiTrang);
+    const container = document.getElementById('pagination-controls');
+    if (!container) return;
+
+    let html = "";
+    
+    // Nút Quay lại (<)
+    html += `<button onclick="doiTrang(${trangHienTai - 1})" ${trangHienTai === 1 ? 'disabled' : ''} style="width:32px; height:32px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;"><</button>`;
+
+    // Các số trang
+    for (let i = 1; i <= tongSoTrang; i++) {
+        const isActive = i === trangHienTai;
+        html += `
+        <button onclick="doiTrang(${i})" 
+            style="width:32px; height:32px; border-radius:8px; border:none; 
+            background:${isActive ? '#10b981' : '#0f172a'}; 
+            color:${isActive ? '#fff' : '#94a3b8'}; 
+            font-weight:bold; cursor:pointer; transition:0.2s;">
+            ${i}
+        </button>`;
+    }
+
+    // Nút Tiếp theo (>)
+    html += `<button onclick="doiTrang(${trangHienTai + 1})" ${trangHienTai === tongSoTrang ? 'disabled' : ''} style="width:32px; height:32px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;">></button>`;
+
+    container.innerHTML = html;
+}
+
+/* HÀM ĐỔI TRANG */
+function doiTrang(trangMoi) {
+    trangHienTai = trangMoi;
+    renderDanhSach(DANH_SACH_NV); // Vẽ lại danh sách theo trang mới
+}
 
 
 
 
+function capNhatLuongTheoViTri() {
+    const vitriDaChon = document.getElementById("ins-vitri").value;
+    const oLuong = document.getElementById("ins-luong");
+    
+    if (BANG_LUONG[vitriDaChon]) {
+        // Thay vì điền số trực tiếp, ta điền chuỗi đã định dạng
+        oLuong.value = dinhDangTien(BANG_LUONG[vitriDaChon]);
+    } else {
+        oLuong.value = "";
+    }
+}
+
+// Hàm này giúp: hễ gõ đến đâu, dấu phẩy tự thêm đến đó
+function dinhDangTien(giaTri) {
+    if (!giaTri) return "";
+    // Bước 1: Xóa mọi thứ không phải là số (xóa cả dấu phẩy cũ)
+    let soThuan = giaTri.toString().replace(/\D/g, "");
+    // Bước 2: Thêm lại dấu phẩy sau mỗi 3 chữ số
+    return soThuan.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+// Hàm này dùng để lấy số "sạch" trước khi bạn lưu vào Firebase (ví dụ: 12,000,000 -> 12000000)
+function laySoThuanTuy(chuoi) {
+    return chuoi.toString().replace(/,/g, "");
+}
 
 
+
+/* 1. Hàm mở Cài đặt */
+function moCaiDat() {
+    // Ẩn các modal khác
+    const dsModal = ['modal-quan-ly-nhan-su', 'modal-hoivien-container', 'modal-baocao-container'];
+    dsModal.forEach(id => { if(document.getElementById(id)) document.getElementById(id).style.display = 'none'; });
+
+    document.getElementById('modal-cai-dat').style.display = 'block';
+}
+
+/* 2. Cập nhật danh sách Esc */
+// Thêm 'modal-cai-dat' vào mảng dsTab trong hàm window.addEventListener('keydown', ...) của bạn
+
+/* 3. Logic Đổi ngôn ngữ (Cơ bản) */
+function doiNgonNgu(lang) {
+    const dictionary = [
+        ["PHỞ TÚY 11H", "PHO TUY 11H"],
+        ["Số 11 Bà Triệu, Hải Phòng", "11 Ba Trieu St, Hai Phong"],
+        ["Tổng quan", "Overview"],
+        ["Màn Hình Bếp", "Kitchen Display"],
+        ["Sơ Đồ Bàn", "Table Map"],
+        ["Đơn Hàng", "Orders"],
+        ["Hội Viên", "Members"],
+        ["Kho Hàng", "Inventory"],
+        ["Nhân Sự", "Staff"],
+        ["Báo Cáo", "Reports"],
+        ["Cài Đặt", "Settings"],
+        ["chi tiêu", "Expenses"],
+        ["Bàn", "Table"],
+        ["Bar", "Bar"],
+        ["đã đóng cửa", "Closed"],
+        ["suất bán ngày", "Daily Sales"],
+        ["đồ uống", "Drinks"],
+        ["phở thường", "Regular Pho"],
+        ["phở đặc biệt", "Special Pho"],
+        ["trứng chần", "Poached Egg"],
+        ["trứng hấp", "Steamed Egg"],
+        ["giòn rụn(4 cái)", "Crispy Fried Dough(4 pcs)"],
+        ["chi tiết đơn", "Order Details"],
+        ["tên khách / sdt", "Customer Name / Phone"],
+        ["chưa có món ăn", "No items selected"],
+        ["tiền món", "Subtotal"],
+        ["giảm giá", "Discount"],
+        ["thuế", "Tax"],
+        ["tổng cộng", "Total"],
+        ["chọn mã giảm giá", "Select Discount Code"],
+        ["không áp dụng", "Not Applied"],
+        ["áp dụng", "Apply"],
+        ["gộp", "Merge"],
+        ["tách", "Split"],
+        ["in hóa đơn & gửi bếp", "Print & Send to Kitchen"],
+        ["thanh toán (kho)", "Payment (Stock)"],
+        ["đã dọn bàn", "Table Cleared"], // Thêm dấu phẩy ở đây
+        ["tìm món ăn", "Find food"],     // Thêm dấu phẩy ở đây
+        ["trống", "empty"],             // Thêm dấu phẩy ở đây
+        ["đang chọn", "Choosing"],      // Thêm dấu phẩy ở đây
+        ["đang ăn", "eating"],          // Thêm dấu phẩy ở đây
+        ["chờ dọn", "Clearing"]
+    ];
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            let text = node.textContent;
+            dictionary.forEach(([vi, en]) => {
+                // Nếu là tiếng Anh, tìm Tiếng Việt (không phân biệt hoa thường) để thay thế
+                if (lang === 'en') {
+                    const regex = new RegExp(vi, 'gi'); 
+                    text = text.replace(regex, en);
+                } 
+                // Nếu là tiếng Việt, tìm Tiếng Anh để thay thế ngược lại
+                else {
+                    const regex = new RegExp(en, 'gi');
+                    text = text.replace(regex, vi);
+                }
+            });
+            node.textContent = text;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            // Dịch cả Placeholder cho các ô nhập liệu
+            if (node.placeholder) {
+                dictionary.forEach(([vi, en]) => {
+                    if (lang === 'en') {
+                        node.placeholder = node.placeholder.replace(new RegExp(vi, 'gi'), en);
+                    } else {
+                        node.placeholder = node.placeholder.replace(new RegExp(en, 'gi'), vi);
+                    }
+                });
+            }
+            node.childNodes.forEach(traverse);
+        }
+    }
+
+    traverse(document.body);
+
+    // Cập nhật giao diện nút trong cài đặt
+    capNhatGiaoDienNutLang(lang);
+    localStorage.setItem('selected_lang', lang);
+}
 
 
 
@@ -5108,16 +6057,26 @@ function capNhatThongKeNhanSu() {
 function moChucNangTuSidebar(type) {
     console.log("--- Chuyển mục: " + type + " ---");
 
-    // 1. Tuyệt đối KHÔNG gọi dongSideMenu() ở đây để Side luôn hiện
+    // 1. Tuyệt đối KHÔNG gọi dongSideMenu() hay toggleSidebar() 
+    // Việc này giúp thanh Menu bên trái luôn đứng im tại chỗ.
 
-    // 2. Dọn dẹp: Ẩn tất cả các Modal đang mở để tránh đè nhau
-    const dsModal = ['modal-quan-ly-nhan-su', 'modal-qr-list', 'modal-baocao-container', 'modal-hoivien-container'];
+    // 2. Dọn dẹp: Chỉ ẩn các "Lớp phủ" (Modals) đang mở để tránh chồng chéo
+    // Thêm tất cả ID của các màn hình chức năng vào mảng này
+    const dsModal = [
+        'modal-quan-ly-nhan-su', 
+        'modal-qr-list', 
+        'modal-baocao-container', 
+        'modal-hoivien',
+        'modal-kho-hang' // Thêm ID màn hình kho nếu có
+    ];
+    
     dsModal.forEach(id => {
         const m = document.getElementById(id);
         if (m) m.style.display = 'none';
     });
 
     // 3. Mở chức năng tương ứng
+    // Lưu ý: Các hàm bên dưới chỉ làm nhiệm vụ hiện Modal lên (Overlay)
     switch (type) {
         case 'baocao':
             if (typeof moModalBaoCao === 'function') moModalBaoCao();
@@ -5134,9 +6093,49 @@ function moChucNangTuSidebar(type) {
         case 'nhansu':
             if (typeof moQuanLyNhanSu === 'function') moQuanLyNhanSu();
             break;
+        case 'tongquan':
+            // Nếu bấm Tổng quan, chỉ cần ẩn hết các lớp phủ là Sơ đồ bàn/Đơn hàng sẽ lộ ra
+            console.log("Đã quay lại màn hình Sơ đồ bàn & Đơn hàng");
+            break;
+        case 'caidat':
+            const modalCaiDat = document.getElementById('modal-cai-dat');
+            if (modalCaiDat) modalCaiDat.style.display = 'block';
+            break;
     }
 }
 
+/* TÍNH NĂNG NHẤN ESC ĐỂ THOÁT TẤT CẢ CÁC TAB - BẢN FIX HỘI VIÊN & BÁO CÁO */
+window.addEventListener('keydown', function(event) {
+    if (event.key === "Escape" || event.keyCode === 27) {
+        console.log("⌨️ Đã nhấn Esc - Đang đóng các tab đang mở...");
+
+        // 1. Cập nhật danh sách ID khớp chính xác với hệ thống của bạn
+        const dsTab = [
+            'modal-quan-ly-nhan-su', 
+            'modal-hoivien', // Tab Hội viên
+            'modal-bao-cao-tong',  // Tab Báo cáo (THÊM DÒNG NÀY)
+            'modal-baocao-chitiet',    // Chi tiết báo cáo (nếu có)
+            'modal-lich-su-khach', 
+            'modal-qr-list',
+            'modal-kho-hang'
+        ];
+
+        // 2. Chạy vòng lặp để ẩn tất cả
+        dsTab.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                // Ép ẩn bằng !important để tránh bị đè bởi inline style
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+
+        // 3. Reset trạng thái sửa
+        if (typeof dangSuaId !== 'undefined') dangSuaId = null;
+
+        // 4. Reset form nhân sự (nếu đang mở)
+        if (typeof resetFormNV === 'function') resetFormNV();
+    }
+});
 
 
 
@@ -5339,35 +6338,90 @@ function moChucNangTuSidebar(type) {
 </div>
 
 
-<!-- MODAL KHO HÀNG (Bọc quanh Tab Kho cũ) -->
-<div id="modal-kho-hang" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+<!-- MODAL QUẢN LÝ KHO SIÊU CẤP -->
+<div id="modal-kho-hang" style="display:none; position:fixed; top:0; bottom:10px; left:300px; right:0; background:rgba(2, 6, 23, 0.7); z-index:100000; font-family: 'Inter', sans-serif; color: #f8fafc; padding: 20px; backdrop-filter: blur(8px);">
     
-    <div style="background:white; padding:20px; border-radius:15px; width:95%; max-width:800px; max-height:90vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position:relative; display:flex; flex-direction:column;">
+    <div style="background:#0f172a; width:100%; height:100%; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; border:1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position: relative;">
         
-        <!-- Nút đóng -->
-        <button onclick="dongKhoHang()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:25px; cursor:pointer; color:#666; z-index:10;">&times;</button>
+        <!-- Nút đóng nhanh -->
+        <button onclick="dongKhoHang()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:20px; cursor:pointer; color:#94a3b8; z-index:10;">&times;</button>
 
-        <!-- GIỮ NGUYÊN NỘI DUNG TAB KHO CỦA BẠN -->
-        <div id="tab-kho" style="display:block !important; overflow-y:auto; flex:1;"> 
-            <h3 style="color:#2e7d32; margin-top:0">📦 QUẢN LÝ TỒN KHO</h3>
-            <table class="stock-table" style="width:100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="background:#f5f5f5;">
-                        <th>Nguyên liệu</th>
-                        <th>Tồn</th>
-                        <th>Số lượng thêm</th>
-                        <th>Thêm/Bớt</th>
-                        <th>Giới hạn</th>
-                        <th>ĐVT</th>
-                    </tr>
-                </thead>
-               <tbody id="modal-stock-body"></tbody>
-            </table>
+        <div style="flex:1; overflow-y:auto; padding:25px; display:flex; flex-direction:column; gap:20px;">
+            
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h2 style="margin:0; font-size:22px; color:#fff;">📦 Quản lý kho chuyên sâu</h2>
+                    <p style="margin:5px 0 0; font-size:12px; color:#94a3b8;">Theo dõi và quản lý tất cả nguyên liệu trong kho</p>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-top-kho"><i class="fas fa-file-export"></i> Xuất Excel</button>
+                    <button class="btn-top-kho" onclick="moLichSuKho()"><i class="fas fa-history"></i> Lịch sử kho</button>
+                    <button onclick="moFormNhapKho()" style="background:#10b981; color:#fff; border:none; padding:10px 18px; border-radius:10px; cursor:pointer; font-weight:bold; font-size:13px;">+ Nhập kho</button>
+                </div>
+            </div>
+
+            <!-- Thống kê (4 Card màu) -->
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px;">
+                <div class="stat-card-premium" style="border-left:4px solid #10b981;">
+                    <span style="font-size:20px; background:#10b98122; padding:10px; border-radius:10px;">📦</span>
+                    <div><small>Tổng mặt hàng</small><h3 id="stat-kho-tong">0</h3></div>
+                </div>
+                <div class="stat-card-premium" style="border-left:4px solid #fbbf24;">
+                    <span style="font-size:20px; background:#fbbf2422; padding:10px; border-radius:10px;">🔔</span>
+                    <div><small>Sắp hết hàng</small><h3 id="stat-kho-saphet" style="color:#fbbf24;">0</h3></div>
+                </div>
+                <div class="stat-card-premium" style="border-left:4px solid #ef4444;">
+                    <span style="font-size:20px; background:#ef444422; padding:10px; border-radius:10px;">⚠</span>
+                    <div><small>Hết hàng</small><h3 id="stat-kho-hethang" style="color:#ef4444;">0</h3></div>
+                </div>
+                <div class="stat-card-premium" style="border-left:4px solid #3b82f6;">
+                    <span style="font-size:20px; background:#3b82f622; padding:10px; border-radius:10px;">✅</span>
+                    <div><small>Đủ hàng</small><h3 id="stat-kho-duhang">0</h3></div>
+                </div>
+            </div>
+
+            <!-- Bộ lọc & Tìm kiếm -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:10px 15px; border-radius:12px; border:1px solid #334155;">
+                <div style="display:flex; gap:10px;">
+                    <button class="filter-tab active">Tất cả</button>
+                    <button class="filter-tab">Nguyên liệu chính</button>
+                    <button class="filter-tab">Đồ uống</button>
+                </div>
+                <div style="position:relative;">
+                    <input type="text" placeholder="Tìm nguyên liệu..." style="background:#0f172a; border:1px solid #334155; color:#fff; padding:8px 15px 8px 35px; border-radius:8px; width:250px; outline:none; font-size:13px;">
+                    <i class="fas fa-search" style="position:absolute; left:12px; top:10px; color:#64748b; font-size:12px;"></i>
+                </div>
+            </div>
+
+            <!-- Bảng Dữ Liệu -->
+            <div style="background:#1e293b; border-radius:12px; border:1px solid #334155; overflow:hidden;">
+                <table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">
+                    <thead>
+                        <tr style="color:#94a3b8; border-bottom:1px solid #334155; background:#0f172a55;">
+                            <th style="padding:15px 20px;">NGUYÊN LIỆU</th>
+                            <th style="padding:15px 20px;">TỒN KHO</th>
+                            <th style="padding:15px 20px;">ĐỊNH MỨC</th>
+                            <th style="padding:15px 20px;">TRẠNG THÁI</th>
+                            <th style="padding:15px 20px; text-align:center;">THAO TÁC</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kho-list-body"></tbody>
+                </table>
+            </div>
         </div>
-
-        <button onclick="dongKhoHang()" style="width:100%; margin-top:15px; padding:12px; background:#f5f5f5; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:#666;">ĐÓNG</button>
     </div>
 </div>
+
+<style>
+    .btn-top-kho { background:#1e293b; color:#fff; border:1px solid #334155; padding:8px 15px; border-radius:10px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px; }
+    .stat-card-premium { background:#1e293b; padding:15px; border-radius:12px; display:flex; align-items:center; gap:15px; border:1px solid #334155; }
+    .stat-card-premium h3 { margin:0; font-size:22px; }
+    .stat-card-premium small { color:#94a3b8; font-size:11px; text-transform:uppercase; font-weight:600; }
+    .filter-tab { background:transparent; border:none; color:#94a3b8; padding:8px 15px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; transition:0.3s; }
+    .filter-tab.active { background:#3b82f6; color:#fff; }
+</style>
+
 
 
 
@@ -5740,7 +6794,9 @@ document.addEventListener('click', function(e) {
    <div class="menu-item" onclick="moChucNangTuSidebar('baocao')">
     <span class="menu-icon">📊</span> Báo Cáo
 </div>
-    <div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">⚙️</span> Cài Đặt</div>
+    <div class="menu-item" onclick="doiTabActive(this); moChucNangTuSidebar('caidat')">
+    <span class="menu-icon">⚙️</span> Cài Đặt
+</div>
 </div>
 
     <!-- 3. Thẻ nhân viên phía dưới (Đẩy lên cao bằng margin-bottom) -->
@@ -5790,108 +6846,263 @@ document.addEventListener('click', function(e) {
 </style>
 
 
-<!-- GIAO DIỆN QUẢN LÝ NHÂN SỰ PREMIUM -->
-<div id="modal-quan-ly-nhan-su" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(2, 6, 23, 0.95); z-index:20000; align-items:center; justify-content:center; font-family: 'Inter', sans-serif; color: #f8fafc;">
-    <div style="background:#0f172a; width:98%; max-width:1200px; height:90vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; border:1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
-        
+<!-- GIAO DIỆN QUẢN LÝ NHÂN SỰ PREMIUM - BẢN FULL MÀN HÌNH -->
+<div id="modal-quan-ly-nhan-su" style="
+    display:none; 
+    position:fixed; 
+    top:0; 
+    bottom:10px;      /* TẠO KHOẢNG CÁCH CÁCH ĐÁY 80PX */
+    left:300px;       /* ĐẨY SANG PHẢI ĐỂ HIỆN SIDEBAR (Chỉnh theo độ rộng sidebar của bạn) */
+    right:0; 
+    width:auto;       /* Đổi width thành auto để nó tự co giãn từ left đến right */
+    height:auto;      /* Đổi height thành auto để bottom:80px có tác dụng */
+    background:rgba(2, 6, 23, 0.7); 
+    z-index:20000; 
+    font-family: 'Inter', sans-serif; 
+    color: #f8fafc;
+    padding: 20px;    /* Khoảng cách đệm xung quanh khung nội dung */
+">
+    <!-- 2. Khung nội dung nhân sự -->
+    <div style="
+        background:#0f172a; 
+        width:100%; 
+        height:100%;      /* Chiếm hết diện tích vùng đã trừ lề */
+        border-radius:16px; 
+        display:flex; 
+        flex-direction:column; 
+        overflow:hidden; 
+        border:1px solid #334155; 
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    ">        
         <!-- HEADER -->
-        <div style="padding: 20px 30px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b;">
+        <div style="padding: 20px 30px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; background: #161e2e;">
             <div>
-                <h2 style="margin:0; font-size:22px; color:#fff;">👥 Quản lý nhân sự đại sứ</h2>
-                <p style="margin:5px 0 0; font-size:12px; color:#94a3b8;">Quản lý thông tin và hiệu suất làm việc của nhân viên</p>
+                <h2 style="margin:0; font-size:24px; color:#fff;">👨🏻👩🏻 Quản lý nhân sự đại sứ</h2>
+                <p style="margin:5px 0 0; font-size:13px; color:#94a3b8;">Hệ thống quản lý thông tin tập trung và hiệu suất đại sứ</p>
             </div>
             <div style="display:flex; gap:15px; align-items:center;">
                 
-                <button style="background:#10b981; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">+ Thêm nhân sự mới</button>
-<button onclick="document.getElementById('modal-quan-ly-nhan-su').style.display='none'" style="background:transparent; border:1px solid #334155; color:#94a3b8; padding:8px 20px; border-radius:8px; cursor:pointer;">Đóng</button>
+
+                <button onclick="document.getElementById('modal-quan-ly-nhan-su').style.display='none'" style="background:transparent; border:1px solid #334155; color:#94a3b8; padding:8px 25px; border-radius:8px; cursor:pointer;">Đóng</button>
+
             </div>
         </div>
 
         <!-- MAIN BODY -->
-        <div style="display:flex; flex:1; overflow:hidden; padding:20px; gap:20px;">
+        <div style="display:flex; flex:1; overflow:hidden; padding:20px; gap:20px; box-sizing: border-box;">
             
-            <!-- CỘT TRÁI: FORM NHẬP & THỐNG KÊ (400px) -->
-            <div style="width:400px; display:flex; flex-direction:column; gap:20px;">
+            <!-- CỘT TRÁI: FORM & THỐNG KÊ (Giữ độ rộng cố định để không chiếm quá nhiều chỗ) -->
+            <div style="width:400px; display:flex; flex-direction:column; gap:15px; overflow-y: auto; padding-right: 5px;">
                 
-                <!-- Form Nhập -->
-                <div style="background:#1e293b; padding:20px; border-radius:12px; border:1px solid #334155;">
-                    <h4 style="margin:0 0 15px; color:#05f74e; font-size:14px; text-transform:uppercase;">📝 Thông tin nhân viên</h4>
-                    <div style="display:flex; flex-direction:column; gap:15px;">
-                        <div>
-                            <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Tên nhân viên</label>
-                            <input type="text" id="ins-ten" placeholder="Nhập tên..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none;">
-                        </div>
-                        <div style="display:flex; gap:10px;">
-                            <div style="flex:1;">
-                                <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Số điện thoại</label>
-                                <input type="text" id="ins-sdt" placeholder="09xxx..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff;">
-                            </div>
-                            <div style="flex:1;">
-                                <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Vai trò</label>
-                                <select id="ins-vaitro" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff;">
-                                    <option>Đại sứ Hương Vị</option>
-                                    <option>Đại sứ Ngoại Giao</option>
-                                    <option>Đại sứ Đón Tiếp</option>
-                                     <option>Đại sứ Sạch Sẽ</option>
-                                     <option>Đại sứ Minh Bạch</option>
-
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-    <label style="display:block; font-size:12px; color:#94a3b8; margin-bottom:5px;">Ca làm việc</label>
-    <select id="ins-ca" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none; cursor:pointer;">
-        <option value="05:00 - 12:00">Ca sáng: 05:00 - 12:00</option>
-        <option value="17:00 - 00:00">Ca tối: 17:00 - 00:00</option>
-    </select>
-</div>
-                        <button onclick="themNhanSuMoi()" style="width:100%; background:#10b981; color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold; cursor:pointer; margin-top:10px;">💾 LƯU THÔNG TIN NHÂN VIÊN</button>
-                    </div>
-                </div>
-
-              <!-- Thống kê nhanh -->
-<div style="background:#1e293b; padding:20px; border-radius:12px; flex:1; border:1px solid #334155;">
-    <h4 style="margin:0 0 15px; color:#05f74e; font-size:14px; text-transform:uppercase;">📊 Thống kê nhân sự</h4>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+<!-- Form Nhập Hồ Sơ Nhân Sự Tối Ưu -->
+<div style="background:#1e293b; padding:20px; border-radius:16px; border:1px solid #334155; font-family: sans-serif;">
+    <h4 style="margin:0 0 20px; color:#05f74e; font-size:13px; text-transform:uppercase; letter-spacing:1px; border-left:4px solid #10b981; padding-left:10px;">
+        📝 Hồ sơ nhân sự
+    </h4>
+    
+    <div style="display:flex; flex-direction:column; gap:15px;">
         
-        <div style="text-align:center; padding:12px; background:#0f172a; border-radius:10px; border:1px solid #1e293b;">
-            <div id="stat-total-nv" style="font-size:20px; font-weight:bold; color:#fff;">0</div>
-            <div style="font-size:9px; color:#94a3b8;">TỔNG NHÂN VIÊN</div>
-        </div>
-
-        <div style="text-align:center; padding:12px; background:#0f172a; border-radius:10px; border:1px solid #1e293b;">
-            <div id="stat-active-nv" style="font-size:20px; font-weight:bold; color:#10b981;">0</div>
-            <div style="font-size:9px; color:#94a3b8;">ĐANG HOẠT ĐỘNG</div>
-        </div>
-
-        <!-- CỘT HIỆU SUẤT TRUNG BÌNH (CHIẾM FULL CHIỀU NGANG) -->
-        <div style="grid-column: span 2; text-align:center; padding:12px; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-radius:10px; border:1px solid #334155; margin-top:5px;">
-            <div id="stat-avg-perf" style="font-size:22px; font-weight:bold; color:#3b82f6;">0%</div>
-            <div style="font-size:10px; color:#94a3b8; letter-spacing:1px;">HIỆU SUẤT TRUNG BÌNH</div>
-            <!-- Thanh tiến trình nhỏ -->
-            <div style="width:80%; height:4px; background:#0f172a; border-radius:10px; margin:8px auto 0; overflow:hidden;">
-                <div id="stat-perf-bar" style="width:0%; height:100%; background:#3b82f6; transition:0.5s;"></div>
+        <!-- Hàng 1: Tên & SDT -->
+        <div style="display:flex; gap:12px;">
+            <div style="flex:1.5;">
+                <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Tên nhân viên</label>
+                <input type="text" id="ins-ten" placeholder="Nguyễn Văn A..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none; box-sizing: border-box;">
+            </div>
+            <div style="flex:1;">
+                <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Số điện thoại</label>
+                <input type="text" id="ins-sdt" placeholder="09xxx..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; box-sizing: border-box;">
             </div>
         </div>
 
+        <!-- Hàng 2: Ngày sinh & CCCD -->
+        <div style="display:flex; gap:12px;">
+            <div style="flex:1;">
+                <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Ngày sinh</label>
+                <input type="date" id="ins-ngaysinh" style="width:100%; background:#0f172a; border:1px solid #334155; padding:9px; border-radius:8px; color:#fff; outline:none; box-sizing: border-box;">
+            </div>
+            <div style="flex:1;">
+                <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Số CCCD</label>
+                <input type="text" id="ins-cccd" placeholder="12 số..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; box-sizing: border-box;">
+            </div>
+        </div>
+
+        <!-- Hàng 3: Địa chỉ -->
+        <div>
+            <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Địa chỉ thường trú</label>
+            <input type="text" id="ins-diachi" placeholder="Số nhà, tên đường, phường/xã..." style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none; box-sizing: border-box;">
+        </div>
+
+        <!-- Hàng 4: Tài khoản (Nổi bật) -->
+        <div style="display:flex; gap:12px; padding:15px; background: rgba(59, 130, 246, 0.08); border-radius: 12px; border: 1px dashed #3b82f6;">
+            <div style="flex:1;">
+                <label style="display:block; font-size:10px; color:#3b82f6; margin-bottom:6px; font-weight:bold; text-transform: uppercase;">ID Đăng nhập</label>
+                <input type="text" id="ins-username" placeholder="user123" style="width:100%; background:#0f172a; border:1px solid #1e293b; padding:10px; border-radius:8px; color:#fff; outline:none; box-sizing: border-box;">
+            </div>
+            <div style="flex:1;">
+                <label style="display:block; font-size:100px; color:#3b82f6; margin-bottom:6px; font-weight:bold; text-transform: uppercase; font-size: 10px;">Mật khẩu</label>
+                <input type="password" id="ins-password" placeholder="••••••••" style="width:100%; background:#0f172a; border:1px solid #1e293b; padding:10px; border-radius:8px; color:#fff; outline:none; box-sizing: border-box;">
+            </div>
+        </div>
+
+        <!-- Hàng 5: Vai trò & Vị trí -->
+        <div style="display:flex; gap:12px;">
+            <div style="flex:1;">
+                <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Vai trò (Chức danh)</label>
+                <select id="ins-vaitro" onchange="capNhatViTriTuDong()" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; cursor:pointer; outline:none;">
+                    <option>Đại sứ Hương Vị</option>
+                    <option>Đại sứ Ngoại Giao</option>
+                    <option>Đại sứ Đón Tiếp</option>
+                    <option>Đại sứ Sạch Sẽ</option>
+                    <option>Đại sứ Minh Bạch</option>
+                </select>
+            </div>
+           <div style="flex:1;">
+    <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Vị trí cụ thể</label>
+    <select id="ins-vitri" onchange="capNhatLuongHienTai()" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none;">
+        <!-- Tự động cập nhật -->
+    </select>
+</div>
+        </div>
+
+        <!-- Hàng 6: Ca làm & Lương -->
+        <div style="display:flex; gap:12px;">
+            <div style="flex:1;">
+                <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Ca làm việc</label>
+                <select id="ins-ca" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; cursor:pointer; outline:none;">
+                    <option value="05:00 - 12:00">Sáng (05:00 - 12:00)</option>
+                    <option value="17:00 - 00:00">Tối (17:00 - 00:00)</option>
+                </select>
+            </div>
+            <div style="flex:1;">
+                <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Lương cơ bản (VNĐ)</label>
+                <input type="text" id="ins-luong" 
+       oninput="this.value = dinhDangTien(this.value)" 
+       placeholder="0" 
+       style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none; box-sizing: border-box;">
+
+
+            </div>
+        </div>
+
+        <!-- Hàng 7: Cấp độ truy cập -->
+        <div>
+            <label style="display:block; font-size:11px; color:#94a3b8; margin-bottom:6px;">Quyền hạn hệ thống</label>
+            <select id="ins-capdo" style="width:100%; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff; outline:none; cursor:pointer;">
+                <option value="STAFF">Nhân viên (Quyền hạn cơ bản)</option>
+                <option value="ADMIN">Quản trị viên (Toàn quyền)</option>
+            </select>
+        </div>
+
+        <!-- Nút Lưu -->
+        <button onclick="themNhanSuMoi()" style="width:100%; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; padding:16px; border-radius:12px; font-weight:bold; cursor:pointer; margin-top:10px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;">
+            💾 Lưu hồ sơ nhân sự
+        </button>
     </div>
 </div>
+
+                <!-- Thống kê -->
+                <div style="background:#1e293b; padding:20px; border-radius:16px; border:1px solid #334155;">
+                    <h4 style="margin:0 0 15px; color:#05f74e; font-size:13px; text-transform:uppercase;">📊 Thống kê nhanh</h4>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div style="text-align:center; padding:15px; background:#0f172a; border-radius:12px; border:1px solid #1e293b;">
+                            <div id="stat-total-nv" style="font-size:24px; font-weight:bold; color:#fff;">0</div>
+                            <div style="font-size:10px; color:#94a3b8; margin-top:5px;">NHÂN VIÊN</div>
+                        </div>
+                        <div style="text-align:center; padding:15px; background:#0f172a; border-radius:12px; border:1px solid #1e293b;">
+                            <div id="stat-avg-perf" style="font-size:24px; font-weight:bold; color:#3b82f6;">0%</div>
+                            <div style="font-size:10px; color:#94a3b8; margin-top:5px;">HIỆU SUẤT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: DANH SÁCH (flex: 1 để tự động mở rộng theo màn hình) -->
+            <div style="flex:1; background:#1e293b; border-radius:16px; border:1px solid #334155; display:flex; flex-direction:column; overflow:hidden;">
+               <div style="padding:15px; border-bottom:1px solid #334155; display:flex; gap:12px; background: #161e2e; align-items: center;">
+    <!-- Nút quay lại (Mặc định ẩn) -->
+    <button id="btn-back-to-list" onclick="quayLaiDanhSach()" style="display:none; background:#334155; color:#fff; border:none; padding:10px 15px; border-radius:8px; cursor:pointer; font-size:13px; transition:0.2s;" onmouseover="this.style.background='#475569'">
+        ⬅ Quay lại
+    </button>
+
+    <input type="text" id="search-nhan-su" oninput="timKiemNhanSu()" placeholder="🔍 Tìm kiếm tên, SĐT, ID hoặc CCCD..." style="flex:1; background:#0f172a; border:1px solid #334155; padding:11px; border-radius:10px; color:#fff; outline:none;">
+    
+    <!-- Nút mở lịch sử -->
+    <button id="btn-show-history" onclick="hienLichSuChamCong()" style="background:#3b82f6; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer; transition:0.3s;" onmouseover="this.style.background='#2563eb'">
+        📋 Lịch sử
+    </button>
+</div>
+                
+                <!-- Headers danh sách -->
+               <div style="display:flex; padding:10px 20px; background:#0f172a; color:#64748b; font-size:11px; text-transform:uppercase; font-weight:bold; letter-spacing:1px;">
+    <div style="flex:1;">Hồ sơ đại sứ</div>
+    <div style="width:200px;">Vai trò & Ca làm</div>
+    <div style="width:150px;">Hiệu suất</div>
+    <!-- ÉP CỐ ĐỊNH 120PX CHO TIÊU ĐỀ -->
+    <div style="width:120px; text-align:left; padding-left: 5px;">Thao tác</div>
 </div>
 
-            <!-- CỘT PHẢI: DANH SÁCH NHÂN VIÊN (Scrollable) -->
-            <div style="flex:1; background:#1e293b; border-radius:12px; border:1px solid #334155; display:flex; flex-direction:column; overflow:hidden;">
-                <div style="padding:15px; border-bottom:1px solid #334155; display:flex; gap:10px;">
-                    <input type="text" placeholder="🔍 Tìm kiếm nhân viên..." style="flex:1; background:#0f172a; border:1px solid #334155; padding:10px; border-radius:8px; color:#fff;">
-                    <select style="background:#0f172a; border:1px solid #334155; color:#fff; padding:0 15px; border-radius:8px;"><option>Tất cả vai trò</option></select>
-                </div>
                 <div id="nhan-su-list-body" style="flex:1; overflow-y:auto; padding:15px;">
                     <!-- Danh sách nhân viên sẽ render vào đây -->
                 </div>
+<div id="pagination-controls" style="display:flex; justify-content:center; align-items:center; gap:8px; padding:15px; border-top:1px solid #1e293b; background:#161e2e;">
+    <!-- Các nút 1, 2, 3... sẽ tự động sinh ra ở đây -->
+</div>
             </div>
 
         </div>
     </div>
 </div>
+
+
+
+<!-- Modal Cài Đặt -->
+<div id="modal-cai-dat" style="display:none; position:fixed; top:0; bottom:80px; left:260px; right:0; background:rgba(2, 6, 23, 0.7); z-index:20000; font-family: 'Inter', sans-serif; padding: 20px;">
+    <div style="background:#0f172a; width:100%; height:100%; border-radius:16px; border:1px solid #334155; display:flex; flex-direction:column; overflow:hidden;">
+        <!-- Header -->
+        <div style="padding:20px; border-bottom:1px solid #334155; display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="margin:0; color:#fff; font-size:16px;">⚙️ CÀI ĐẶT HỆ THỐNG</h2>
+            <button onclick="document.getElementById('modal-cai-dat').style.display='none'" style="background:#ef4444; color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">ĐÓNG ✕</button>
+        </div>
+
+        <!-- Content -->
+        <div style="padding:25px;">
+            <label style="display:block; color:#94a3b8; font-size:12px; margin-bottom:15px; text-transform:uppercase;">🌐 Chọn ngôn ngữ (Select Language)</label>
+            <div style="display:flex; gap:15px;">
+                <!-- Tiếng Việt -->
+                <div onclick="doiNgonNgu('vi')" id="btn-lang-vi" style="flex:1; cursor:pointer; padding:20px; background:#1e293b; border:2px solid #3b82f6; border-radius:12px; text-align:center;">
+                    <img src="https://flagcdn.com" style="margin-bottom:10px;"><br>
+                    <span style="color:#fff; font-weight:bold;">Tiếng Việt</span>
+                </div>
+                <!-- Tiếng Anh -->
+                <div onclick="doiNgonNgu('en')" id="btn-lang-en" style="flex:1; cursor:pointer; padding:20px; background:#1e293b; border:2px solid #334155; border-radius:12px; text-align:center;">
+                    <img src="https://flagcdn.com" style="margin-bottom:10px;"><br>
+                    <span style="color:#fff; font-weight:bold;">English</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
