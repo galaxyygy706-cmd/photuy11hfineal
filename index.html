@@ -1667,11 +1667,13 @@ body {
 
 
 
-	
+
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 
 
 <script>
@@ -1714,15 +1716,36 @@ const BANG_LUONG = {
 /*3.KHAI BÁO KHO*/
 let dangSuaId = null;
 let currentDiscountPercent = 0;
-// 1. KHAI BÁO DỮ LIỆU KHO MẶC ĐỊNH (Để đẩy lên Firebase lần đầu)
+// 1. KHAI BÁO DỮ LIỆU KHO MẶC ĐỊNH
 const KHO_MASTER = [
-    { id: "thit_bo", ten: "🥩 Thịt bò", ton: 10, limit: 5, dvt: "kg" },
-    { id: "banh_pho", ten: "🍜 Bánh phở", ton: 20, limit: 5, dvt: "kg" },
-    { id: "nuoc_dung", ten: "🍲 Nước dùng", ton: 50, limit: 10, dvt: "lít" },
-    { id: "trung", ten: "🥚 Trứng", ton: 100, limit: 20, dvt: "quả" },
-    { id: "quay", ten: "🥖 Quẩy", ton: 200, limit: 30, dvt: "cái" },
-    { id: "sa_sung", ten: "🦑 Sá sùng", ton: 5, limit: 1, dvt: "kg" }
+    // Nguyên liệu chính
+    { id: "thit_bo", ten: "🥩 Thịt bò", ton: 10, limit: 5, dvt: "kg", loai: "chinh" },
+    { id: "banh_pho", ten: "🍜 Bánh phở", ton: 20, limit: 5, dvt: "kg", loai: "chinh" },
+    { id: "nuoc_dung", ten: "🍲 Nước dùng", ton: 50, limit: 10, dvt: "lít", loai: "chinh" },
+    { id: "xuong", ten: "🦴 Xương ống", ton: 30, limit: 10, dvt: "kg", loai: "chinh" },
+    { id: "sa_sung", ten: "🦑 Sá sùng", ton: 5, limit: 1, dvt: "kg", loai: "chinh" },
+
+    // Nguyên liệu phụ (Gia vị, rau, đồ dùng)
+    { id: "trung", ten: "🥚 Trứng", ton: 100, limit: 20, dvt: "quả", loai: "phu" },
+    { id: "quay", ten: "🥖 Quẩy", ton: 200, limit: 30, dvt: "cái", loai: "phu" },
+    { id: "giay_an", ten: "🧻 Giấy ăn", ton: 50, limit: 10, dvt: "hộp", loai: "phu" },
+    { id: "hanh", ten: "🌱 Hành lá", ton: 5, limit: 2, dvt: "kg", loai: "phu" },
+    { id: "toi", ten: "🧄 Tỏi", ton: 3, limit: 1, dvt: "kg", loai: "phu" },
+    { id: "chanh", ten: "🍋 Chanh tươi", ton: 5, limit: 2, dvt: "kg", loai: "phu" },
+    { id: "ot", ten: "🌶️ Ớt tươi", ton: 2, limit: 0.5, dvt: "kg", loai: "phu" },
+    { id: "tuong_ot", ten: "🥫 Tương ớt", ton: 10, limit: 3, dvt: "chai", loai: "phu" },
+    { id: "giấm_toi", ten: "🏺 Giấm tỏi", ton: 5, limit: 2, dvt: "lít", loai: "phu" },
+    { id: "rau_thom", ten: "🌿 Rau thơm", ton: 3, limit: 1, dvt: "kg", loai: "phu" },
+    { id: "gia_do", ten: "🌱 Giá đỗ", ton: 5, limit: 2, dvt: "kg", loai: "phu" },
+
+    // Đồ uống
+    { id: "tra_da", ten: "🍵 Trà đá", ton: 20, limit: 5, dvt: "lít", loai: "nuoc" },
+    { id: "cocacola", ten: "🥤 Coca-Cola", ton: 48, limit: 12, dvt: "lon", loai: "nuoc" },
+    { id: "bia", ten: "🍺 Bia lon", ton: 24, limit: 10, dvt: "lon", loai: "nuoc" }
 ];
+
+
+
 
 /*4. KHAI BÁO ĐỊNH LƯỢNG MÓN*/
 const RECIPES = {
@@ -1767,6 +1790,36 @@ const MENU_MASTER = [
 ];
 
 
+const THU_CHI_MASTER = [
+    { 
+        id: "TC001", 
+        loai: "thu", 
+        noi_dung: "DOANH THU PHỞ NGÀY 25/04", 
+        ghi_chu: "Ghi chú: Ca sáng",
+        danh_muc: "Doanh thu bán hàng", 
+        so_tien: 10000000, 
+        phuong_thuc: "Tiền mặt", 
+        nguoi_tao: "Nguyễn Kim Anh",
+        thoi_gian: "11:37:45 27/04/2026",
+        trang_thai: "Đã duyệt"
+    },
+    { 
+        id: "TC002", 
+        loai: "chi", 
+        noi_dung: "Tiền ga tháng 04", 
+        ghi_chu: "Hóa đơn đỏ",
+        danh_muc: "Điện nước gas", 
+        so_tien: 5000000, 
+        phuong_thuc: "Chuyển khoản", 
+        nguoi_tao: "Nguyễn Kim Anh",
+        thoi_gian: "11:29:30 27/04/2026",
+        trang_thai: "Chờ duyệt"
+    }
+];
+
+
+
+
 
 const firebaseConfig = {
   apiKey: "YXBpS2V5OiAiQUl6YVN5QXR3cjg3bDRwam5Jbk92TF85VE1rQlJpLXh6a3AyWUdBIiw=",
@@ -1800,22 +1853,20 @@ db.ref("orders").on("value", snap => {
 db.ref("kho").on("value", s => {
     const data = s.val();
     
-    // Kiểm tra nếu kho trống thì mới đẩy KHO_MASTER lên lần đầu
-    if (!data || data.length < 6) { 
-        db.ref("kho").set(KHO_MASTER);
-        console.log("📦 Đã khởi tạo dữ liệu kho MASTER!");
-    } else {
-        // CẬP NHẬT DỮ LIỆU VÀO BIẾN KHO TOÀN CỤC
-        KHO = data; 
-        console.log("⚡ Kho đã cập nhật số mới từ Server!");
+    // BƯỚC 1: Kiểm tra xem món đầu tiên đã có thuộc tính 'loai' chưa
+    const hasCategory = data && data[0] && data[0].hasOwnProperty('loai');
 
-        // TỰ ĐỘNG VẼ LẠI NẾU MODAL ĐANG MỞ
-        const modal = document.getElementById('modal-kho-hang');
-        if (modal && modal.style.display === 'flex') {
-            renderKho(); 
-        }
+    // BƯỚC 2: Nếu chưa có 'loai' HOẶC số lượng món thay đổi thì mới đẩy lên
+    if (!data || data.length !== KHO_MASTER.length || !hasCategory) { 
+        db.ref("kho").set(KHO_MASTER);
+        console.log("📦 Đã cập nhật danh sách KHO_MASTER (có Chính/Phụ) lên Firebase!");
+    } else {
+        KHO = data; 
+        console.log("⚡ Kho đã đồng bộ!");
+        renderKho(); 
     }
 });
+
 
 // LOAD REALTIME
 // 🔥 SYNC MENU CODE -> FIREBASE
@@ -1955,41 +2006,85 @@ function switchTab(id, btn) {
     }
 }
 
-/* 8. VẼ KHO PREMIUM - NÂNG CẤP TỪ BẢN CŨ */
+let currentFilter = 'all'; 
+
+function filterKho(type, element) {
+    // 1. Cập nhật biến lọc toàn cục
+    currentFilter = type;
+
+    // 2. Tìm tất cả các nút có class filter-tab
+    const tabs = document.querySelectorAll('.filter-tab');
+    
+    tabs.forEach(btn => {
+        btn.classList.remove('active');
+        // Ép kiểu CSS thủ công nếu class active chưa có trong file CSS
+        btn.style.background = "transparent";
+        btn.style.color = "#94a3b8";
+    });
+
+    // 3. Kích hoạt nút hiện tại
+    if (element) {
+        element.classList.add('active');
+        element.style.background = "#3b82f6";
+        element.style.color = "#fff";
+    }
+
+    // 4. Vẽ lại bảng
+    renderKho();
+}
+
+/* 8. VẼ KHO PREMIUM - ĐÃ SỬA LỖI CẬP NHẬT */
 function renderKho() {
+    const dataSource = (typeof KHO !== 'undefined') ? KHO : KHO_MASTER;
     const container = document.getElementById("kho-list-body");
-    if (!container) return;
+    
+    // Lấy giá trị tìm kiếm (nếu có ô input tìm kiếm)
+    const searchInput = document.getElementById("search-kho");
+    const filterText = searchInput ? searchInput.value.toLowerCase() : "";
+
+    if (!container || !dataSource) return;
 
     let h = "";
     let s = { tong: 0, sapHet: 0, hetHang: 0, duHang: 0 };
 
-    KHO.forEach((k, i) => {
+    // --- LOGIC LỌC KẾT HỢP (LOẠI + TÌM KIẾM) ---
+    const dataToRender = dataSource.filter(item => {
+        const matchType = (currentFilter === 'all' || item.loai === currentFilter);
+        const matchSearch = item.ten.toLowerCase().includes(filterText);
+        return matchType && matchSearch;
+    });
+
+    // Thống kê dựa trên toàn bộ dữ liệu
+    dataSource.forEach(k => {
+        const ton = Number(k.ton) || 0;
+        const limit = Number(k.limit) || 0;
+        s.tong++;
+        if (ton <= 0) s.hetHang++;
+        else if (ton <= limit) s.sapHet++;
+        else s.duHang++;
+    });
+
+    dataToRender.forEach((k) => {
+        const trueIndex = dataSource.findIndex(item => item.id === k.id);
         const ton = Number(k.ton) || 0;
         const limit = Number(k.limit) || 0;
         
-        // Tính % tồn kho (Dựa trên định mức hiện tại)
-        const phanTram = limit > 0 ? Math.min(100, Math.round((ton / (limit * 2)) * 100)) : 0;
+        // --- TÍNH %: Tồn kho bằng định mức là 100% ---
+        const phanTram = limit > 0 ? Math.round((ton / limit) * 100) : 0;
         
-        // Logic màu sắc và trạng thái
-        let color = "#10b981"; 
+        let color = "#10b981"; // Đủ (Xanh)
         let statusText = "Đủ hàng";
         
-        s.tong++;
-        if (ton <= 0) {
+        if (ton <= 0) { 
             color = "#ef4444"; 
-            statusText = "Hết hàng";
-            s.hetHang++;
-        } else if (ton <= limit) {
+            statusText = "Hết hàng"; 
+        } else if (ton <= limit) { 
             color = "#fbbf24"; 
-            statusText = "Sắp hết";
-            s.sapHet++;
-        } else {
-            s.duHang++;
+            statusText = "Sắp hết"; 
         }
 
        h += `
         <tr style="border-bottom:1px solid #0f172a55;">
-            <!-- Nguyên liệu -->
             <td style="padding:12px 20px;">
                 <div style="display:flex; flex-direction:column;">
                     <b style="color:#fff; font-size:14px; display:flex; align-items:center; gap:8px;">${k.ten}</b>
@@ -1997,41 +2092,35 @@ function renderKho() {
                 </div>
             </td>
 
-            <!-- Tồn kho & Progress Bar -->
+            <!-- Tồn kho & % (Hiển thị % bên dưới thanh bar) -->
             <td style="padding:12px 20px;">
                 <div style="color:${color}; font-weight:bold; font-size:15px;">${ton.toFixed(1)} <small>${k.dvt}</small></div>
                 <div style="width:120px; height:6px; background:#0f172a; border-radius:10px; margin-top:6px; overflow:hidden;">
-                    <div style="width:${phanTram}%; height:100%; background:${color}; border-radius:10px; transition:0.5s;"></div>
+                    <div style="width:${Math.min(100, phanTram)}%; height:100%; background:${color}; border-radius:10px; transition:0.5s;"></div>
                 </div>
-                <div style="font-size:10px; color:#64748b; margin-top:4px;">${phanTram}%</div>
+                <div style="font-size:10px; color:#64748b; margin-top:4px;">${phanTram}% so với định mức</div>
             </td>
 
-            <!-- ĐỊNH MỨC (Ô NHẬP LIỆU MỚI) -->
             <td style="padding:12px 20px;">
                 <div style="display:flex; align-items:center; gap:5px; background:#0f172a; padding:5px 10px; border-radius:8px; border:1px solid #334155; width: fit-content;">
-                    <input type="number" 
-                           value="${limit}" 
-                           onchange="updateLimitKho(${i}, this.value)"
-                           style="width:45px; background:transparent; border:none; color:#fff; text-align:center; font-weight:bold; outline:none; font-size:13px;"
-                    >
+                    <input type="number" value="${limit}" onchange="updateLimitKho(${trueIndex}, this.value)"
+                           style="width:45px; background:transparent; border:none; color:#fff; text-align:center; outline:none; font-size:13px; font-weight:bold;">
                     <span style="color:#64748b; font-size:11px;">${k.dvt}</span>
                 </div>
             </td>
 
-            <!-- Trạng thái -->
             <td style="padding:12px 20px;">
                 <span style="background:${color}22; color:${color}; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:bold; border:1px solid ${color}33;">
                     ${statusText}
                 </span>
             </td>
 
-            <!-- Thao tác -->
             <td style="padding:12px 20px; text-align:center;">
                 <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
-                    <button onclick="changeKho(${i}, -1)" style="background:#0f172a; border:1px solid #334155; color:#fff; width:30px; height:30px; border-radius:8px; cursor:pointer;">-</button>
-                    <input type="number" id="input-kho-${i}" value="0" style="width:45px; background:transparent; border:none; color:#fff; text-align:center; font-weight:bold; outline:none;">
-                    <button onclick="changeKho(${i}, 1)" style="background:#0f172a; border:1px solid #334155; color:#fff; width:30px; height:30px; border-radius:8px; cursor:pointer;">+</button>
-                    <button style="background:transparent; border:none; color:#64748b; margin-left:8px; cursor:pointer;"><i class="fas fa-ellipsis-v"></i></button>
+                    <button onclick="changeKho(${trueIndex}, -1)" style="background:#0f172a; border:1px solid #334155; color:#fff; width:30px; height:30px; border-radius:8px; cursor:pointer;">-</button>
+                    <!-- GIÁ TRỊ MẶC ĐỊNH LÀ 0 -->
+                    <input type="number" id="input-kho-${trueIndex}" value="0" style="width:40px; background:transparent; border:none; color:#fff; text-align:center; font-weight:bold; outline:none;">
+                    <button onclick="changeKho(${trueIndex}, 1)" style="background:#0f172a; border:1px solid #334155; color:#fff; width:30px; height:30px; border-radius:8px; cursor:pointer;">+</button>
                 </div>
             </td>
         </tr>`;
@@ -2040,29 +2129,16 @@ function renderKho() {
     container.innerHTML = h;
     
     // Cập nhật thống kê
-    document.getElementById('stat-kho-tong').innerText = s.tong;
-    document.getElementById('stat-kho-saphet').innerText = s.sapHet;
-    document.getElementById('stat-kho-hethang').innerText = s.hetHang;
-    document.getElementById('stat-kho-duhang').innerText = s.duHang;
+    if(document.getElementById('stat-kho-tong')) document.getElementById('stat-kho-tong').innerText = s.tong;
+    if(document.getElementById('stat-kho-saphet')) document.getElementById('stat-kho-saphet').innerText = s.sapHet;
+    if(document.getElementById('stat-kho-hethang')) document.getElementById('stat-kho-hethang').innerText = s.hetHang;
+    if(document.getElementById('stat-kho-duhang')) document.getElementById('stat-kho-duhang').innerText = s.duHang;
 }
 
-
-function moFormNhapKho() {
-    const search = prompt("Nhập tên nguyên liệu muốn tìm nhanh:");
-    if (!search) return;
-    const index = KHO.findIndex(k => k.ten.toLowerCase().includes(search.toLowerCase()));
-    if (index !== -1) {
-        document.getElementById(`input-kho-${index}`).focus();
-        document.getElementById(`input-kho-${index}`).style.borderColor = "#3b82f6";
-    } else {
-        alert("Không tìm thấy nguyên liệu này!");
-    }
-}
-
-/*9.THAY ĐỔI KHO-CẬP NHẬT LÊN FIREBASE*/
+/* 9. THAY ĐỔI KHO - ĐÃ FIX LỖI NHẢY ĐỊNH MỨC */
 function changeKho(index, direction) {
     const inputElement = document.getElementById(`input-kho-${index}`);
-    const amount = parseFloat(inputElement.value); // Dùng parseFloat để nhập được số lẻ (ví dụ 0.5kg thịt)
+    const amount = parseFloat(inputElement.value);
     const item = KHO[index];
 
     if (isNaN(amount) || amount <= 0) {
@@ -2072,39 +2148,250 @@ function changeKho(index, direction) {
 
     if (!confirm(`Bạn muốn thay đổi kho cho ${item.ten}?`)) return;
 
-    // Tính toán và ép về kiểu số có 1 chữ số thập phân
     let newTon = parseFloat((item.ton + (amount * direction)).toFixed(1));
-
     if (newTon < 0) {
         alert("Kho không đủ!");
         return;
     }
 
-    db.ref("kho/" + index).update({ ton: newTon }).then(() => {
+    // CẬP NHẬT CỤC BỘ (Quan trọng để giữ định mức đứng yên)
+    KHO[index].ton = newTon;
+
+    // Gửi lên Firebase
+    db.ref("kho/" + index).update({ 
+        ton: newTon 
+        // Tuyệt đối không gửi kèm trường limit ở đây
+    }).then(() => {
         inputElement.value = 0;
+        renderKho(); // Vẽ lại giao diện với tồn mới và định mức cũ
     });
 }
 
 /*10.HÀM CẬP NHẬT GIỚI HẠN */
 function updateLimitKho(index, giaTriMoi) {
     const val = parseFloat(giaTriMoi);
-    
     if (isNaN(val) || val < 0) {
-        alert("⚠️ Vui lòng nhập định mức hợp lệ!");
-        renderKho(); // Vẽ lại để khôi phục số cũ
+        renderKho();
         return;
     }
 
-    // 1. Cập nhật vào mảng KHO cục bộ
     KHO[index].limit = val;
 
-    // 2. (Tùy chọn) Cập nhật lên Firebase nếu bạn đang dùng
-    // firebase.database().ref('Kho/' + KHO[index].id).update({ limit: val });
-
-    // 3. Vẽ lại bảng để cập nhật màu sắc/trạng thái và thống kê ngay lập tức
-    renderKho();
-    console.log(`✅ Đã đổi định mức món [${KHO[index].ten}] thành: ${val}`);
+    // PHẢI LƯU LÊN FIREBASE ĐỂ KHÔNG BỊ GHI ĐÈ KHI THAY ĐỔI TỒN KHO
+    db.ref("kho/" + index).update({ 
+        limit: val 
+    }).then(() => {
+        console.log("✅ Đã lưu định mức lên server");
+        renderKho();
+    });
 }
+
+/* 9. THAY ĐỔI KHO - CÓ XÁC NHẬN & GHI NHẬT KÝ */
+async function changeKho(index, direction) {
+    const inputElement = document.getElementById(`input-kho-${index}`);
+    const amount = parseFloat(inputElement.value);
+    const item = KHO[index];
+
+    // 1. Kiểm tra số lượng nhập
+    if (isNaN(amount) || amount <= 0) {
+        alert("Vui lòng nhập số lượng hợp lệ vào ô trống!");
+        return;
+    }
+
+    // 2. Hiện thông báo xác nhận (Hành động này sẽ hiện khi bấm + hoặc -)
+    const hanhDong = direction > 0 ? "NHẬP THÊM" : "XUẤT KHO";
+    const xacNhan = confirm(`Bạn xác nhận ${hanhDong} ${amount} ${item.dvt} cho món: ${item.ten}?`);
+    
+    if (!xacNhan) return;
+
+    // 3. Tính toán tồn mới
+    let newTon = parseFloat((item.ton + (amount * direction)).toFixed(1));
+    if (newTon < 0) {
+        alert("Lỗi: Số lượng tồn kho không đủ để xuất!");
+        return;
+    }
+
+    try {
+        // 4. Cập nhật tồn kho lên Firebase (Chỉ update field 'ton')
+        await db.ref("kho/" + index).update({ ton: newTon });
+
+        // 5. GHI NHẬT KÝ BIẾN ĐỘNG (Để hiện bên Tab Nhật ký)
+        await db.ref("lich_su_kho").push({
+            thoi_gian: new Date().toLocaleString('vi-VN'),
+            ten_sp: item.ten,
+            hanh_dong: direction > 0 ? "Nhập kho" : "Xuất kho",
+            so_luong: amount,
+            dvt: item.dvt,
+            ton_moi: newTon,
+            nguoi_thuc_hien: "Nguyễn Kim Anh" // Tên cố định theo ảnh của bạn
+        });
+
+        // 6. Reset giao diện
+        inputElement.value = 0;
+        alert("Đã cập nhật kho thành công!");
+        
+    } catch (error) {
+        console.error("Lỗi cập nhật:", error);
+        alert("Có lỗi xảy ra khi kết nối Firebase!");
+    }
+}
+
+function listenLichSu() {
+    db.ref("lich_su_kho").limitToLast(50).on("value", s => {
+        const data = s.val();
+        const container = document.getElementById("history-list-body");
+        if (!container) return;
+
+        let h = "";
+        if (data) {
+            const list = Object.values(data).reverse();
+            list.forEach(log => {
+                const isNhap = log.hanh_dong && log.hanh_dong.toLowerCase().includes("nhập");
+                
+                h += `
+                <tr style="border-bottom:1px solid #334155; height: 50px;">
+                    <td style="padding:10px 20px; color:#64748b; width: 18%; font-size: 11px;">${log.thoi_gian}</td>
+                    <td style="padding:10px 20px; width: 22%;"><b style="color:#fff;">${log.ten_sp}</b></td>
+                    <td style="padding:10px 20px; width: 12%;">
+                        <span style="color:${isNhap ? '#10b981' : '#ef4444'}; font-weight:bold;">
+                            ${isNhap ? '↓ Nhập' : '↑ Xuất'}
+                        </span>
+                    </td>
+                    <td style="padding:10px 20px; width: 15%; text-align: right; font-weight:bold; color:#fff;">
+                        ${log.so_luong} <small style="color:#64748b;">${log.dvt || ''}</small>
+                    </td>
+                    <td style="padding:10px 20px; width: 18%; color:#3b82f6; text-align: center;">
+                        ${log.nguoi_thuc_hien || "Admin"}
+                    </td>
+                    <td style="padding:10px 20px; width: 15%; color:#10b981; font-weight:bold; text-align: right;">
+                        ${log.ton_moi || 0}
+                    </td>
+                </tr>`;
+            });
+        } else {
+            h = `<tr><td colspan="6" style="padding:40px; text-align:center; color:#64748b;">Chưa có hoạt động nào</td></tr>`;
+        }
+        container.innerHTML = h;
+    });
+}
+// Gọi hàm này 1 lần khi ứng dụng khởi chạy
+listenLichSu();
+
+function moLichSuKho() {
+    const khungLichSu = document.getElementById('khung-lich-su');
+    
+    if (khungLichSu.style.display === 'none') {
+        // Nếu đang ẩn thì hiện lên
+        khungLichSu.style.display = 'block';
+        // Cuộn xuống để người dùng thấy bảng vừa hiện
+        khungLichSu.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        // Nếu đang hiện thì ẩn đi (bấm lần 2 để đóng)
+        khungLichSu.style.display = 'none';
+    }
+}
+
+
+function switchTabKho(tab, element) {
+    const vTon = document.getElementById('view-ton-kho');
+    const vLichSu = document.getElementById('view-lich-su-kho');
+    
+    if(vTon) vTon.style.display = (tab === 'kho' ? 'block' : 'none');
+    if(vLichSu) vLichSu.style.display = (tab === 'lichsu' ? 'block' : 'none');
+
+    document.querySelectorAll('.tab-kho-item').forEach(el => {
+        el.style.color = '#94a3b8';
+        el.style.borderBottom = 'none';
+    });
+    if(element) {
+        element.style.color = '#3b82f6';
+        element.style.borderBottom = '2px solid #3b82f6';
+    }
+}
+
+// Xóa lịch sử (Xóa trắng nhánh trên Firebase)
+function xoaLichSu() {
+    // 1. Thiết lập mật khẩu admin của bạn ở đây
+    const ADMIN_PASSWORD = "123"; 
+
+    // 2. Hỏi mật khẩu trước khi cho phép xóa
+    const password = prompt("Chức năng này chỉ dành cho Admin. Vui lòng nhập mật khẩu xác nhận:");
+
+    if (password === null) return; // Người dùng bấm Hủy
+
+    if (password === ADMIN_PASSWORD) {
+        // Nếu đúng mật khẩu thì mới hỏi xác nhận lần cuối
+        if (confirm("XÁC NHẬN QUAN TRỌNG: Bạn có chắc chắn muốn xóa toàn bộ Nhật ký biến động kho không? Hành động này không thể hoàn tác!")) {
+            db.ref("lich_su_kho").remove()
+                .then(() => {
+                    alert("✅ Đã xóa sạch nhật ký kho.");
+                })
+                .catch((error) => {
+                    alert("❌ Lỗi khi xóa: " + error.message);
+                });
+        }
+    } else {
+        alert("⚠️ Sai mật khẩu! Bạn không có quyền thực hiện chức năng này.");
+    }
+}
+
+function xuatExcelKho() {
+    // Kiểm tra xem thư viện đã load chưa
+    if (typeof XLSX === 'undefined') {
+        alert("Thư viện Excel chưa được tải. Vui lòng kiểm tra lại kết nối mạng hoặc link script!");
+        return;
+    }
+
+    const dataSource = (typeof KHO !== 'undefined') ? KHO : KHO_MASTER;
+    
+    // Tạo bảng dữ liệu
+    const dataExcel = dataSource.map((item, i) => ({
+        "STT": i + 1,
+        "Nguyên liệu": item.ten,
+        "Tồn kho": item.ton,
+        "Đơn vị": item.dvt,
+        "Định mức": item.limit,
+        "Tỷ lệ": item.limit > 0 ? Math.round((item.ton / item.limit) * 100) + "%" : "0%"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataExcel);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Kho");
+    
+    // Xuất file
+    XLSX.writeFile(workbook, "Bao_cao_ton_kho.xlsx");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*11.Vẽ hội viên*/
@@ -5186,11 +5473,13 @@ function toggleSideMenu() {
     
     if (!side || !overlay) return;
 
-    // Mở menu
+    // Mở menu: Cho hiện lên và trượt ra
+    side.style.visibility = 'visible';
     side.style.left = '0px';
+    side.style.boxShadow = '10px 0 30px rgba(0,0,0,0.5)'; // Hiện bóng đổ khi mở
     overlay.style.display = 'block';
 
-    // Đổ dữ liệu từ thẻ nhân viên chính sang thẻ đen
+    // Đổ dữ liệu nhân viên (Giữ nguyên logic của bạn)
     if(document.getElementById('side-role')) 
         document.getElementById('side-role').innerText = document.getElementById('main-staff-role')?.innerText || "ĐẠI SỨ";
     
@@ -5207,11 +5496,14 @@ function toggleSideMenu() {
 function dongSideMenu() {
     const side = document.getElementById('sidebar-den');
     const overlay = document.getElementById('side-overlay');
-    if (side) side.style.left = '-300px';
+    
+    if (side) {
+        side.style.left = '-320px'; // Đẩy xa hơn một chút để ẩn cả bóng đổ
+        side.style.visibility = 'hidden'; // Ẩn triệt để, không để lại vệt mờ
+        side.style.boxShadow = 'none'; // Tắt bóng đổ để mép màn hình sạch
+    }
     if (overlay) overlay.style.display = 'none';
 }
-
-// Đã loại bỏ phần ghi đè hàm dangXuat cũ
 
 
 /*90.đổi tab active*/
@@ -6058,16 +6350,16 @@ function moChucNangTuSidebar(type) {
     console.log("--- Chuyển mục: " + type + " ---");
 
     // 1. Tuyệt đối KHÔNG gọi dongSideMenu() hay toggleSidebar() 
-    // Việc này giúp thanh Menu bên trái luôn đứng im tại chỗ.
 
-    // 2. Dọn dẹp: Chỉ ẩn các "Lớp phủ" (Modals) đang mở để tránh chồng chéo
-    // Thêm tất cả ID của các màn hình chức năng vào mảng này
+    // 2. Dọn dẹp: Ẩn các Modals đang mở (Đã thêm modal-thu-chi)
     const dsModal = [
         'modal-quan-ly-nhan-su', 
         'modal-qr-list', 
         'modal-baocao-container', 
         'modal-hoivien',
-        'modal-kho-hang' // Thêm ID màn hình kho nếu có
+        'modal-kho-hang',
+        'modal-thu-chi', // <-- Thêm ID modal thu chi vào đây
+        'modal-cai-dat'
     ];
     
     dsModal.forEach(id => {
@@ -6076,8 +6368,14 @@ function moChucNangTuSidebar(type) {
     });
 
     // 3. Mở chức năng tương ứng
-    // Lưu ý: Các hàm bên dưới chỉ làm nhiệm vụ hiện Modal lên (Overlay)
     switch (type) {
+        case 'thuchi': // <-- THÊM CASE MỚI Ở ĐÂY
+            const modalThuChi = document.getElementById('modal-thu-chi');
+            if (modalThuChi) {
+                modalThuChi.style.display = 'block';
+                if (typeof listenThuChi === 'function') listenThuChi(); // Gọi hàm tải dữ liệu
+            }
+            break;
         case 'baocao':
             if (typeof moModalBaoCao === 'function') moModalBaoCao();
             break;
@@ -6094,7 +6392,6 @@ function moChucNangTuSidebar(type) {
             if (typeof moQuanLyNhanSu === 'function') moQuanLyNhanSu();
             break;
         case 'tongquan':
-            // Nếu bấm Tổng quan, chỉ cần ẩn hết các lớp phủ là Sơ đồ bàn/Đơn hàng sẽ lộ ra
             console.log("Đã quay lại màn hình Sơ đồ bàn & Đơn hàng");
             break;
         case 'caidat':
@@ -6104,45 +6401,470 @@ function moChucNangTuSidebar(type) {
     }
 }
 
-/* TÍNH NĂNG NHẤN ESC ĐỂ THOÁT TẤT CẢ CÁC TAB - BẢN FIX HỘI VIÊN & BÁO CÁO */
+/* TÍNH NĂNG NHẤN ESC THÔNG MINH */
 window.addEventListener('keydown', function(event) {
     if (event.key === "Escape" || event.keyCode === 27) {
-        console.log("⌨️ Đã nhấn Esc - Đang đóng các tab đang mở...");
+        
+        const modalChiTiet = document.getElementById('modal-ct-thu-chi');
+        
+        // 1. Nếu đang mở "Xem chi tiết thu chi", chỉ đóng nó và dừng lại (không thoát hết)
+        if (modalChiTiet && modalChiTiet.style.display !== 'none') {
+            console.log("⌨️ Đã nhấn Esc - Chỉ đóng Xem chi tiết Thu Chi");
+            modalChiTiet.style.setProperty('display', 'none', 'important');
+            return; // Dừng hàm tại đây để giữ lại giao diện Thu Chi chính
+        }
 
-        // 1. Cập nhật danh sách ID khớp chính xác với hệ thống của bạn
+        // 2. Nếu không mở chi tiết, tiến hành đóng tất cả các tab khác như bình thường
+        console.log("⌨️ Đã nhấn Esc - Đang đóng các tab hệ thống...");
         const dsTab = [
+            'modal-thu-chi',         
             'modal-quan-ly-nhan-su', 
-            'modal-hoivien', // Tab Hội viên
-            'modal-bao-cao-tong',  // Tab Báo cáo (THÊM DÒNG NÀY)
-            'modal-baocao-chitiet',    // Chi tiết báo cáo (nếu có)
+            'modal-hoivien', 
+            'modal-bao-cao-tong',  
+            'modal-baocao-chitiet',    
             'modal-lich-su-khach', 
             'modal-qr-list',
             'modal-kho-hang'
         ];
 
-        // 2. Chạy vòng lặp để ẩn tất cả
         dsTab.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                // Ép ẩn bằng !important để tránh bị đè bởi inline style
                 el.style.setProperty('display', 'none', 'important');
             }
         });
 
-        // 3. Reset trạng thái sửa
-        if (typeof dangSuaId !== 'undefined') dangSuaId = null;
+        // 3. Reset trạng thái Sửa của Thu Chi
+        const btnLuuTC = document.getElementById('btn-luu-tc');
+        if (btnLuuTC && btnLuuTC.innerText === "Cập nhật") {
+            btnLuuTC.innerText = "Lưu";
+            btnLuuTC.style.background = "#3b82f6";
+            btnLuuTC.onclick = themThuChi;
+            if(document.getElementById('tien-tc')) document.getElementById('tien-tc').value = "";
+            if(document.getElementById('nd-tc')) document.getElementById('nd-tc').value = "";
+        }
 
-        // 4. Reset form nhân sự (nếu đang mở)
+        // 4. Reset các trạng thái khác
+        if (typeof dangSuaId !== 'undefined') dangSuaId = null;
         if (typeof resetFormNV === 'function') resetFormNV();
     }
 });
 
 
 
+// Hàm tự động thêm dấu phẩy khi gõ
+function formatCurrencyInput(input) {
+    // 1. Xóa tất cả ký tự không phải số
+    let value = input.value.replace(/\D/g, "");
+    
+    // 2. Định dạng lại có dấu phẩy
+    if (value !== "") {
+        input.value = Number(value).toLocaleString('en-US');
+    } else {
+        input.value = "";
+    }
+}
+
+// CẬP NHẬT LẠI HÀM LƯU (themThuChi)
+async function themThuChi() {
+    const loai = document.getElementById('loai-tc').value;
+    const tienRaw = document.getElementById('tien-tc').value.replace(/,/g, "");
+    const soTien = parseFloat(tienRaw);
+    const noiDung = document.getElementById('nd-tc').value;
+    const danhMuc = document.getElementById('dm-tc').value;
+    const phuongThuc = document.getElementById('pt-tc').value;
+    
+    // LẤY NGÀY TỪ Ô NHẬP
+    const ngayChon = document.getElementById('ngay-tc').value; 
+    let thoiGianLuu;
+
+    if (ngayChon) {
+        // Nếu có chọn ngày: Lấy ngày đó + giờ hiện tại
+        const gioHienTai = new Date().toLocaleTimeString('vi-VN');
+        thoiGianLuu = new Date(ngayChon).toLocaleDateString('vi-VN') + ", " + gioHienTai;
+    } else {
+        // Nếu không chọn: Mặc định là bây giờ
+        thoiGianLuu = new Date().toLocaleString('vi-VN');
+    }
+
+    if (!soTien || !noiDung) {
+        alert("Vui lòng nhập đầy đủ Số tiền và Nội dung!");
+        return;
+    }
+
+    const data = {
+        thoi_gian: thoiGianLuu,
+        loai: loai,
+        so_tien: soTien,
+        noi_dung: noiDung,
+        danh_muc: danhMuc,
+        phuong_thuc: phuongThuc,
+        trang_thai: "Đã duyệt",
+        nguoi_tao: "Nguyễn Kim Anh"
+    };
+
+    try {
+        await db.ref("thu_chi").push(data);
+        // Reset form (giữ lại ngày để nếu nhập nhiều đơn cùng ngày thì đỡ phải chọn lại)
+        document.getElementById('tien-tc').value = "";
+        document.getElementById('nd-tc').value = "";
+    } catch (e) {
+        alert("Lỗi khi lưu: " + e.message);
+    }
+}
 
 
+// 2. Lắng nghe và Render Thu Chi
+let chartInstances = {};
+
+function listenThuChi() {
+    db.ref("thu_chi").on("value", s => {
+        const data = s.val();
+        const container = document.getElementById("thu-chi-body");
+        if (!container) return;
+
+        let h = "";
+        let totalAllThu = 0, totalAllChi = 0;
+        let thuToday = 0, thuYesterday = 0;
+        let chiToday = 0, chiYesterday = 0;
+
+        // Object để gom nhóm dữ liệu theo ngày cho biểu đồ
+        let dailyThu = {}; 
+        let dailyChi = {};
+
+        const now = new Date();
+        const getDateOnly = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+        const today = getDateOnly(now);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        const list = data ? Object.entries(data) : [];
+        const listDisplay = [...list].reverse();
+
+        // =========================
+        // 1. LOOP TÍNH TOÁN & GOM NHÓM BIỂU ĐỒ
+        // =========================
+        list.forEach(([key, val]) => {
+            const tien = Number(val.so_tien) || 0;
+            const isThu = val.loai === "thu";
+
+            if (!val.thoi_gian) return;
+
+            // Tách lấy phần ngày để gom nhóm: "27/04/2026"
+            const datePart = val.thoi_gian.split(',')[0].trim(); 
+            const [d, m, y] = datePart.split('/');
+            const itemDate = new Date(y, m - 1, d);
+            const dateKey = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`; // Định dạng YYYY-MM-DD để sort chuẩn
+
+            // Gom nhóm cho biểu đồ
+            if (isThu) {
+                totalAllThu += tien;
+                dailyThu[dateKey] = (dailyThu[dateKey] || 0) + tien;
+                if (itemDate.getTime() === today.getTime()) thuToday += tien;
+                if (itemDate.getTime() === yesterday.getTime()) thuYesterday += tien;
+            } else {
+                totalAllChi += tien;
+                dailyChi[dateKey] = (dailyChi[dateKey] || 0) + tien;
+                if (itemDate.getTime() === today.getTime()) chiToday += tien;
+                if (itemDate.getTime() === yesterday.getTime()) chiYesterday += tien;
+            }
+        });
+
+        // =========================
+        // 2. RENDER TABLE
+        // =========================
+        listDisplay.forEach(([key, val]) => {
+            const isThu = val.loai === "thu";
+            const soTien = Number(val.so_tien) || 0;
+            const rowColor = isThu ? '#10b981' : '#ef4444';
+            const rowIcon = isThu ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+
+            let iconDm = "📁";
+            if(val.danh_muc === "Doanh thu bán hàng") iconDm = "💹";
+            if(val.danh_muc === "Lương nhân viên") iconDm = "👤";
+            if(val.danh_muc === "Nguyên liệu") iconDm = "🥩";
+            if(val.danh_muc === "Chi phí năng lượng") iconDm = "🔥";
+
+            let iconPt = val.phuong_thuc === "Chuyển khoản" ? "🏛️" : "💵";
+
+            h += `
+            <tr style="border-bottom:1px solid #33415555;" onmouseover="this.style.background='#0f172a55'">
+                <td style="padding:12px 20px;">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <i class="fas ${rowIcon}" style="color:${rowColor}"></i>
+                        <span style="color:${rowColor}; font-weight:bold; font-size:11px;">${isThu ? 'THU' : 'CHI'}</span>
+                    </div>
+                </td>
+                <td style="padding:12px 20px; color:#fff;">${val.noi_dung}</td>
+                <td style="padding:12px 20px; color:#94a3b8;">${iconDm} ${val.danh_muc || 'Khác'}</td>
+                <td style="padding:12px 20px; text-align:right; color:${rowColor}; font-weight:bold;">${soTien.toLocaleString()}đ</td>
+                <td style="padding:12px 20px; text-align:right;">${iconPt}</td>
+                <td style="padding:12px 20px; text-align:center;">
+                    <span style="background:#10b98122; color:#10b981; padding:3px 8px; border-radius:10px; font-size:11px;">${val.trang_thai || 'Đã duyệt'}</span>
+                </td>
+                <td style="padding:12px 20px; text-align:center;">
+                    <div style="display:flex; justify-content:center; gap:6px;">
+                        <button onclick="xemChiTietTC('${key}')" style="background:#3b82f622; border:none; color:#3b82f6; width:30px; height:30px; border-radius:6px;"><i class="fas fa-eye"></i></button>
+                        <button onclick="suaTC('${key}')" style="background:#fbbf2422; border:none; color:#fbbf24; width:30px; height:30px; border-radius:6px;"><i class="fas fa-edit"></i></button>
+                        <button onclick="xoaTC('${key}')" style="background:#ef444422; border:none; color:#ef4444; width:30px; height:30px; border-radius:6px;"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+        container.innerHTML = h || '<tr><td colspan="7" style="text-align:center; padding:40px; color:#64748b;">Chưa có dữ liệu</td></tr>';
+
+        // =========================
+        // 3. LOGIC % CHUẨN & UPDATE UI
+        // =========================
+        const calcPercent = (t, y) => (y <= 0) ? (t > 0 ? 100 : 0) : ((t - y) / y) * 100;
+        const renderPercent = (id, val) => {
+            const el = document.getElementById(id); if (!el) return;
+            const isUp = val >= 0; const color = isUp ? '#10b981' : '#ef4444';
+            el.innerHTML = `<span style="color:${color}; font-weight:bold; background:${color}22; padding:2px 6px; border-radius:6px;">${isUp ? '↑' : '↓'} ${Math.abs(val).toFixed(1)}%</span><span style="color:#64748b;"> so với hôm qua</span>`;
+        };
+
+        document.getElementById('tong-thu').innerText = totalAllThu.toLocaleString() + "đ";
+        document.getElementById('tong-chi').innerText = totalAllChi.toLocaleString() + "đ";
+        document.getElementById('loi-nhuan').innerText = (totalAllThu - totalAllChi).toLocaleString() + "đ";
+
+        renderPercent('percent-thu', calcPercent(thuToday, thuYesterday));
+        renderPercent('percent-chi', calcPercent(chiToday, chiYesterday));
+        renderPercent('percent-ln', calcPercent(thuToday - chiToday, thuYesterday - chiYesterday));
+
+        // =========================
+        // 4. XỬ LÝ DỮ LIỆU BIỂU ĐỒ (THEO NGÀY)
+        // =========================
+        // Lấy danh sách tất cả các ngày có dữ liệu và sắp xếp tăng dần
+        const allDates = [...new Set([...Object.keys(dailyThu), ...Object.keys(dailyChi)])].sort();
+        
+        const chartDataThu = allDates.map(d => dailyThu[d] || 0);
+        const chartDataChi = allDates.map(d => dailyChi[d] || 0);
+        const chartDataLN = allDates.map(d => (dailyThu[d] || 0) - (dailyChi[d] || 0));
+
+        // Vẽ biểu đồ (Lấy tối đa 15 ngày gần nhất để biểu đồ đẹp)
+        renderSparkline('chart-thu', '#10b981', chartDataThu.slice(-15));
+        renderSparkline('chart-chi', '#ef4444', chartDataChi.slice(-15));
+        renderSparkline('chart-ln', '#3b82f6', chartDataLN.slice(-15));
+    });
+}
+
+// Hàm vẽ biểu đồ phụ trợ
+function renderSparkline(id, color, points) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+
+    if (chartInstances[id]) {
+        chartInstances[id].destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+    
+    // Tạo Gradient chuyên nghiệp hơn
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, color + '66'); // Đậm hơn một chút ở đỉnh
+    gradient.addColorStop(1, color + '00'); // Trong suốt hoàn toàn ở đáy
+
+    chartInstances[id] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: points.map((_, i) => i),
+            datasets: [{
+                data: points,
+                borderColor: color,
+                borderWidth: 2,
+                fill: true,
+                backgroundColor: gradient,
+                tension: 0.4, 
+                pointRadius: 0,
+                pointHoverRadius: 4, // Hiện điểm tròn nhỏ khi di chuột vào (giống soi giá chứng khoán)
+                pointHitRadius: 10,  // Dễ bắt điểm hơn khi di chuột gần đường kẻ
+                borderCapStyle: 'round',
+                borderJoinStyle: 'round'
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false },
+                tooltip: { 
+                    enabled: true, // Bật lại tooltip nhưng cấu hình tối giản
+                    intersect: false,
+                    mode: 'index',
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y.toLocaleString() + 'đ';
+                        },
+                        title: () => null // Ẩn tiêu đề tooltip cho gọn
+                    }
+                }
+            },
+            scales: {
+                x: { display: false },
+                y: { 
+                    display: false,
+                    // Thêm đệm để đường kẻ không bị chạm sát mép trên/dưới của Card
+                    suggestedMin: Math.min(...points) * 0.9,
+                    suggestedMax: Math.max(...points) * 1.1
+                }
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+            animation: {
+                duration: 1000,
+                easing: 'easeInOutQuart' // Hiệu ứng vẽ đường kẻ mượt hơn
+            }
+        }
+    });
+}
+
+// 3. Tích hợp vào luồng dữ liệu Firebase
+function updateChartsAndPercents(dataThu, dataChi) {
+    // Vẽ biểu đồ thu (lấy 10 giao dịch cuối)
+    renderSparkline('chart-thu', '#10b981', dataThu.slice(-10));
+    
+    // Vẽ biểu đồ chi (lấy 10 giao dịch cuối)
+    renderSparkline('chart-chi', '#ef4444', dataChi.slice(-10));
+    
+    // Vẽ biểu đồ lợi nhuận (giả lập dựa trên cặp thu - chi)
+    const dataLN = dataThu.slice(-10).map((v, i) => v - (dataChi.slice(-10)[i] || 0));
+    renderSparkline('chart-ln', '#3b82f6', dataLN);
+}
+
+function xoaThuChi(key) {
+    if(confirm("Xóa giao dịch này?")) db.ref("thu_chi/"+key).remove();
+}
+
+// Chạy khởi tạo
+listenThuChi();
+
+// 1. XÓA GIAO DỊCH
+async function xoaTC(key) {
+    if (confirm("Bạn có chắc chắn muốn xóa giao dịch này không?")) {
+        try {
+            await db.ref("thu_chi/" + key).remove();
+            alert("Đã xóa thành công!");
+        } catch (e) {
+            alert("Lỗi khi xóa: " + e.message);
+        }
+    }
+}
+
+// 2. XEM CHI TIẾT (Dùng alert để nhanh hoặc console, bạn có thể tạo modal riêng nếu muốn)
+function xemChiTietTC(key) {
+    db.ref("thu_chi/" + key).once("value", s => {
+        const v = s.val();
+        if (!v) return;
+
+        const isThu = v.loai === 'thu';
+        const modal = document.getElementById('modal-ct-thu-chi');
+        const content = document.getElementById('ct-tc-content');
+
+        // 1. Chuẩn bị phần Lịch sử (màu vàng)
+        let lichSuHTML = "";
+        if (v.lich_su_sua && v.lich_su_sua.length > 0) {
+            lichSuHTML = `
+                <div style="margin-top:20px; border-top:1px dashed #334155; padding-top:15px;">
+                    <div style="font-size:11px; color:#fbbf24; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; font-weight:bold;">
+                        <i class="fas fa-history"></i> Lịch sử chỉnh sửa
+                    </div>
+                    <div style="max-height: 150px; overflow-y: auto; padding-right: 5px;">
+                        ${v.lich_su_sua.slice().reverse().map(ls => `
+                            <div style="background:#0f172a; padding:10px; border-radius:8px; margin-bottom:8px; border:1px solid #1e293b;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:5px; font-size:11px;">
+                                    <span style="color:#94a3b8;">${ls.thoi_gian_sua}</span>
+                                    <span style="color:#3b82f6; font-weight:600;">${ls.nguoi_sua}</span>
+                                </div>
+                                <div style="color:#64748b; font-size:11px; line-height:1.4;">
+                                    <div>Cũ: <span style="color:#cbd5e1;">${ls.noi_dung_cu} (${Number(ls.so_tien_cu).toLocaleString()}đ)</span></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2. Đổ toàn bộ dữ liệu (Dùng dấu ` để bao toàn bộ)
+        content.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="font-size:28px; font-weight:bold; color:${isThu ? '#10b981' : '#ef4444'};">
+                    ${isThu ? '+' : '-'}${Number(v.so_tien).toLocaleString()}đ
+                </div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:10px; border-top:1px dashed #334155; padding-top:15px;">
+                <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Trạng thái:</span><span style="color:#10b981; font-weight:bold;">${v.trang_thai || 'Đã duyệt'}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Nội dung:</span><span style="color:#fff;">${v.noi_dung}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Danh mục:</span><span style="color:#fff;">${v.danh_muc || 'Khác'}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Thời gian tạo:</span><span style="color:#fff;">${v.thoi_gian}</span></div>
+                <div style="display:flex; justify-content:space-between;"><span style="color:#64748b;">Người tạo:</span><span style="color:#3b82f6;">${v.nguoi_tao}</span></div>
+            </div>
+
+            <!-- Phần Thông tin Duyệt -->
+            <div style="display:flex; justify-content:space-between; margin-top:10px; border-top:1px dashed #334155; padding-top:10px;">
+                <span style="color:#64748b;">Người duyệt:</span>
+                <span style="color:#10b981;">${v.nguoi_duyet || '---'}</span>
+            </div>
+
+            <!-- Phần Lịch sử sửa (Nếu có) -->
+            ${lichSuHTML}
+        `;
+
+        modal.style.display = 'flex';
+    });
+}
 
 
+// 3. SỬA GIAO DỊCH
+async function suaTC(key) {
+    db.ref("thu_chi/" + key).once("value", s => {
+        const v = s.val();
+        if (!v) return;
+
+        // Đổ dữ liệu lên form nhập
+        document.getElementById('loai-tc').value = v.loai;
+        document.getElementById('tien-tc').value = Number(v.so_tien).toLocaleString('en-US');
+        document.getElementById('nd-tc').value = v.noi_dung;
+        document.getElementById('dm-tc').value = v.danh_muc;
+        document.getElementById('pt-tc').value = v.phuong_thuc;
+
+        const btnLuu = document.getElementById('btn-luu-tc');
+        btnLuu.innerText = "Cập nhật";
+        btnLuu.style.background = "#fbbf24";
+
+        btnLuu.onclick = async function() {
+            const tienMoi = parseFloat(document.getElementById('tien-tc').value.replace(/,/g, ""));
+            
+            // GHI LỊCH SỬ CHỈNH SỬA
+            const lichSuMoi = {
+                thoi_gian_sua: new Date().toLocaleString('vi-VN'),
+                nguoi_sua: "Nguyễn Kim Anh",
+                noi_dung_cu: v.noi_dung,
+                so_tien_cu: v.so_tien
+            };
+            const danhSachLichSu = v.lich_su_sua || [];
+            danhSachLichSu.push(lichSuMoi);
+
+            await db.ref("thu_chi/" + key).update({
+                loai: document.getElementById('loai-tc').value,
+                so_tien: tienMoi,
+                noi_dung: document.getElementById('nd-tc').value,
+                danh_muc: document.getElementById('dm-tc').value,
+                phuong_thuc: document.getElementById('pt-tc').value,
+                lich_su_sua: danhSachLichSu // Lưu mảng lịch sử vào Firebase
+            });
+
+            alert("Đã cập nhật!");
+            btnLuu.innerText = "Lưu";
+            btnLuu.style.background = "#3b82f6";
+            btnLuu.onclick = themThuChi;
+        };
+    });
+}
 
 
 
@@ -6343,75 +7065,127 @@ window.addEventListener('keydown', function(event) {
     
     <div style="background:#0f172a; width:100%; height:100%; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; border:1px solid #334155; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position: relative;">
         
-        <!-- Nút đóng nhanh -->
+        <!-- Nút đóng -->
         <button onclick="dongKhoHang()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:20px; cursor:pointer; color:#94a3b8; z-index:10;">&times;</button>
 
-        <div style="flex:1; overflow-y:auto; padding:25px; display:flex; flex-direction:column; gap:20px;">
+        <!-- Tab Navigation (Giống bên Nhân sự) -->
+        <div style="display:flex; gap:25px; padding:20px 25px 0; border-bottom:1px solid #334155;">
+            <div class="tab-kho-item active" onclick="switchTabKho('kho', this)" style="padding-bottom:12px; cursor:pointer; font-weight:bold; font-size:14px; color:#3b82f6; border-bottom:2px solid #3b82f6;">
+                <i class="fas fa-boxes" style="margin-right:8px;"></i>Tồn kho hiện tại
+            </div>
+            <div class="tab-kho-item" onclick="switchTabKho('lichsu', this)" style="padding-bottom:12px; cursor:pointer; font-weight:bold; font-size:14px; color:#94a3b8;">
+                <i class="fas fa-history" style="margin-right:8px;"></i>Nhật ký biến động
+            </div>
+        </div>
+
+        <div id="content-kho-main" style="flex:1; overflow-y:auto; padding:20px 25px;">
             
-            <!-- Header -->
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <h2 style="margin:0; font-size:22px; color:#fff;">📦 Quản lý kho chuyên sâu</h2>
-                    <p style="margin:5px 0 0; font-size:12px; color:#94a3b8;">Theo dõi và quản lý tất cả nguyên liệu trong kho</p>
+            <!-- VIEW 1: QUẢN LÝ KHO (TỒN KHO) -->
+            <div id="view-ton-kho">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div>
+                        <h2 style="margin:0; font-size:20px; color:#fff;">📦 Danh mục tồn kho</h2>
+                        <p style="margin:5px 0 0; font-size:12px; color:#64748b;">Quản lý định mức và số lượng nguyên liệu thực tế</p>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-top-kho" 
+        onclick="xuatExcelKho()" 
+        style="background:#1e293b; color:#fff; border:1px solid #334155; padding:8px 15px; border-radius:8px; cursor:pointer; font-size:12px;">
+    <i class="fas fa-file-export"></i> Xuất Excel
+</button>
+                        <button onclick="moFormNhapKho()" style="background:#10b981; color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:12px;">+ Nhập nhanh</button>
+                    </div>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-top-kho"><i class="fas fa-file-export"></i> Xuất Excel</button>
-                    <button class="btn-top-kho" onclick="moLichSuKho()"><i class="fas fa-history"></i> Lịch sử kho</button>
-                    <button onclick="moFormNhapKho()" style="background:#10b981; color:#fff; border:none; padding:10px 18px; border-radius:10px; cursor:pointer; font-weight:bold; font-size:13px;">+ Nhập kho</button>
+
+                <!-- Thống kê 4 Card -->
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px; margin-bottom:20px;">
+                    <div class="stat-card-premium" style="border-left:4px solid #10b981; background:#1e293b; padding:12px; border-radius:10px; display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:18px; background:#10b98122; padding:8px; border-radius:8px;">📦</span>
+                        <div><small style="color:#94a3b8; font-size:10px;">Tổng mặt hàng</small><h3 id="stat-kho-tong" style="margin:0; font-size:16px;">0</h3></div>
+                    </div>
+                    <div class="stat-card-premium" style="border-left:4px solid #fbbf24; background:#1e293b; padding:12px; border-radius:10px; display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:18px; background:#fbbf2422; padding:8px; border-radius:8px;">🔔</span>
+                        <div><small style="color:#94a3b8; font-size:10px;">Sắp hết hàng</small><h3 id="stat-kho-saphet" style="margin:0; font-size:16px; color:#fbbf24;">0</h3></div>
+                    </div>
+                    <div class="stat-card-premium" style="border-left:4px solid #ef4444; background:#1e293b; padding:12px; border-radius:10px; display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:18px; background:#ef444422; padding:8px; border-radius:8px;">⚠</span>
+                        <div><small style="color:#94a3b8; font-size:10px;">Hết hàng</small><h3 id="stat-kho-hethang" style="margin:0; font-size:16px; color:#ef4444;">0</h3></div>
+                    </div>
+                    <div class="stat-card-premium" style="border-left:4px solid #3b82f6; background:#1e293b; padding:12px; border-radius:10px; display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:18px; background:#3b82f622; padding:8px; border-radius:8px;">✅</span>
+                        <div><small style="color:#94a3b8; font-size:10px;">Đủ hàng</small><h3 id="stat-kho-duhang" style="margin:0; font-size:16px;">0</h3></div>
+                    </div>
+                </div>
+
+                <!-- Lọc & Tìm kiếm -->
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:10px 15px; border-radius:10px; border:1px solid #334155; margin-bottom:15px;">
+                    <div style="display:flex; gap:8px;">
+                        <button class="filter-tab active" onclick="filterKho('all', this)" style="padding:6px 12px; font-size:12px;">Tất cả</button>
+                        <button class="filter-tab" onclick="filterKho('chinh', this)" style="padding:6px 12px; font-size:12px;">Nguyên chính</button>
+                        <button class="filter-tab" onclick="filterKho('phu', this)" style="padding:6px 12px; font-size:12px;">Nguyên phụ</button>
+                        <button class="filter-tab" onclick="filterKho('nuoc', this)" style="padding:6px 12px; font-size:12px;">Đồ uống</button>
+                    </div>
+                    <div style="position:relative;">
+                        <input type="text" id="search-kho" oninput="renderKho()" placeholder="Tìm nguyên liệu..." style="background:#0f172a; border:1px solid #334155; color:#fff; padding:7px 12px 7px 32px; border-radius:8px; width:220px; outline:none; font-size:12px;">
+                        <i class="fas fa-search" style="position:absolute; left:10px; top:9px; color:#64748b; font-size:11px;"></i>
+                    </div>
+                </div>
+
+                <!-- Bảng Kho Chính -->
+<div style="background:#1e293b; border-radius:10px; border:1px solid #334155; overflow:hidden;">
+    <div style="max-height: 450px; overflow-y: auto; scrollbar-width: thin;">
+        <table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">
+            <thead style="position: sticky; top: 0; background:#0f172a; color:#94a3b8; z-index:10;">
+                <tr>
+                    <th style="padding:15px 20px; width: 25%;">NGUYÊN LIỆU</th>
+                    <th style="padding:15px 20px; width: 20%;">TỒN KHO / %</th>
+                    <th style="padding:15px 20px; width: 15%;">ĐỊNH MỨC</th>
+                    <th style="padding:15px 20px; width: 15%;">TRẠNG THÁI</th>
+                    <th style="padding:15px 20px; width: 25%; text-align:center;">THAO TÁC</th>
+                </tr>
+            </thead>
+            <tbody id="kho-list-body">
+                <!-- Dữ liệu renderKho() sẽ vào đây -->
+            </tbody>
+        </table>
+    </div>
                 </div>
             </div>
 
-            <!-- Thống kê (4 Card màu) -->
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px;">
-                <div class="stat-card-premium" style="border-left:4px solid #10b981;">
-                    <span style="font-size:20px; background:#10b98122; padding:10px; border-radius:10px;">📦</span>
-                    <div><small>Tổng mặt hàng</small><h3 id="stat-kho-tong">0</h3></div>
+            <!-- VIEW 2: LỊCH SỬ BIẾN ĐỘNG (ẨN MẶC ĐỊNH) -->
+            <div id="view-lich-su-kho" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <div>
+                        <h2 style="margin:0; font-size:20px; color:#fff;">📜 Nhật ký nhập xuất</h2>
+                        <p style="margin:5px 0 0; font-size:12px; color:#64748b;">Chi tiết các lần thay đổi số lượng kho</p>
+                    </div>
+                    <button onclick="xoaLichSu()" style="background:#ef444422; color:#ef4444; border:1px solid #ef444444; padding:8px 15px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:bold;">Xóa nhật ký</button>
                 </div>
-                <div class="stat-card-premium" style="border-left:4px solid #fbbf24;">
-                    <span style="font-size:20px; background:#fbbf2422; padding:10px; border-radius:10px;">🔔</span>
-                    <div><small>Sắp hết hàng</small><h3 id="stat-kho-saphet" style="color:#fbbf24;">0</h3></div>
-                </div>
-                <div class="stat-card-premium" style="border-left:4px solid #ef4444;">
-                    <span style="font-size:20px; background:#ef444422; padding:10px; border-radius:10px;">⚠</span>
-                    <div><small>Hết hàng</small><h3 id="stat-kho-hethang" style="color:#ef4444;">0</h3></div>
-                </div>
-                <div class="stat-card-premium" style="border-left:4px solid #3b82f6;">
-                    <span style="font-size:20px; background:#3b82f622; padding:10px; border-radius:10px;">✅</span>
-                    <div><small>Đủ hàng</small><h3 id="stat-kho-duhang">0</h3></div>
+
+                <div style="background:#1e293b; border-radius:12px; border:1px solid #334155; overflow:hidden;">
+                    <div style="max-height: 550px; overflow-y: auto; scrollbar-width: thin;">
+                        <table style="width:100%; border-collapse: collapse; text-align:left; font-size:12px; table-layout: fixed;">
+    <thead style="position:sticky; top:0; background:#0f172a; color:#94a3b8; z-index: 10;">
+        <tr>
+            <th style="padding:15px 20px; width: 18%;">THỜI GIAN</th>
+            <th style="padding:15px 20px; width: 22%;">NGUYÊN LIỆU</th>
+            <th style="padding:15px 20px; width: 12%;">HÀNH ĐỘNG</th>
+            <th style="padding:15px 20px; width: 15%; text-align: right;">SỐ LƯỢNG</th>
+            <th style="padding:15px 20px; width: 18%; text-align: center;">NGƯỜI THỰC HIỆN</th>
+            <th style="padding:15px 20px; width: 15%; text-align: right;">TỒN CUỐI</th>
+        </tr>
+    </thead>
+    <tbody id="history-list-body"></tbody>
+</table>
+                    </div>
                 </div>
             </div>
 
-            <!-- Bộ lọc & Tìm kiếm -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:10px 15px; border-radius:12px; border:1px solid #334155;">
-                <div style="display:flex; gap:10px;">
-                    <button class="filter-tab active">Tất cả</button>
-                    <button class="filter-tab">Nguyên liệu chính</button>
-                    <button class="filter-tab">Đồ uống</button>
-                </div>
-                <div style="position:relative;">
-                    <input type="text" placeholder="Tìm nguyên liệu..." style="background:#0f172a; border:1px solid #334155; color:#fff; padding:8px 15px 8px 35px; border-radius:8px; width:250px; outline:none; font-size:13px;">
-                    <i class="fas fa-search" style="position:absolute; left:12px; top:10px; color:#64748b; font-size:12px;"></i>
-                </div>
-            </div>
-
-            <!-- Bảng Dữ Liệu -->
-            <div style="background:#1e293b; border-radius:12px; border:1px solid #334155; overflow:hidden;">
-                <table style="width:100%; border-collapse: collapse; text-align:left; font-size:13px;">
-                    <thead>
-                        <tr style="color:#94a3b8; border-bottom:1px solid #334155; background:#0f172a55;">
-                            <th style="padding:15px 20px;">NGUYÊN LIỆU</th>
-                            <th style="padding:15px 20px;">TỒN KHO</th>
-                            <th style="padding:15px 20px;">ĐỊNH MỨC</th>
-                            <th style="padding:15px 20px;">TRẠNG THÁI</th>
-                            <th style="padding:15px 20px; text-align:center;">THAO TÁC</th>
-                        </tr>
-                    </thead>
-                    <tbody id="kho-list-body"></tbody>
-                </table>
-            </div>
         </div>
     </div>
 </div>
+
+
 
 <style>
     .btn-top-kho { background:#1e293b; color:#fff; border:1px solid #334155; padding:8px 15px; border-radius:10px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px; }
@@ -6766,7 +7540,7 @@ document.addEventListener('click', function(e) {
 
 
 <!-- SIDEBAR ĐEN (SIDEBAR-MENU) -->
-<div id="sidebar-den" style="position: fixed; top: 0; left: -300px; width: 280px; height: 100vh; background: #1c2529; color: #fff; z-index: 10000; transition: all 0.4s ease; padding: 20px; display: flex; flex-direction: column; font-family: 'Segoe UI', Roboto, sans-serif; box-shadow: 10px 0 30px rgba(0,0,0,0.5);">
+<div id="sidebar-den" style="position: fixed; top: 0; left: -320px; width: 280px; height: 100vh; background: #1c2529; color: #fff; z-index: 10000; transition: all 0.4s ease; padding: 20px; display: flex; flex-direction: column; visibility: hidden; box-shadow: none;">
     
     <!-- 1. Logo & Địa chỉ -->
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding-left: 5px;">
@@ -6778,7 +7552,6 @@ document.addEventListener('click', function(e) {
     </div>
 
     <!-- 2. Danh sách Menu (Đã chỉnh vùng chữ theo yêu cầu) -->
-<!-- 2. Danh sách Menu -->
 <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
     <div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">🏠</span> Tổng quan</div>
     <div class="menu-item" onclick="moChucNangTuSidebar('bep')"><span class="menu-icon">🖥️</span> Màn Hình Bếp</div>
@@ -6788,15 +7561,24 @@ document.addEventListener('click', function(e) {
 </div>
     <div class="menu-item" onclick="moHoiVienTuSidebar()"><span class="menu-icon">💳</span> Hội viên</div>
     <div class="menu-item" onclick="moChucNangTuSidebar('kho')"><span class="menu-icon">📦</span> Kho Hàng</div>
+
     <div class="menu-item" onclick="moChucNangTuSidebar('nhansu')">
     <span class="menu-icon">👥</span> Nhân Sự
 </div>
+
+<div class="menu-item" onclick="moChucNangTuSidebar('thuchi')">
+    <span class="menu-icon">💰</span> Thu Chi
+</div>
+
    <div class="menu-item" onclick="moChucNangTuSidebar('baocao')">
     <span class="menu-icon">📊</span> Báo Cáo
 </div>
+
     <div class="menu-item" onclick="doiTabActive(this); moChucNangTuSidebar('caidat')">
     <span class="menu-icon">⚙️</span> Cài Đặt
 </div>
+
+
 </div>
 
     <!-- 3. Thẻ nhân viên phía dưới (Đẩy lên cao bằng margin-bottom) -->
@@ -7088,13 +7870,122 @@ document.addEventListener('click', function(e) {
 
 
 
+<!-- Modal Chính -->
+<div id="modal-thu-chi" style="display:none; position:fixed; top:0; bottom:10px; left:300px; right:0; background:rgba(2, 6, 23, 0.7); z-index:100000; padding: 20px; backdrop-filter: blur(8px);">
+    <div style="background:#0f172a; width:100%; height:100%; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; border:1px solid #334155;">
+        
+        <!-- Header -->
+        <div style="padding:20px 25px; border-bottom:1px solid #334155; display:flex; justify-content:space-between; align-items:center;">
+            <h2 style="margin:0; font-size:20px; color:#fff;">💰 Quản lý Thu Chi</h2>
+            <button onclick="this.closest('#modal-thu-chi').style.display='none'" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+        
+     <!-- 3 Card Thống kê có Biểu đồ và % tính toán -->
+<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-bottom:20px;">
+    <!-- Card Tổng Thu -->
+    <div style="background:#1e293b; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; position:relative; overflow:hidden;">
+        <div>
+            <small style="color:#94a3b8; display:block; font-weight: 600;">TỔNG THU</small>
+            <h3 id="tong-thu" style="margin:5px 0; color:#10b981; font-size:20px;">0đ</h3>
+            <small id="percent-thu" style="font-size:11px; color:#64748b;">Đang tính...</small>
+        </div>
+        <div style="width: 100px; height: 50px;"><canvas id="chart-thu"></canvas></div>
+    </div>
+
+    <!-- Card Tổng Chi -->
+    <div style="background:#1e293b; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; position:relative; overflow:hidden;">
+        <div>
+            <small style="color:#94a3b8; display:block; font-weight: 600;">TỔNG CHI</small>
+            <h3 id="tong-chi" style="margin:5px 0; color:#ef4444; font-size:20px;">0đ</h3>
+            <small id="percent-chi" style="font-size:11px; color:#64748b;">Đang tính...</small>
+        </div>
+        <div style="width: 100px; height: 50px;"><canvas id="chart-chi"></canvas></div>
+    </div>
+
+    <!-- Card Lợi Nhuận -->
+    <div style="background:#1e293b; padding:15px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; position:relative; overflow:hidden;">
+        <div>
+            <small style="color:#94a3b8; display:block; font-weight: 600;">LỢI NHUẬN</small>
+            <h3 id="loi-nhuan" style="margin:5px 0; color:#3b82f6; font-size:20px;">0đ</h3>
+            <small id="percent-ln" style="font-size:11px; color:#64748b;">Đang tính...</small>
+        </div>
+        <div style="width: 100px; height: 50px;"><canvas id="chart-ln"></canvas></div>
+    </div>
+</div>
 
 
+           <!-- Form Nhập & Cập nhật (Đã thêm ô Ngày) -->
+<div style="background:#1e293b; padding:15px; border-radius:12px; border:1px solid #334155; margin-bottom:15px; display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
+    <!-- Ngày nhập -->
+    <!-- Ô chọn ngày chuẩn -->
+<input type="date" id="ngay-tc" 
+    style="background:#0f172a; color:#fff; border:1px solid #334155; padding:8px; border-radius:8px; outline:none; font-size: 13px; width: 140px; cursor: pointer;">
 
 
+    <select id="loai-tc" style="background:#0f172a; color:#fff; border:1px solid #334155; padding:8px; border-radius:8px; outline:none; width: 100px;">
+        <option value="thu">➕ Thu</option>
+        <option value="chi">➖ Chi</option>
+    </select>
 
+    <input type="text" id="tien-tc" placeholder="Số tiền..." 
+        oninput="formatCurrencyInput(this)" 
+        style="background:#0f172a; border:1px solid #334155; color:#fff; padding:8px; border-radius:8px; width: 120px; outline:none;">
 
+    <input type="text" id="nd-tc" placeholder="Nội dung..." style="background:#0f172a; border:1px solid #334155; color:#fff; padding:8px; border-radius:8px; flex:1; min-width: 150px; outline:none;">
 
+    <select id="dm-tc" style="background:#0f172a; color:#fff; border:1px solid #334155; padding:8px; border-radius:8px; outline:none;">
+        <option value="Doanh thu bán hàng">💹 Doanh thu bán hàng</option>
+        <option value="Lương nhân viên">👤 Lương nhân viên</option>
+        <option value="Nguyên liệu">🥩 Nguyên liệu</option>
+        <option value="Chi phí năng lượng">🔥 Chi phí năng lượng</option>
+        <option value="Khác">📁 Khác</option>
+    </select>
+
+    <select id="pt-tc" style="background:#0f172a; color:#fff; border:1px solid #334155; padding:8px; border-radius:8px; outline:none;">
+        <option value="Tiền mặt">💵 Tiền mặt</option>
+        <option value="Chuyển khoản">🏛️ Chuyển khoản</option>
+    </select>
+
+    <button id="btn-luu-tc" onclick="themThuChi()" style="background:#3b82f6; color:#fff; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">Lưu</button>
+</div>
+
+            <!-- Bảng Dữ Liệu -->
+            <div style="background:#1e293b; border-radius:12px; border:1px solid #334155; overflow:hidden;">
+                <div style="padding:15px 20px; display:flex; justify-content:space-between; align-items:center; background:#0f172a55; border-bottom:1px solid #334155;">
+                    <b style="font-size:13px; color:#fff;">DANH SÁCH GIAO DỊCH <small style="color:#64748b; font-weight:normal; margin-left:8px;" id="count-tc">0 giao dịch</small></b>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table style="width:100%; border-collapse: collapse; text-align:left; font-size:12px; table-layout: fixed;">
+                        <thead style="position: sticky; top: 0; background:#0f172a; color:#94a3b8; z-index:10;">
+                            <tr>
+                                <th style="padding:15px 20px; width:100px;">LOẠI</th>
+                                <th style="padding:15px 20px; width:200px;">NỘI DUNG</th>
+                                <th style="padding:15px 20px; width:150px;">DANH MỤC</th>
+                                <th style="padding:15px 20px; width:120px; text-align:right;">SỐ TIỀN</th>
+                                <th style="padding:15px 20px; width:120px; text-align:right;">PHƯƠNG THỨC</th>
+                                <th style="padding:15px 20px; width:100px; text-align:center;">TRẠNG THÁI</th>
+                                <th style="padding:15px 20px; width:120px; text-align:center;">THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody id="thu-chi-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chi Tiết Xịn -->
+<div id="modal-ct-thu-chi" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(2, 6, 23, 0.85); z-index:200000; backdrop-filter: blur(5px); align-items:center; justify-content:center;">
+    <div style="background:#1e293b; width:400px; border-radius:20px; border:1px solid #334155; overflow:hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); animation: modalSlideUp 0.3s ease;">
+        <div style="padding:15px 20px; border-bottom:1px solid #334155; display:flex; justify-content:space-between; align-items:center; background:#0f172a;">
+            <h3 style="margin:0; color:#fff; font-size:16px;">📄 Chi tiết giao dịch</h3>
+            <button onclick="document.getElementById('modal-ct-thu-chi').style.display='none'" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:24px;">&times;</button>
+        </div>
+        <div id="ct-tc-content" style="padding:25px; color:#cbd5e1; font-size:13px;"></div>
+        <div style="padding:15px 20px; background:#0f172a; text-align:right;"><button onclick="document.getElementById('modal-ct-thu-chi').style.display='none'" style="background:#3b82f6; color:#fff; border:none; padding:8px 25px; border-radius:8px; cursor:pointer;">Đã hiểu</button></div>
+    </div>
+</div>
 
 
 
@@ -7108,3 +7999,4 @@ document.addEventListener('click', function(e) {
 
 </body>
 </html>
+	
