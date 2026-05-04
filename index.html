@@ -2827,6 +2827,68 @@ function selectTable(id) {
 
     capNhatNut();
 
+     // ==========================================================
+    // 🟢 ĐÃ SỬA: LẤY ĐẦY ĐỦ THÔNG TIN KHI QUAY LẠI BÀN CŨ
+    // ==========================================================
+    const inputBox = document.querySelector(".customer-select-box");
+    const infoEl = document.getElementById("selected-customer-card");
+
+    if (currentTable.customerId) {
+        if (inputBox) inputBox.style.display = "none";
+
+        let cardEl = document.getElementById("selected-customer-card");
+        if (!cardEl) {
+            cardEl = document.createElement("div");
+            cardEl.id = "selected-customer-card";
+            if (inputBox) inputBox.parentNode.insertBefore(cardEl, inputBox.nextSibling);
+        }
+
+        // 🔥 THAY ĐỔI Ở ĐÂY: Đọc trực tiếp từ node members để lấy đủ SĐT, Rank, Điểm, Sở thích
+        db.ref(`members/${currentTable.customerId}`).on("value", memberSnap => {
+            const v = memberSnap.val() || {};
+            const points = (Number(v.tuy_tam_count) || 0) + (Number(v.tuy_thuong_count) || 0);
+
+            let badgeHTML = "";
+            const hang = v.rank || "MEMBER";
+            if (hang === "VIP") badgeHTML = `<span style="font-size: 10px; background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; padding: 2px 6px; border-radius: 4px; font-weight: bold;">👑 VIP</span>`;
+            else if (hang === "ACTIVE") badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🔥 ACTIVE</span>`;
+            else if (hang === "NEW") badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🆕 NEW</span>`;
+            else badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">MEMBER</span>`;
+
+            // Vẽ đầy đủ thông tin y hệt như lúc bạn mới tìm kiếm chọn khách
+            if (document.getElementById("selected-customer-card")) {
+                document.getElementById("selected-customer-card").innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
+                            ${(v.ten || "K").split(' ').pop().charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #1e293b; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                                ${v.ten || "Khách hàng"} ${badgeHTML}
+                            </div>
+                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">📞 ${v.sdt || "---"}</div>
+                            <div style="font-size: 11px; color: #f59e0b; margin-top: 2px;">⭐ Sở thích: ${v.sothich || "Chưa rõ"}</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">• Điểm tích lũy: <b style="color: #10b981;">${points}</b> bát</div>
+                        </div>
+                    </div>
+                    <span onclick="huyChonKhachVaoBan(${TABLES.indexOf(currentTable)})" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
+                </div>`;
+            }
+        });
+
+    } else {
+        // Trường hợp bàn TRỐNG: Xóa Profile Card và hiện lại ô tìm kiếm
+        if (inputBox) {
+            inputBox.style.display = "block";
+            document.getElementById("order-customer-input").value = "";
+        }
+        if (infoEl) {
+            infoEl.remove();
+        }
+    }
+    // ==========================================================
+
     if (orderListener) orderListener.off();
     orderListener = db.ref("orders/" + id);
     orderListener.on("value", s => {
@@ -2845,26 +2907,71 @@ function selectTable(id) {
         }
     }
 }
+window.hienThiProfileCardTheoBan = function(tableId) {
+    const inputBox = document.querySelector(".customer-select-box");
+    const infoEl = document.getElementById("selected-customer-card");
+
+    if (!tableId) return;
+
+    // Lấy thông tin bàn từ mảng TABLES toàn cục của bạn
+    const table = TABLES.find(t => String(t.id) === String(tableId));
+
+    if (table && table.customerId) {
+        // 1. Nếu bàn CÓ khách: Ẩn ô tìm kiếm và vẽ Profile Card
+        if (inputBox) inputBox.style.display = "none";
+
+        // Tìm hoặc tạo thẻ chứa Profile Card
+        let cardEl = document.getElementById("selected-customer-card");
+        if (!cardEl) {
+            cardEl = document.createElement("div");
+            cardEl.id = "selected-customer-card";
+            if (inputBox) inputBox.parentNode.insertBefore(cardEl, inputBox.nextSibling);
+        }
+
+        // Đổ dữ liệu tĩnh từ bàn (Điểm số Real-time sẽ do hàm db.ref.on lo)
+        cardEl.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
+                    ${(table.customerName || "K").split(' ').pop().charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <div style="font-weight: 700; color: #1e293b; font-size: 14px;">${table.customerName}</div>
+                    <div style="font-size: 11px; color: #10b981; margin-top: 2px; font-weight: 600;">Hội viên đang ngồi bàn</div>
+                </div>
+            </div>
+            <span onclick="huyChonKhachVaoBan(${TABLES.indexOf(table)})" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
+        </div>`;
+
+        // Gọi hàm lắng nghe điểm số Real-time cho khách này (Hàm đã viết ở bước trước) [INDEX]
+        if (typeof kichHoatLangNgheDiemKhach === "function") {
+            kichHoatLangNgheDiemKhach(table.customerId);
+        }
+
+    } else {
+        // 2. Nếu bàn TRỐNG: Hiện lại ô tìm kiếm và xóa Profile Card của bàn trước đi [INDEX]
+        if (inputBox) {
+            inputBox.style.display = "block";
+            document.getElementById("order-customer-input").value = "";
+        }
+        if (infoEl) {
+            infoEl.remove(); // Xóa thẻ Profile Card cũ [INDEX]
+        }
+    }
+}
 
 
-
-/*16.Thêm món - BẢN FIX NHẢY MÓN*/
-function addItem(monId) { // Chuyển tham số từ index sang monId
+/*16.Thêm món - ĐÃ FIX LỖI NHẢY ĐIỂM REAL-TIME*/
+function addItem(monId) {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
     
-    // Gọi hiệu ứng bay (nếu có biến event toàn cục)
     if (typeof event !== 'undefined' && typeof playFlyEffect === "function") playFlyEffect(event);
 
     db.ref("orders/" + currentTableId).once("value").then(s => {
         let items = s.val() || [];
         
-        // 🔥 SỬA QUAN TRỌNG NHẤT: Tìm đúng món trong mảng gốc bằng ID
         const monDangBam = MENU_MASTER.find(m => m.id === monId);
-        
-        if (!monDangBam) {
-            console.error("Không tìm thấy món với ID:", monId);
-            return;
-        }
+        if (!monDangBam) return console.error("Không tìm thấy món với ID:", monId);
 
         // 1. CHECK HẾT HÀNG
         let conLai = (Number(monDangBam.limit) || 0) - (Number(monDangBam.soldToday) || 0);
@@ -2872,75 +2979,84 @@ function addItem(monId) { // Chuyển tham số từ index sang monId
             return alert(`❌ HẾT HÀNG: [${monDangBam.ten.toUpperCase()}]`);
         }
 
-        const currentTable = TABLES.find(t => t.id == currentTableId);
-        const customerId = currentTable ? currentTable.customerId : null;
+        // 2. 🔥 SỬA LỖI TẠI ĐÂY: Đọc ID khách hàng trực tiếp từ bàn trên Firebase thay vì mảng TABLES
+        // (Tôi đang dùng đường dẫn tables/index dựa theo hàm số 34 của bạn)
+        const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+        
+        db.ref(`tables/${tableIdx}`).once('value').then(tableSnap => {
+            const tableData = tableSnap.val() || {};
+            const customerId = tableData.customerId; // Lấy đúng ID khách hàng đang ngồi bàn
 
-        const addOrUpdateItem = (list, mon) => {
-            let itemTonTai = list.find(i => i.id_mon === mon.id && !i.isReward && i.isSent !== true);
-            if (itemTonTai) {
-                itemTonTai.sl += 1;
-            } else {
-                list.push({ 
-                    ...mon, 
-                    id_mon: mon.id, 
-                    id: Date.now(), 
-                    sl: 1, 
-                    isSent: false,
-                    cooked: false
-                });
-            }
-        };
-
-        // 👉 TRƯỜNG HỢP 1: KHÔNG CÓ HỘI VIÊN
-        if (!customerId) {
-            addOrUpdateItem(items, monDangBam);
-            return db.ref("orders/" + currentTableId).set(items).then(() => hoanTatAddItem(items));
-        }
-
-        // 👉 TRƯỜNG HỢP 2: CÓ HỘI VIÊN (Giữ nguyên logic tính bát của bạn)
-        return db.ref(`members/${customerId}`).once('value').then(snap => {
-            let kh = snap.val() || { tuy_tam_count: 0, tuy_thuong_count: 0 };
-            let plusTam = 0, plusThuong = 0;
-            
-            // Logic cộng bát dựa trên ID chuẩn
-            if (monDangBam.id === "tuy_tam" || monDangBam.id === "combo_tam_chau") plusTam = 1;
-            else if (monDangBam.id === "tuy_thuong" || monDangBam.id === "combo_thuong_thuy") plusThuong = 1;
-            else if (monDangBam.id === "combo_song_long") plusThuong = 2;
-
-            let tongTruoc = (Number(kh.tuy_tam_count) || 0) + (Number(kh.tuy_thuong_count) || 0);
-
-            if (tongTruoc >= 10 && (plusTam > 0 || plusThuong > 0)) {
-                let giaUuDai = (kh.tuy_thuong_count >= kh.tuy_tam_count) ? 0 : 50000;
-                items.push({
-                    id_mon: "tuy_thuong",
-                    ten: "Túy Thượng (Ưu đãi mốc 10)",
-                    gia: giaUuDai,
-                    sl: 1,
-                    id: Date.now(),
-                    isReward: true,
-                    isSent: false
-                });
-                kh.tuy_tam_count = 0; kh.tuy_thuong_count = 0;
-                alert(`🎁 Đã áp dụng bát miễn phí / nâng cấp!`);
-            } else {
-                addOrUpdateItem(items, monDangBam);
-                kh.tuy_tam_count = (Number(kh.tuy_tam_count) || 0) + plusTam;
-                kh.tuy_thuong_count = (Number(kh.tuy_thuong_count) || 0) + plusThuong;
-
-                let tongSau = kh.tuy_tam_count + kh.tuy_thuong_count;
-                if (tongSau === 5) {
-                    items.push({ id_mon: "quay", ten: "Quẩy (Quà tặng 5 bát)", gia: 0, sl: 1, id: Date.now() + 1, isReward: true, isSent: false });
-                    alert(`🎯 Tặng Quẩy mốc 5 bát!`);
+            const addOrUpdateItem = (list, mon) => {
+                let itemTonTai = list.find(i => i.id_mon === mon.id && !i.isReward && i.isSent !== true);
+                if (itemTonTai) {
+                    itemTonTai.sl += 1;
+                } else {
+                    list.push({ 
+                        ...mon, 
+                        id_mon: mon.id, 
+                        id: Date.now(), 
+                        sl: 1, 
+                        isSent: false,
+                        cooked: false
+                    });
                 }
+            };
+
+            // 👉 TRƯỜNG HỢP 1: KHÔNG CÓ HỘI VIÊN
+            if (!customerId) {
+                addOrUpdateItem(items, monDangBam);
+                return db.ref("orders/" + currentTableId).set(items).then(() => hoanTatAddItem(items));
             }
 
-            db.ref(`members/${customerId}`).update(kh);
-            return db.ref("orders/" + currentTableId).set(items);
-        }).then(() => {
-            hoanTatAddItem(items);
+            // 👉 TRƯỜNG HỢP 2: CÓ HỘI VIÊN (Tính bát và cộng Real-time)
+            return db.ref(`members/${customerId}`).once('value').then(snap => {
+                let kh = snap.val() || { tuy_tam_count: 0, tuy_thuong_count: 0 };
+                let plusTam = 0, plusThuong = 0;
+                
+                if (monDangBam.id === "tuy_tam" || monDangBam.id === "combo_tam_chau") plusTam = 1;
+                else if (monDangBam.id === "tuy_thuong" || monDangBam.id === "combo_thuong_thuy") plusThuong = 1;
+                else if (monDangBam.id === "combo_song_long") plusThuong = 2;
+
+                let tongTruoc = (Number(kh.tuy_tam_count) || 0) + (Number(kh.tuy_thuong_count) || 0);
+
+                // Khách đã đủ 10 bát và gọi tiếp bát có tích điểm -> Tặng bát miễn phí
+                if (tongTruoc >= 10 && (plusTam > 0 || plusThuong > 0)) {
+                    let giaUuDai = (kh.tuy_thuong_count >= kh.tuy_tam_count) ? 0 : 50000;
+                    items.push({
+                        id_mon: "tuy_thuong",
+                        ten: "Túy Thượng (Ưu đãi mốc 10)",
+                        gia: giaUuDai,
+                        sl: 1,
+                        id: Date.now(),
+                        isReward: true,
+                        isSent: false
+                    });
+                    kh.tuy_tam_count = 0; kh.tuy_thuong_count = 0;
+                    alert(`🎁 Đã áp dụng bát miễn phí / nâng cấp!`);
+                } else {
+                    addOrUpdateItem(items, monDangBam);
+                    kh.tuy_tam_count = (Number(kh.tuy_tam_count) || 0) + plusTam;
+                    kh.tuy_thuong_count = (Number(kh.tuy_thuong_count) || 0) + plusThuong;
+
+                    let tongSau = kh.tuy_tam_count + kh.tuy_thuong_count;
+                    // Đạt đúng mốc 5 bát -> Tặng quẩy
+                    if (tongSau === 5) {
+                        items.push({ id_mon: "quay", ten: "Quẩy (Quà tặng 5 bát)", gia: 0, sl: 1, id: Date.now() + 1, isReward: true, isSent: false });
+                        alert(`🎯 Tặng Quẩy mốc 5 bát!`);
+                    }
+                }
+
+                // Cập nhật điểm ngay lập tức lên Firebase
+                db.ref(`members/${customerId}`).update(kh);
+                return db.ref("orders/" + currentTableId).set(items);
+            }).then(() => {
+                hoanTatAddItem(items);
+            });
         });
     });
 }
+
 /*17.HOÀN TẤT ADDITEM*/
 function hoanTatAddItem(items) {
     updateStatus(currentTableId, "ordering");
@@ -3045,6 +3161,67 @@ function renderOrder(items) {
         const table = TABLES.find(t => t.id === currentTableId);
         if (table?.status === 'paid') btnClear.style.display = 'block';
     }
+}
+// HÀM LẮNG NGHE ĐIỂM SỐ REAL-TIME (TÁCH ĐỘC LẬP) [INDEX]
+function langNgheHoiVienTheoBan(tableId) {
+    if (!tableId) return;
+
+    // 1. Lắng nghe dữ liệu của bàn hiện tại xem có khách không [INDEX]
+    db.ref(`tables/${tableIdx_HienTai}`).on("value", snap => {
+        const tableData = snap.val() || {};
+        const inputBox = document.querySelector(".customer-select-box");
+        let infoEl = document.getElementById("selected-customer-card");
+        
+        // Nếu bàn này có khách hàng
+        if (tableData.customerId) {
+            if (inputBox) inputBox.style.display = "none"; // Ẩn ô tìm kiếm [INDEX]
+            
+            if (!infoEl) {
+                infoEl = document.createElement("div");
+                infoEl.id = "selected-customer-card";
+                if (inputBox) inputBox.parentNode.insertBefore(infoEl, inputBox.nextSibling);
+            }
+
+            // 2. Lắng nghe điểm số REAL-TIME trực tiếp từ node members [INDEX]
+            db.ref(`members/${tableData.customerId}`).on("value", memberSnap => {
+                const v = memberSnap.val() || {};
+                const points = (Number(v.tuy_tam_count) || 0) + (Number(v.tuy_thuong_count) || 0);
+
+                let badgeHTML = "";
+                const hang = v.rank || "MEMBER";
+                if (hang === "VIP") badgeHTML = `<span style="font-size: 10px; background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; padding: 2px 6px; border-radius: 4px; font-weight: bold;">👑 VIP</span>`;
+                else if (hang === "ACTIVE") badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🔥 ACTIVE</span>`;
+                else if (hang === "NEW") badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🆕 NEW</span>`;
+                else badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">MEMBER</span>`;
+
+                // Đổ dữ liệu vào Profile Card
+                const card = document.getElementById("selected-customer-card");
+                if (card) {
+                    card.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
+                                ${(v.ten || "K").split(' ').pop().charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <div style="font-weight: 700; color: #1e293b; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                                    ${v.ten || "Khách hàng"} ${badgeHTML}
+                                </div>
+                                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">📞 ${v.sdt || "---"}</div>
+                                <div style="font-size: 11px; color: #f59e0b; margin-top: 2px;">⭐ Sở thích: ${v.sothich || "Chưa rõ"}</div>
+                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">• Điểm tích lũy: <b style="color: #10b981;">${points}</b> bát</div>
+                            </div>
+                        </div>
+                        <span onclick="huyChonKhachVaoBan()" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
+                    </div>`;
+                }
+            });
+        } else {
+            // Nếu bàn trống, trả về ô tìm kiếm
+            if (inputBox) inputBox.style.display = "block";
+            if (infoEl) infoEl.remove();
+        }
+    });
 }
 
 
@@ -3970,30 +4147,39 @@ function searchHoiVien(keyword) {
             if (val === "" || ten.includes(val) || sdt.includes(val)) {
                 
                 // --- PHẦN QUAN TRỌNG: GỌI ĐÚNG TÊN BIẾN FIREBASE ---
-               const tam = Number(v.tuy_tam_count) || 0; 
-               const thuong = Number(v.tuy_thuong_count) || 0;
-                const tong = Number(v.diem_tich_luy) || (tam + thuong);
-                const soThich = v.sothich ? `<div style="font-size: 10px; color: #666; font-style: italic;">💡 ${v.sothich}</div>` : "";
+             const tam = Number(v.tuy_tam_count) || 0; 
+const thuong = Number(v.tuy_thuong_count) || 0;
+const tong = Number(v.diem_tich_luy) || (tam + thuong);
+const rank = v.rank || "MEMBER";
+const sothich = v.sothich || "Chưa rõ"; // Bổ sung lấy sở thích [INDEX]
 
-                h += `
-                <div onclick="chonKhachVaoBan('${id}', '${v.ten}')" 
-                     style="padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
-                     onmouseover="this.style.background='#fff5f5'" 
-                     onmouseout="this.style.background='white'">
-                    <div>
-                        <b style="color:#333;">${v.ten}</b><br>
-                        <small style="color:#888;">📱 ${v.sdt || ''}</small>
-                        ${soThich}
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="font-size: 13px; color: #d32f2f; font-weight: bold;">
-                             🥣 ${tong} bát
-                        </span>
-                        <div style="font-size: 9px; color: #999;">
-                            (Tâm: ${tam} | Thượng: ${thuong})
-                        </div>
-                    </div>
-                </div>`;
+// Đóng gói toàn bộ dữ liệu hội viên thành chuỗi JSON (Đã thêm sothich) [INDEX]
+const hvJson = JSON.stringify({
+    id: id,
+    ten: v.ten,
+    sdt: v.sdt || "---",
+    points: tong,
+    rank: rank,
+    sothich: sothich
+}).replace(/"/g, '&quot;');
+
+h += `
+<div onclick="chonKhachVaoBan('${hvJson}')" 
+     style="padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
+     onmouseover="this.style.background='#fff5f5'" 
+     onmouseout="this.style.background='white'">
+    <div>
+        <b style="color:#333;">${v.ten}</b><br>
+        <small style="color:#888;">📱 ${v.sdt || '---'}</small>
+        <div style="font-size: 11px; color: #f59e0b; margin-top: 2px;">⭐ ${sothich}</div> <!-- Hiện sở thích ở list gợi ý -->
+    </div>
+    <div style="text-align: right;">
+        <span style="font-size: 13px; color: #10b981; font-weight: bold;">🥣 ${tong} bát</span>
+        <div style="font-size: 10px; color: #999; margin-top: 2px;">Hạng: ${rank}</div>
+    </div>
+</div>`;
+
+
             }
         });
 
@@ -4057,9 +4243,13 @@ function goiYTimKhach(val) {
 
 
 /*34.CHỌN HV VÀO BÀN*/
-// Thêm onchange="ganKhachVaoBan(this.value)" vào thẻ input ở Bước 1
-function chonKhachVaoBan(id, ten) {
+function chonKhachVaoBan(hvJson) {
     if (!currentTableId) return alert("Vui lòng chọn bàn!");
+
+    const hv = JSON.parse(hvJson);
+    const id = hv.id;
+    const ten = hv.ten;
+    const sothich = hv.sothich || "Chưa rõ"; // Bóc tách sở thích [INDEX]
 
     const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
     if (tableIdx !== -1) {
@@ -4067,13 +4257,90 @@ function chonKhachVaoBan(id, ten) {
         TABLES[tableIdx].customerName = ten;
 
         db.ref(`tables/${tableIdx}`).update({ customerId: id, customerName: ten }).then(() => {
-            document.getElementById("order-customer-input").value = ten;
-            document.getElementById("customer-dropdown").style.display = "none";
-            // Hiển thị tên khách lên vùng "CHI TIẾT ĐƠN" cho rõ ràng
-            alert("✅ Đã nhận diện: " + ten);
-        });
+ kichHoatLangNgheDiemKhach(id);
+        
+        console.log("✅ Đã nhận diện: " + ten);
+            
+            const inputBox = document.querySelector(".customer-select-box");
+            if (inputBox) inputBox.style.display = "none";
+            const dropdown = document.getElementById("customer-dropdown");
+            if (dropdown) dropdown.style.display = "none";
+            document.getElementById("order-customer-input").value = "";
+
+            let infoEl = document.getElementById("selected-customer-card");
+            if (!infoEl) {
+                infoEl = document.createElement("div");
+                infoEl.id = "selected-customer-card";
+                if (inputBox) inputBox.parentNode.insertBefore(infoEl, inputBox.nextSibling);
+            }
+
+            let badgeHTML = "";
+            if (hv.rank === "VIP") {
+                badgeHTML = `<span style="font-size: 10px; background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; padding: 2px 6px; border-radius: 4px; font-weight: bold;">👑 VIP</span>`;
+            } else if (hv.rank === "ACTIVE") {
+                badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🔥 ACTIVE</span>`;
+            } else if (hv.rank === "NEW") {
+                badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🆕 NEW</span>`;
+            } else {
+                badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">MEMBER</span>`;
+            }
+
+            // Đổ đầy đủ thông tin (Đã thêm sở thích vào dưới số điện thoại) [INDEX]
+            infoEl.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
+                        ${ten.split(' ').pop().charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; color: #1e293b; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                            ${ten} ${badgeHTML}
+                        </div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">📞 ${hv.sdt}</div>
+                        <div style="font-size: 11px; color: #f59e0b; margin-top: 2px;">⭐ Sở thích: ${sothich}</div> <!-- Hiển thị sở thích -->
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">• Điểm tích lũy: <b style="color: #10b981;">${hv.points}</b> bát</div>
+                    </div>
+                </div>
+                <span onclick="huyChonKhachVaoBan(${tableIdx})" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
+            </div>`;
+
+            if (typeof renderTables === "function") {
+                renderTables(); 
+            } else if (typeof renderSoDoBan === "function") {
+                renderSoDoBan();
+            }
+
+            console.log("✅ Đã nhận diện: " + ten);
+        }).catch(err => alert("Lỗi Firebase: " + err.message));
     }
 }
+
+/* HÀM HỦY CHỌN KHÁCH KHỎI BÀN (BỔ SUNG) */
+window.huyChonKhachVaoBan = function(tableIdx) {
+    if (tableIdx === undefined) return;
+
+    // Xóa dữ liệu khách trên Firebase của bàn [INDEX]
+    db.ref(`tables/${tableIdx}`).update({ customerId: null, customerName: null }).then(() => {
+        // Cập nhật lại mảng TABLES cục bộ
+        if (TABLES[tableIdx]) {
+            TABLES[tableIdx].customerId = null;
+            TABLES[tableIdx].customerName = null;
+        }
+
+        // Hiện lại ô tìm kiếm
+        const inputBox = document.querySelector(".customer-select-box");
+        if (inputBox) inputBox.style.display = "block";
+
+        // Xóa Profile Card
+        const infoEl = document.getElementById("selected-customer-card");
+        if (infoEl) infoEl.remove();
+
+        // Vẽ lại sơ đồ bàn để trả về chữ "Trống"
+        if (typeof renderTables === "function") renderTables();
+        else if (typeof renderSoDoBan === "function") renderSoDoBan();
+        
+    }).catch(err => alert("Lỗi khi gỡ khách: " + err.message));
+};
 
 /*35.XÓA HV*/
 function xoaHV(id) { if(confirm("Xóa?")) db.ref("hoivien/"+id).remove(); }
@@ -8073,6 +8340,45 @@ function toggleCustomDate() {
     const val = document.getElementById('filter-time-tc').value;
     document.getElementById('custom-date-group').style.display = (val === 'custom') ? 'flex' : 'none';
 }
+
+
+
+
+
+// HÀM LẮNG NGHE ĐIỂM SỐ REAL-TIME CHO PROFILE CARD [INDEX]
+function kichHoatLangNgheDiemKhach(customerId) {
+    if (!customerId) return;
+
+    // Lắng nghe trực tiếp sự thay đổi tại node members/ID_KHACH [INDEX]
+    db.ref(`members/${customerId}`).on("value", memberSnap => {
+        const v = memberSnap.val() || {};
+        
+        const points = (Number(v.tuy_tam_count) || 0) + (Number(v.tuy_thuong_count) || 0);
+
+        // Tìm thẻ hiển thị điểm tích lũy trong Profile Card và cập nhật số mới
+        // (Dựa theo đoạn mã HTML Profile Card tôi đã hướng dẫn bạn viết trước đó)
+        const pointsEl = document.querySelector("#selected-customer-card b[style*='color: #10b981']");
+        
+        if (pointsEl) {
+            pointsEl.innerText = points; // Cập nhật số điểm mới nhất [INDEX]
+            console.log("🔥 Đã cập nhật điểm Real-time:", points);
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
