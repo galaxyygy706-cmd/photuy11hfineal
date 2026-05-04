@@ -6,6 +6,27 @@
     <title>Phở Túy POS PRO - Full Features</title>
 
     <style>
+.member-row {
+    display: grid;
+    /* Chia tỉ lệ: Tên(2.5) - Liên hệ(2) - Tích lũy(2) - Thống kê(2) - Nút(1.5) */
+    grid-template-columns: 2.5fr 2fr 2fr 2fr 1.5fr; 
+    align-items: center;
+    padding: 15px 25px;
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.avatar-circle {
+    min-width: 42px; /* Giữ vòng tròn không bị móp khi tên dài */
+    height: 42px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #475569;
+}
 
 #modal-quan-ly-nhan-su {
     display: none; 
@@ -1333,64 +1354,7 @@ body {
 
 
 
-           <!-- MODAL QUẢN LÝ HỘI VIÊN -->
-<div id="modal-hoivien" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100000; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
-    
-    <div style="background:white; padding:20px; border-radius:15px; width:95%; max-width:800px; max-height:95vh; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position:relative; display:flex; flex-direction:column;">
-        
-        <!-- Nút đóng góc trên -->
-        <button onclick="dongHoiVien()" style="position:absolute; top:15px; right:15px; border:none; background:none; font-size:25px; cursor:pointer; color:#666; z-index:10;">&times;</button>
 
-        <div id="tab-hoi-vien" class="tab-content" style="display:block !important; overflow-y:auto; flex:1;">
-            <h3 style="color:#2e7d32; margin-top:0; display:flex; align-items:center; gap:10px;">
-                💳 QUẢN LÝ HỘI VIÊN
-            </h3>
-
-            <!-- Form Nhập Liệu (Giữ nguyên ID của bạn) -->
-            <div class="member-form" style="background: #f9f9f9; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <input type="text" id="hv-ten" class="member-input" placeholder="Tên khách hàng" style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd;">
-
-                    <input type="tel" id="hv-sdt" class="member-input" 
-       placeholder="Số điện thoại" 
-       oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3');"
-       pattern="[0-9]*" 
-       inputmode="numeric"
-       maxlength="12">
-
-                    <input type="date" id="hv-ngaysinh" class="member-input" style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd;">
-                    <input type="text" id="hv-sothich" class="member-input" placeholder="Sở thích..." style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd;">
-                </div>
-                <button class="btn-add-member" onclick="themHoiVien()" style="width:100%; padding:10px; background:#2e7d32; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-                    + THÊM HỘI VIÊN MỚI
-                </button>
-            </div>
-
-            <!-- Header danh sách (Giữ style của bạn) -->
-           <div class="member-list-header" style="background:#eee; font-weight:bold; border-radius:5px;">
-    <table style="width: 100%; border-collapse: collapse; background: #eee; border-radius: 5px 5px 0 0;">
-    <thead>
-        <tr style="font-weight: bold; font-size: 13px; color: #333;">
-            <td style="width: 45%; padding: 12px 15px; text-align: left;">Khách hàng</td>
-            <td style="width: 30%; padding: 12px 0; text-align: center;">SĐT / Ngày sinh</td>
-            <td style="width: 12%; padding: 12px 0; text-align: center;">Lịch sử</td>
-            <td style="width: 13%; padding: 12px 15px; text-align: right;">Sửa/Xóa</td>
-        </tr>
-    </thead>
-</table>
-</div>
-
-            <!-- Bảng danh sách hội viên (Giữ đúng ID ds-hoi-vien-body) -->
-            <table class="stock-table" style="width:100%; margin-top:5px; border-collapse: collapse;">
-                <tbody id="ds-hoi-vien-body">
-                    <!-- Hội viên sẽ render ở đây -->
-                </tbody>
-            </table>
-        </div>
-
-        <button onclick="dongHoiVien()" style="width:100%; margin-top:15px; padding:12px; background:#f5f5f5; border:none; border-radius:8px; cursor:pointer; font-weight:bold; color:#666;">ĐÓNG</button>
-    </div>
-</div>
 
 
 
@@ -1678,7 +1642,7 @@ body {
 
 <script>
 
-
+let dangSuaId = null;
 let daDangNhap = false; // Biến kiểm soát trạng thái đăng nhập toàn cục
 
 // Tự động khóa app và bắt chọn đại sứ khi vừa mở trang
@@ -1714,7 +1678,7 @@ const BANG_LUONG = {
 
 
 /*3.KHAI BÁO KHO*/
-let dangSuaId = null;
+
 let currentDiscountPercent = 0;
 // 1. KHAI BÁO DỮ LIỆU KHO MẶC ĐỊNH
 const KHO_MASTER = [
@@ -2393,78 +2357,341 @@ function xuatExcelKho() {
 
 
 
-
 /*11.Vẽ hội viên*/
 function renderHoiVien() {
-    // 1. Lắng nghe dữ liệu thực tế từ Firebase thay vì dùng mảng HOIVIEN
-    db.ref("members").on("value", (snapshot) => {
-        const data = snapshot.val();
-        let h = "";
-        
-        if (!data) {
-            document.getElementById("ds-hoi-vien-body").innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>Chưa có hội viên nào</td></tr>";
-            return;
+    // Hàm tính tuổi chính xác từ ngày sinh
+    const tinhTuoi = (ngaySinhStr) => {
+        if (!ngaySinhStr || ngaySinhStr === "---" || ngaySinhStr === "-") return "";
+        const birthDate = new Date(ngaySinhStr);
+        if (isNaN(birthDate.getTime())) return "";
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
         }
+        return ` (${age} tuổi)`;
+    };
 
-        // 2. Duyệt qua từng khách hàng trên Firebase
-        Object.keys(data).forEach((id) => {
-            const v = data[id];
-            
-            // Lấy đúng tên thuộc tính đã lưu
-            const tenKhach = v.ten || "Khách hàng";
-            const soDT = v.sdt || "---";
-            const ngaySinh = v.ngaysinh || "-";
-            
-            // --- BỔ SUNG: Lấy dữ liệu sở thích ---
-            const soThich = v.sothich ? `<div style="font-size: 11px; color: #666; font-style: italic; margin-top: 2px;">💡 Sở thích: ${v.sothich}</div>` : "";
+    // 1. Tải dữ liệu đơn hàng trước để làm dữ liệu đối chiếu
+    db.ref("history_orders").once("value").then(orderSnap => {
+        const orders = orderSnap.val() || {};
 
-            // Lấy điểm theo tên biến bạn dùng trong hàm addItem
-            const tam = Number(v.tuy_tam_count) || 0;
-            const thuong = Number(v.tuy_thuong_count) || 0;
-            const tongDiem = tam + thuong;
-            
-            const progress = `${tongDiem}/10`;
-            const colorProgress = tongDiem >= 10 ? "#d32f2f" : "#2e7d32"; 
+        // 2. Tải danh sách hội viên (Sử dụng .on để tự động tải lại khi có thay đổi)
+        db.ref("members").on("value", (memberSnap) => {
+            const memberData = memberSnap.val();
+               tinhKpiHoiVien();
+            let h = "";
+           if (!memberData) {
+    const el = document.getElementById("ds-hoi-vien-body");
+    if (el) el.innerHTML = "<p style='text-align:center; padding:20px;'>Chưa có hội viên</p>";
+    return;
+}
+  tuDongCapNhatHangKhachHang();
 
-           h += `
-    <tr style="border-bottom: 1px solid #eee;">
-        <!-- Cột 1: Khách hàng (45%) -->
-        <td style="padding: 12px 15px; width: 45%; text-align: left; vertical-align: top;">
-            <b style="color: #d32f2f; font-size: 15px;">${tenKhach}</b>
-            ${soThich}
-            <div style="font-size: 11px; margin-top: 4px; line-height: 1.4;">
-                <span style="color: ${colorProgress}; font-weight: bold;">🥣 Tích lũy: ${progress} bát</span><br>
-                <small style="color:#888">(Tâm: ${tam} | Thượng: ${thuong})</small>
-            </div>
-        </td>
+            Object.keys(memberData).forEach((id) => {
+                const v = memberData[id];
+                
+                // === BẮT ĐẦU TÍNH TOÁN THỐNG KÊ CHO TỪNG HỘI VIÊN ===
+                let tongChiTieu = 0;
+                let soLanDen = 0;
+                let lastTimestamp = 0;
 
-        <!-- Cột 2: SĐT & Ngày sinh (30%) -->
-        <td style="padding: 12px 0; width: 30%; text-align: center; font-size: 13px; color: #444; vertical-align: top;">
-            <b>${soDT}</b><br>
-            <small style="color:#aaa">📅 ${ngaySinh}</small>
-        </td>
+                // Quét qua các đơn hàng để tổng hợp
+                Object.values(orders).forEach(o => {
+                    // Kiểm tra nếu đơn hàng đó thuộc về hội viên này
+                    if (o.customerId === id) {
+                        tongChiTieu += Number(o.total) || 0;
+                        soLanDen++;
+                        
+                        // Cập nhật timestamp lớn nhất (Lần cuối đến)
+                        if (o.timestamp > lastTimestamp) {
+                            lastTimestamp = o.timestamp;
+                        }
+                    }
+                });
 
-        <!-- Cột 3: Lịch sử (12%) -->
-        <td style="padding: 12px 0; width: 12%; text-align: center; vertical-align: top;">
-            <button onclick="xemLichSuKhach('${id}', '${tenKhach}')" style="border:none; background:none; cursor:pointer; font-size:18px;">📜</button>
-        </td>
+                // Định dạng ngày "Lần cuối" (dd/mm/yyyy)
+                let lanCuoiStr = "---";
+                if (lastTimestamp > 0) {
+                    const d = new Date(lastTimestamp);
+                    lanCuoiStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+                }
 
-        <!-- Cột 4: Sửa/Xóa (13%) -->
-        <td style="padding: 12px 15px; width: 13%; text-align: right; vertical-align: top;">
-            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button onclick="chuanBiSua('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px;">📝</button>
-                <button onclick="xoaHoiVien('${id}')" style="border:none; background:none; cursor:pointer; font-size:18px;">🗑️</button>
-            </div>
-        </td>
-    </tr>
-`;
+                // === DỮ LIỆU HỘI VIÊN ===
+                const tenKhach = v.ten || "Khách hàng";
+                const soDT = v.sdt || "---";
+                const ngaySinh = v.ngaysinh || "---";
+                const ngayThamGia = v.joinedDate || "---";
+                const soThich = v.sothich || "Chưa rõ";
+                const avatarTxt = tenKhach.split(' ').pop().charAt(0).toUpperCase();
+                
+                // Tích lũy điểm
+                const tam = Number(v.tuy_tam_count) || 0;
+                const thuong = Number(v.tuy_thuong_count) || 0;
+                const tongDiem = tam + thuong;
+                const percent = Math.min((tongDiem / 10) * 100, 100);
+                
+                // Tính số tuổi hiện tại
+                const tuoiStr = tinhTuoi(ngaySinh);
+
+
+                let slogan = "";
+                let sloganColor = "";
+
+                if (tongDiem >= 10) {
+                    slogan = "100% - Đã đủ quà tặng! 🎁";
+                    sloganColor = "#ef4444"; // Đỏ
+                } else if (tongDiem >= 8) {
+                    slogan = `${percent}% - Sắp nhận thưởng 🎉`;
+                    sloganColor = "#f59e0b"; // Cam
+                } else if (tongDiem >= 5) {
+                    slogan = `${percent}% - Cố lên nhé! 💪`;
+                    sloganColor = "#10b981"; // Xanh lá
+                } else if (tongDiem >= 1) {
+                    slogan = `${percent}% - Thưởng đang chờ bạn ✨`;
+                    sloganColor = "#3b82f6"; // Xanh dương
+                } else {
+                    slogan = "0% - Bắt đầu hành trình thôi! 🚀";
+                    sloganColor = "#94a3b8"; // Xám
+                }
+
+const hang = v.rank || "MEMBER";
+
+// Tạo class đặc biệt cho hàng và avatar nếu là VIP
+const rowVipClass = hang === "VIP" ? "row-vip" : "";
+const avatarVipClass = hang === "VIP" ? "avatar-vip" : "";
+
+let badgeHTML = "";
+if (hang === "VIP") {
+    badgeHTML = `<span class="badge-vip">👑 VIP</span>`;
+} else if (hang === "NEW") {
+    badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">🆕 NEW</span>`;
+} else if (hang === "ACTIVE") {
+    badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">🔥 ACTIVE</span>`;
+} else {
+    badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">MEMBER</span>`;
+}
+
+// Render HTML hàng hội viên
+h += `
+<div id="member-row-${id}" class="${rowVipClass}" style="border-bottom: 1px solid #f1f5f9;">
+    <div style="display: grid; grid-template-columns: 2.5fr 2fr 2fr 2.5fr 1.2fr; align-items: center; padding: 15px 25px;">
+    
+        <!-- CỘT 1: HỘI VIÊN (Đã thêm sự kiện click vào Avatar) -->
+<div style="display:flex; align-items:center; gap:12px; min-width: 0;">
+    <!-- Thêm onclick và cursor:pointer vào thẻ Avatar bên dưới -->
+    <div onclick="moChiTietHoiVien('${id}')" title="Bấm để xem chi tiết" class="${avatarVipClass}" style="min-width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #475569; cursor: pointer; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">
+        ${avatarTxt}
+    </div>
+    <div style="overflow: hidden;">
+        <div style="font-weight:700; color:#1e293b; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: flex; align-items: center; gap: 5px;">
+            ${tenKhach} ${badgeHTML}
+        </div>
+        <div style="font-size:11px; color:#f59e0b; margin-top: 2px;">⭐ ${soThich}</div>
+        <div style="font-size:10px; color:#94a3b8; margin-top: 2px;">📅 Tham gia: ${ngayThamGia}</div>
+    </div>
+</div>
+
+                        <!-- CỘT 2: LIÊN HỆ -->
+                        <div style="padding-left: 10px; font-size:13px; color:#475569;">
+                            <div style="font-weight: 600;">📞 ${soDT}</div>
+                            <div style="font-size:11px; color:#94a3b8; margin-top: 3px;">🎂 ${ngaySinh}<span style="color:#475569; font-weight:bold;">${tuoiStr}</span></div>
+                        </div>
+
+                        <!-- CỘT 3: TÍCH LŨY (Sử dụng slogan và sloganColor ở đây) -->
+                        <div>
+                            <div style="font-size:12px; font-weight:700; color:#1e293b;">${tongDiem}/10 bát</div>
+                            <div style="height:10px; background:#f1f5f9; border-radius:20px; margin-top:6px; width: 120px; overflow:hidden; border: 1px solid #e2e8f0;">
+                                <div style="width:${percent}%; height:100%; background:${percent >= 100 ? '#ef4444' : '#10b981'}; border-radius:20px; transition: width 0.5s ease-in-out;"></div>
+                            </div>
+                            <div style="font-size: 10px; font-weight: 700; color: ${sloganColor}; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.3px;">
+                                ${slogan}
+                            </div>
+                        </div>
+
+                        <!-- CỘT 4: THỐNG KÊ -->
+                        <div style="font-size: 11px; color: #64748b;">
+                            <div style="display: flex; gap: 8px; align-items: flex-start;">
+                                <span style="font-size: 16px;">💵</span>
+                                <div style="flex: 1;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>Tổng chi tiêu</span>
+                                        <span>Số lần đến</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-weight: 800; color: #1e293b; font-size: 13px; margin-top: 2px;">
+                                        <span>${tongChiTieu.toLocaleString()}đ</span>
+                                        <span>${soLanDen} lần</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px; padding-left: 2px;">
+                                <i class="far fa-clock" style="font-size: 11px;"></i>
+                                <span>Lần cuối: <b style="color: #475569;">${lanCuoiStr}</b></span>
+                            </div>
+                        </div>
+
+                        <!-- CỘT 5: THAO TÁC -->
+                        <div style="display:flex; justify-content: flex-end; gap:8px;">
+                            <button onclick="xemLichSuKhach('${id}', '${tenKhach}')" style="border:none; background:#eff6ff; color:#3b82f6; width:30px; height:30px; border-radius:8px; cursor:pointer;"><i class="far fa-clock"></i></button>
+                            <button onclick="chuanBiSua('${id}')" title="Sửa" style="border:none; background:#f0fdf4; color:#10b981; width:30px; height:30px; border-radius:8px; cursor:pointer;"><i class="far fa-edit"></i></button>
+                            <button onclick="xoaHoiVien('${id}')" style="border:none; background:#fef2f2; color:#ef4444; width:30px; height:30px; border-radius:8px; cursor:pointer;"><i class="far fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+           const el = document.getElementById("ds-hoi-vien-body");
+if (el) {
+    el.innerHTML = h;
+} else {
+    console.error("Không tìm thấy thẻ HTML có id='ds-hoi-vien-body' trên giao diện!");
+}
         });
-        document.getElementById("ds-hoi-vien-body").innerHTML = h;
     });
 }
 
-// Gọi hàm khởi động
-renderHoiVien();
+function tinhKpiHoiVien() {
+    // 1. Tải dữ liệu đơn hàng trước
+    db.ref("history_orders").once("value").then(orderSnap => {
+        const orders = orderSnap.val() || {};
+
+        // 2. Tải danh sách hội viên
+        db.ref("members").once("value").then(snap => {
+            const data = snap.val();
+            if (!data) return;
+
+            const membersList = Object.keys(data).map(k => ({ ...data[k], id: k }));
+            const tongHoiVien = membersList.length;
+
+            // --- THIẾT LẬP THỜI GIAN HIỆN TẠI (Tháng 5/2026) ---
+            const now = new Date();
+            const currentMonth = now.getMonth() + 1; // Tháng thực tế: 1 - 12
+            const currentYear = now.getFullYear();
+
+            // Tính tháng trước để so sánh
+            let prevMonth = currentMonth - 1;
+            let prevMonthYear = currentYear;
+            if (prevMonth === 0) {
+                prevMonth = 12;
+                prevMonthYear = currentYear - 1;
+            }
+
+            // Ngày đầu tuần này (Thứ 2)
+            const dayOfWeek = now.getDay() || 7;
+            const startOfWeek = new Date(now);
+            startOfWeek.setHours(0, 0, 0, 0);
+            startOfWeek.setDate(now.getDate() - (dayOfWeek - 1));
+
+            // Ngày đầu tháng này
+            const startOfMonth = new Date(currentYear, currentMonth - 1, 1, 0, 0, 0, 0);
+
+            let hoiVienThangNay = 0;
+            let hoiVienThangTruoc = 0;
+            let soHoiVienTichCuc = 0;
+            let soSapDatThuong = 0;
+            let tongTichLuyHeThong = 0;
+
+            // Duyệt danh sách hội viên
+            membersList.forEach(m => {
+                // --- CARD 1: Đếm số hội viên mới tháng này và tháng trước ---
+                if (m.joinedDate) {
+                    const parts = m.joinedDate.split("/");
+                    if (parts.length === 3) {
+                        const joinMonth = parseInt(parts[1], 10);
+                        const joinYear = parseInt(parts[2], 10);
+
+                        // Đếm tháng này
+                        if (joinMonth === currentMonth && joinYear === currentYear) {
+                            hoiVienThangNay++;
+                        }
+                        // Đếm tháng trước
+                        if (joinMonth === prevMonth && joinYear === prevMonthYear) {
+                            hoiVienThangTruoc++;
+                        }
+                    }
+                }
+
+                // --- CARD 2: Hội viên tích cực (Tuần & Tháng) ---
+                let denTrongTuan = 0;
+                let denTrongThang = 0;
+
+                Object.values(orders).forEach(o => {
+                    if (o.customerId === m.id) {
+                        const t = Number(o.timestamp) || 0;
+                        if (t >= startOfWeek.getTime()) denTrongTuan++;
+                        if (t >= startOfMonth.getTime()) denTrongThang++;
+                    }
+                });
+
+                if (denTrongTuan >= 2 || denTrongThang >= 8) {
+                    soHoiVienTichCuc++;
+                }
+
+                // --- CARD 3: Sắp đạt thưởng (8 - 9 điểm) ---
+                const tam = Number(m.tuy_tam_count) || 0;
+                const thuong = Number(m.tuy_thuong_count) || 0;
+                const tongDiem = tam + thuong;
+
+                if (tongDiem >= 8 && tongDiem < 10) {
+                    soSapDatThuong++;
+                }
+
+                // --- CARD 4: Tổng tích lũy ---
+                tongTichLuyHeThong += tongDiem;
+            });
+
+            // ==========================================================
+            // 🟢 CẬP NHẬT GIAO DIỆN KPI
+            // ==========================================================
+
+            // --- CARD 1: Tổng hội viên & Tăng trưởng ---
+            // Số hội viên mới tăng thêm/giảm đi so với tháng trước đó
+            const growthHoiVien = hoiVienThangNay - hoiVienThangTruoc;
+            const growthStr = growthHoiVien >= 0 ? `+${growthHoiVien}` : `${growthHoiVien}`;
+
+            if (document.getElementById("stat-total-members")) {
+                document.getElementById("stat-total-members").innerText = tongHoiVien.toLocaleString();
+            }
+            if (document.getElementById("stat-members-growth")) {
+                document.getElementById("stat-members-growth").innerText = growthStr;
+                // Đổi màu: Tăng thì màu xanh lá, giảm thì màu đỏ
+                document.getElementById("stat-members-growth").style.color = growthHoiVien >= 0 ? "#10b981" : "#ef4444";
+            }
+
+            // --- CARD 2: Hội viên tích cực ---
+            const pctActive = tongHoiVien > 0 ? ((soHoiVienTichCuc / tongHoiVien) * 100).toFixed(1) : 0;
+            if (document.getElementById("stat-active-members")) {
+                document.getElementById("stat-active-members").innerText = soHoiVienTichCuc.toLocaleString();
+            }
+            if (document.getElementById("stat-active-percent")) {
+                document.getElementById("stat-active-percent").innerText = pctActive + "%";
+            }
+
+            // --- CARD 3: Sắp đạt thưởng ---
+            const pctReward = tongHoiVien > 0 ? ((soSapDatThuong / tongHoiVien) * 100).toFixed(1) : 0;
+            if (document.getElementById("stat-reward-members")) {
+                document.getElementById("stat-reward-members").innerText = soSapDatThuong.toLocaleString();
+            }
+            if (document.getElementById("stat-reward-percent")) {
+                document.getElementById("stat-reward-percent").innerText = pctReward + "%";
+            }
+
+            // --- CARD 4: Tổng tích lũy ---
+            const MUC_TIEU_HE_THONG = 10000;
+            const percentProgress = Math.min((tongTichLuyHeThong / MUC_TIEU_HE_THONG) * 100, 100).toFixed(1);
+
+            if (document.getElementById("stat-progress-text")) {
+                document.getElementById("stat-progress-text").innerText = `${tongTichLuyHeThong.toLocaleString()} / ${MUC_TIEU_HE_THONG.toLocaleString()}`;
+            }
+            if (document.getElementById("stat-progress-bar")) {
+                document.getElementById("stat-progress-bar").style.width = percentProgress + "%";
+            }
+
+        });
+    }).catch(err => console.error("Lỗi khi tính toán KPI hội viên:", err));
+}
+
+
 
 
 /*12.xóa hội viên*/
@@ -3144,40 +3371,354 @@ function layDonVi(tenMon) {
 
 
 
-/*29.SỬA HÔI VIÊN*/
-function chuanBiSua(id) {
-    if (!id) return;
+/* 29. SỬA HỘI VIÊN */
+window.dangSuaId = null;
 
-    // Lấy dữ liệu trực tiếp từ Firebase theo ID của khách
+window.chuanBiSua = function(id) {
+    if (!id) return;
+    window.dangSuaId = id;
+
+    // 1. Tải dữ liệu từ Firebase
     db.ref("members/" + id).once("value").then(snap => {
         const hv = snap.val();
         if (!hv) return alert("Không tìm thấy dữ liệu hội viên!");
 
-        // Đổ dữ liệu vào các ô input (Dùng đúng ID của các ô nhập liệu)
-        document.getElementById('hv-ten').value = hv.ten || "";
-        document.getElementById('hv-sdt').value = hv.sdt || "";
-        document.getElementById('hv-ngaysinh').value = hv.ngaysinh || "";
-        document.getElementById('hv-sothich').value = hv.sothich || "";
+        const rowEl = document.getElementById(`member-row-${id}`);
+        if (!rowEl) return alert("Không tìm thấy hàng hội viên trên giao diện!");
 
-        // Lưu ID vào biến đang sửa
-        dangSuaId = id;
+        // Lưu lại HTML hiện tại vào thuộc tính để khôi phục khi cần HỦY
+        rowEl.setAttribute("data-old-html", rowEl.innerHTML);
 
-        // Đổi trạng thái nút bấm (Đảm bảo class .btn-add-member là chính xác)
-        const btn = document.querySelector('.btn-add-member');
-        if (btn) {
-            btn.innerHTML = "💾 CẬP NHẬT THÔNG TIN";
-            btn.style.backgroundColor = "#1976d2";
+        // Đổi giao diện sang các ô Input nhập liệu trực tiếp
+        rowEl.innerHTML = `
+        <div style="display: grid; grid-template-columns: 2.5fr 2fr 2fr 2.5fr 1.2fr; align-items: center; padding: 15px 25px; background: #fffdf5; border-bottom: 1px solid #f1f5f9; width:100%;">
+            
+            <!-- CỘT 1: SỬA THÔNG TIN -->
+            <div style="display:flex; align-items:center; gap:12px; min-width: 0;">
+                <div style="min-width: 40px; height: 40px; border-radius: 50%; background: #3b82f6; display: flex; align-items: center; justify-content: center; font-weight: bold; color: white;">
+                    ${(hv.ten || "K").split(' ').pop().charAt(0).toUpperCase()}
+                </div>
+                <div style="width: 100%;">
+                    <input type="text" id="edit-ten-${id}" value="${hv.ten || ''}" style="width: 90%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: bold; margin-bottom: 4px; outline: none;">
+                    <input type="text" id="edit-sothich-${id}" value="${hv.sothich || ''}" placeholder="Sở thích..." style="width: 90%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; outline: none;">
+                </div>
+            </div>
+
+            <!-- CỘT 2: SỬA LIÊN HỆ -->
+            <div style="padding-left: 10px;">
+                <input type="tel" id="edit-sdt-${id}" value="${hv.sdt || ''}" style="width: 90%; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; font-weight: bold; margin-bottom: 4px; outline: none;">
+                <input type="date" id="edit-ngaysinh-${id}" value="${hv.ngaysinh || ''}" style="width: 90%; padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 11px; color:#475569; outline: none;">
+            </div>
+
+            <!-- CỘT 3: TÍCH LŨY (Chỉ xem) -->
+            <div style="font-size: 13px; color:#64748b; font-weight: bold; text-align: center;">
+                ${(Number(hv.tuy_tam_count) || 0) + (Number(hv.tuy_thuong_count) || 0)}/10 bát
+            </div>
+
+            <!-- CỘT 4: TRẠNG THÁI -->
+            <div style="font-size: 11px; color:#94a3b8; padding-left: 10px;">
+                Đang chỉnh sửa...
+            </div>
+
+            <!-- CỘT 5: THAO TÁC LƯU / HỦY -->
+            <div style="display:flex; justify-content: flex-end; gap:8px;">
+                <button onclick="luuTrucTiep('${id}')" title="Lưu" style="border:none; background:#f0fdf4; color:#10b981; width:30px; height:30px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px;">
+                    ✔
+                </button>
+                <button onclick="huySua('${id}')" title="Hủy bỏ" style="border:none; background:#fef2f2; color:#ef4444; width:30px; height:30px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px;">
+                    ✖
+                </button>
+            </div>
+        </div>`;
+    }).catch(err => alert("Lỗi khi tải dữ liệu: " + err.message));
+};
+
+/* HÀM LƯU DỮ LIỆU ĐÃ SỬA */
+window.luuTrucTiep = function(id) {
+    const tenRaw = document.getElementById(`edit-ten-${id}`).value.trim();
+    const ten = window.chuanHoaTen ? window.chuanHoaTen(tenRaw) : tenRaw;
+    const sdt = document.getElementById(`edit-sdt-${id}`).value.trim();
+    const ngaysinh = document.getElementById(`edit-ngaysinh-${id}`).value;
+    const sothich = document.getElementById(`edit-sothich-${id}`).value.trim();
+
+    if (!ten || !sdt) {
+        alert("⚠️ Không được để trống Tên và Số điện thoại!");
+        return;
+    }
+
+    const data = { ten, sdt, ngaysinh, sothich };
+
+    db.ref("members/" + id).update(data).then(() => {
+        alert("✅ Đã cập nhật thành công!");
+        window.dangSuaId = null;
+        // Trình lắng nghe Firebase .on("value") sẽ tự vẽ lại giao diện mới
+    }).catch(err => alert("Lỗi khi lưu: " + err.message));
+};
+
+/* HÀM THOÁT CHẾ ĐỘ SỬA (HỦY) */
+window.huySua = function(id) {
+    if (!id) return;
+    window.dangSuaId = null;
+    const rowEl = document.getElementById(`member-row-${id}`);
+    
+    // Khôi phục lại HTML nguyên bản
+    if (rowEl && rowEl.getAttribute("data-old-html")) {
+        rowEl.innerHTML = rowEl.getAttribute("data-old-html");
+    }
+};
+
+window.timKiemHoiVien = function() {
+    // 1. Lấy từ khóa tìm kiếm và chuyển sang chữ thường
+    const keyWord = document.getElementById("hv-search-input").value.toLowerCase().trim();
+    
+    // 2. Lấy tất cả các hàng hội viên đang có trong danh sách
+    const listRow = document.querySelectorAll("#ds-hoi-vien-body > div");
+    
+    listRow.forEach(row => {
+        // Tìm thẻ chứa Tên và Số điện thoại bên trong hàng đó
+        const textContent = row.textContent.toLowerCase();
+
+        // 3. Nếu từ khóa khớp với Tên hoặc SĐT thì HIỆN, ngược lại thì ẨN
+        if (textContent.includes(keyWord)) {
+            row.style.display = "block";
+        } else {
+            row.style.display = "none";
         }
-        
-        // Cuộn lên form nhập liệu
-        const form = document.querySelector('.member-form');
-        if (form) {
-            form.scrollIntoView({ behavior: 'smooth' });
-        }
-    }).catch(err => {
-        console.error("Lỗi khi lấy dữ liệu sửa:", err);
     });
-}
+};
+
+window.tuDongCapNhatHangKhachHang = function() {
+    // 1. Tải lịch sử đơn hàng để đối chiếu
+    db.ref("history_orders").once("value").then(orderSnap => {
+        const orders = orderSnap.val() || {};
+
+        // 2. Tải danh sách hội viên
+        db.ref("members").once("value").then(memberSnap => {
+            const members = memberSnap.val() || {};
+
+            Object.keys(members).forEach(id => {
+                const v = members[id];
+                let tongChiTieu = 0;
+                let soLanDen = 0;
+
+                // Tính tổng chi tiêu và số lần đến thực tế từ history_orders
+                Object.values(orders).forEach(o => {
+                    if (o.customerId === id) {
+                        tongChiTieu += Number(o.total) || 0;
+                        soLanDen++;
+                    }
+                });
+
+                // Xét hạng theo tiêu chí (Giống ảnh mẫu của bạn)
+                let rankMoi = "MEMBER";
+
+                if (tongChiTieu >= 5000000 || soLanDen >= 15) {
+                    rankMoi = "VIP";
+                } else if (soLanDen >= 2) {
+                    rankMoi = "ACTIVE";
+                } else {
+                    rankMoi = "NEW";
+                }
+
+                // 🔥 Cập nhật trực tiếp lên Firebase nếu hạng cũ bị sai
+                if (v.rank !== rankMoi) {
+                    db.ref(`members/${id}`).update({ rank: rankMoi });
+                }
+            });
+        });
+    }).catch(err => console.error("Lỗi tự động xét hạng:", err));
+};
+
+
+window.moChiTietHoiVien = function(id) {
+    if (!id) return;
+
+    // 1. Tải thông tin hội viên từ Firebase
+    db.ref("members/" + id).once("value").then(snap => {
+        const hv = snap.val();
+        if (!hv) return alert("Không tìm thấy hội viên này!");
+
+        // --- Đổ thông tin cơ bản ---
+        document.getElementById("det-name").innerText = hv.ten || "Khách hàng";
+        document.getElementById("det-phone").innerText = "📞 " + (hv.sdt || "---");
+        
+        let ageStr = "---";
+        if (hv.ngaysinh && hv.ngaysinh !== "---" && hv.ngaysinh !== "-") {
+            const age = new Date().getFullYear() - new Date(hv.ngaysinh).getFullYear();
+            ageStr = `${hv.ngaysinh} (${age} tuổi)`;
+        }
+        document.getElementById("det-birth-age").innerText = "🎂 " + ageStr;
+        document.getElementById("det-join").innerText = "📅 Tham gia: " + (hv.joinedDate || "---");
+        document.getElementById("det-avatar").innerText = (hv.ten || "K").split(' ').pop().charAt(0).toUpperCase();
+
+        // --- Tính điểm tích lũy ---
+        const points = (Number(hv.tuy_tam_count) || 0) + (Number(hv.tuy_thuong_count) || 0);
+        document.getElementById("det-points").innerText = points;
+        document.getElementById("det-progress").style.width = Math.min((points / 10) * 100, 100) + "%";
+
+        let sloganColor = "#94a3b8", sloganText = "Bắt đầu hành trình thôi! 🚀";
+        if (points >= 10) { sloganColor = "#ef4444"; sloganText = "100% - ĐÃ ĐỦ QUÀ TẶNG! 🎁"; }
+        else if (points >= 8) { sloganColor = "#f59e0b"; sloganText = "Sắp nhận thưởng 🎉"; }
+        else if (points >= 5) { sloganColor = "#10b981"; sloganText = "Cố lên nhé! 💪"; }
+        
+        const sloganEl = document.getElementById("det-slogan");
+        sloganEl.innerText = sloganText;
+        sloganEl.style.color = sloganColor;
+
+        // 2. Tải lịch sử đơn hàng để tính toán Tổng chi tiêu, Số lần đến và Xét hạng chính xác
+        db.ref("history_orders").once("value").then(orderSnap => {
+            const orders = orderSnap.val() || {};
+            let tongChiTieu = 0;
+            let soLanDen = 0;
+            let lastTimestamp = 0;
+            let orderRows = "";
+
+            // Thiết lập mốc thời gian để tính hạng ACTIVE
+            const now = new Date();
+            const dayOfWeek = now.getDay() || 7;
+            const startOfWeek = new Date(now);
+            startOfWeek.setHours(0, 0, 0, 0);
+            startOfWeek.setDate(now.getDate() - (dayOfWeek - 1));
+
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+
+            let denTrongTuan = 0;
+            let denTrongThang = 0;
+
+            const sortedOrders = Object.values(orders)
+                .filter(o => o.customerId === id)
+                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            sortedOrders.forEach((o, idx) => {
+                const total = Number(o.total) || 0;
+                const t = Number(o.timestamp) || 0;
+
+                tongChiTieu += total;
+                soLanDen++;
+                
+                if (t > lastTimestamp) lastTimestamp = t;
+                if (t >= startOfWeek.getTime()) denTrongTuan++;
+                if (t >= startOfMonth.getTime()) denTrongThang++;
+
+                // Chỉ hiện 4 đơn hàng giao dịch gần nhất
+                if (idx < 4) {
+                    const d = new Date(t);
+                    const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+                    const dateStr = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+                    orderRows += `
+                    <div style="display:flex; justify-content:space-between; padding:10px 15px; border-bottom:1px dashed #f1f5f9; align-items:center;">
+                        <div>
+                            <b>${dateStr}</b> <small style="color:#64748b; margin-left:5px;">${timeStr}</small>
+                            <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${o.tableName || 'Bàn'}</div>
+                        </div>
+                        <b style="color:#1e293b;">${total.toLocaleString()}đ</b>
+                    </div>`;
+                }
+            });
+
+            // =========================================================
+            // 🟢 ĐỒNG BỘ LOGIC XÉT HẠNG GIỮA BADGE VÀ CARD THÔNG SỐ
+            // =========================================================
+            let currentRank = "MEMBER";
+            if (tongChiTieu >= 5000000 || soLanDen >= 15) {
+                currentRank = "VIP";
+            } else if (denTrongTuan >= 2 || denTrongThang >= 8) {
+                currentRank = "ACTIVE";
+            } else {
+                currentRank = "NEW";
+            }
+
+            // Gán dữ liệu 4 ô thống kê
+            document.getElementById("det-total-spent").innerText = tongChiTieu.toLocaleString() + "đ";
+            document.getElementById("det-visit-count").innerText = soLanDen + " lần";
+            document.getElementById("det-rank-text").innerText = currentRank; // Đồng bộ ở ô thông số [INDEX]
+            
+            // Cập nhật lại nhãn badge ở trên đầu cho đồng bộ 100% [INDEX]
+            const badgeEl = document.getElementById("det-badge");
+            if (badgeEl) {
+                if (currentRank === "VIP") {
+                    badgeEl.className = "badge-vip";
+                    badgeEl.innerHTML = "👑 VIP";
+                    badgeEl.style.display = "inline-flex";
+                } else if (currentRank === "ACTIVE") {
+                    badgeEl.className = "";
+                    badgeEl.style.cssText = "font-size:10px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px; font-weight:bold; margin-left:6px;";
+                    badgeEl.innerHTML = "🔥 ACTIVE";
+                    badgeEl.style.display = "inline-flex";
+                } else if (currentRank === "NEW") {
+                    badgeEl.className = "";
+                    badgeEl.style.cssText = "font-size:10px; background:#eff6ff; color:#2563eb; border:1px solid #dbeafe; padding:3px 8px; border-radius:6px; font-weight:bold; margin-left:6px;";
+                    badgeEl.innerHTML = "🆕 NEW";
+                    badgeEl.style.display = "inline-flex";
+                } else {
+                    badgeEl.className = "";
+                    badgeEl.style.cssText = "font-size:10px; background:#f8fafc; color:#64748b; border:1px solid #e2e8f0; padding:3px 8px; border-radius:6px; font-weight:bold; margin-left:6px;";
+                    badgeEl.innerHTML = "MEMBER";
+                    badgeEl.style.display = "inline-flex";
+                }
+            }
+
+            let lastVisitStr = "---";
+            if (lastTimestamp > 0) {
+                const ld = new Date(lastTimestamp);
+                lastVisitStr = `${ld.getDate()}/${ld.getMonth() + 1}/${ld.getFullYear()}`;
+            }
+            document.getElementById("det-last-visit").innerText = lastVisitStr;
+
+            // Đổ danh sách đơn hàng
+            document.getElementById("det-order-list").innerHTML = orderRows || "<p style='text-align:center; padding:15px; color:#94a3b8; margin:0;'>Chưa có lịch sử giao dịch nào.</p>";
+        });
+
+        // Mở Drawer
+        document.getElementById("member-detail-drawer").style.display = "flex";
+    }).catch(err => console.error(err));
+};
+
+
+
+window.locNhanhHoiVien = function(filterType, btnEl) {
+    // 1. Đổi màu hiệu ứng nút bấm đang được chọn
+    const allButtons = document.querySelectorAll("#quick-filter-container .btn-quick-filter");
+    allButtons.forEach(btn => {
+        btn.classList.remove("active");
+        btn.style.background = "white";
+        btn.style.color = "#64748b";
+        btn.style.borderColor = "#e2e8f0";
+        btn.style.fontWeight = "600";
+    });
+
+    btnEl.classList.add("active");
+
+    // 2. Lọc danh sách hội viên đang hiển thị trên giao diện
+    const rows = document.querySelectorAll("#ds-hoi-vien-body > div");
+    
+    rows.forEach(row => {
+        // Kiểm tra text bên trong hàng để lọc
+        const rowText = row.textContent || "";
+        
+        if (filterType === "tat-ca") {
+            row.style.display = "block";
+        } else if (filterType === "sap-dat-thuong") {
+            // Lọc các khách hàng có chữ "Sắp nhận thưởng"
+            if (rowText.includes("Sắp nhận thưởng")) {
+                row.style.display = "block";
+            } else {
+                row.style.display = "none";
+            }
+        } else {
+            // Lọc theo Rank: VIP, ACTIVE, NEW
+            if (rowText.includes(filterType)) {
+                row.style.display = "block";
+            } else {
+                row.style.display = "none";
+            }
+        }
+    });
+};
+
+
+
+
 /*30.CHUẨN HÓA TÊN*/
 function chuanHoaTen(str) {
     return str.toLowerCase().split(' ').map(word => {
@@ -3188,7 +3729,7 @@ function chuanHoaTen(str) {
 /*31.THÊM HVIEN*/
 function themHoiVien() {
     const tenRaw = document.getElementById('hv-ten').value.trim();
-    const ten = chuanHoaTen(tenRaw);
+    const ten = window.chuanHoaTen ? window.chuanHoaTen(tenRaw) : tenRaw;
     const sdt = document.getElementById('hv-sdt').value.trim();
 
     if (!ten || !sdt) {
@@ -3199,24 +3740,24 @@ function themHoiVien() {
     const ngaySinh = document.getElementById('hv-ngaysinh').value;
     const soThich = document.getElementById('hv-sothich').value;
 
+    // Dữ liệu chung cho cả Thêm và Sửa
     const data = {
-        ten,
-        sdt,
+        ten: ten,
+        sdt: sdt,
         ngaysinh: ngaySinh,
         sothich: soThich
     };
 
-    // 🔥 LẤY DATA TRỰC TIẾP TỪ FIREBASE (KHÔNG DÙNG HOIVIEN_DATA NỮA)
     db.ref("members").once("value").then(snap => {
         const danhSachHoiVien = snap.val() || {};
         let trung = false;
 
+        // Kiểm tra trùng Số điện thoại
         Object.keys(danhSachHoiVien).forEach(idKey => {
             const sdtDB = String(danhSachHoiVien[idKey].sdt || "").trim();
             const sdtInput = String(sdt).trim();
 
-            // ❗ CHỈ CHECK nếu KHÔNG phải chính nó
-            if (sdtDB === sdtInput && idKey !== dangSuaId) {
+            if (sdtDB === sdtInput && idKey !== window.dangSuaId) {
                 trung = true;
             }
         });
@@ -3226,21 +3767,31 @@ function themHoiVien() {
             return;
         }
 
-        // =============================
-        // 🟢 CẬP NHẬT
-        // =============================
-        if (dangSuaId) {
-            db.ref("members/" + dangSuaId).update(data)
+        // ==========================================
+        // 🟢 TRƯỜNG HỢP CẬP NHẬT HỘI VIÊN CŨ
+        // ==========================================
+        if (window.dangSuaId) {
+            db.ref("members/" + window.dangSuaId).update(data)
                 .then(() => {
                     alert("✅ Đã cập nhật thành công!");
                     resetFormHoiVien();
                 })
                 .catch(e => alert("Lỗi Firebase: " + e.message));
         } 
-        // =============================
-        // 🟢 THÊM MỚI
-        // =============================
+        // ==========================================
+        // 🟢 TRƯỜNG HỢP THÊM HỘI VIÊN MỚI
+        // ==========================================
         else {
+            // Lấy ngày hiện tại làm ngày tham gia
+            const d = new Date();
+            const ngay = String(d.getDate()).padStart(2, '0');
+            const thang = String(d.getMonth() + 1).padStart(2, '0');
+            const nam = d.getFullYear();
+            
+            // Gán ngày tham gia dạng DD/MM/YYYY
+            data.joinedDate = `${ngay}/${thang}/${nam}`; 
+
+            // Khởi tạo các mốc tích lũy ban đầu
             data.tuy_tam_count = 0;
             data.tuy_thuong_count = 0;
             data.diem_tich_luy = 0;
@@ -4290,11 +4841,15 @@ function moModalBaoCao() {
 let myChartRatio = null;
 let myChartHourly = null;
 
-/*60.TẢI BÁO CÁO DOANH THU (BẢN PRO MAX)*/
+
+/*60.TẢI BÁO CÁO DOANH THU (BẢN PRO MAX - FIX SEARCH CHUẨN)*/
 function taiBaoCaoDoanhThu() {
     const fromDate = document.getElementById("report-from").value;
     const toDate = document.getElementById("report-to").value;
     const customerFilter = document.getElementById("report-customer-filter").value;
+
+    // ✅ SEARCH
+    const searchText = (document.getElementById("report-search")?.value || "").toLowerCase().trim();
     
     const container = document.getElementById("report-body-list");
     const totalEl = document.getElementById("report-total-amount");
@@ -4316,7 +4871,6 @@ function taiBaoCaoDoanhThu() {
         let list = Object.keys(data).map(k => data[k]);
         list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-        let tongDoanhThu = 0;
         let thuHoiVien = 0;
         let thuVangLai = 0;
 
@@ -4325,109 +4879,194 @@ function taiBaoCaoDoanhThu() {
 
         let html = "";
         let displayedCount = 0;
+        let tongThucThu = 0;
 
         const start = fromDate ? new Date(fromDate + "T00:00:00").getTime() : 0;
         const end = toDate ? new Date(toDate + "T23:59:59").getTime() : Infinity;
 
-        list.forEach((o) => {
+        list.forEach((o, index) => {
             const time = o.timestamp || 0;
+            const total = Number(o.total) || 0;
+            const discountAmount = Number(o.discount) || 0;
 
             let matchDate = (time >= start && time <= end);
-            let matchCustomer = true;
 
-            if (customerFilter === "member") matchCustomer = !!o.customerId;
-            else if (customerFilter === "guest") matchCustomer = !o.customerId;
-
+            // ✅ KPI + CHART chỉ theo ngày (KHÔNG dính search)
             if (matchDate) {
-                const total = Number(o.total) || 0;
-                const discountAmount = Number(o.discount) || 0;
+                if (o.customerId) thuHoiVien += total; else thuVangLai += total;
+                hourlyData[new Date(time).getHours()] += total;
 
-                // TÍNH TỶ LỆ KHÁCH
-                if (o.customerId) thuHoiVien += total;
-                else thuVangLai += total;
-
-                // BIỂU ĐỒ GIỜ
-                const hour = new Date(time).getHours();
-                hourlyData[hour] += total;
-
-                // TOP MÓN
                 if (o.items) {
                     o.items.forEach(m => {
                         foodMap[m.ten] = (foodMap[m.ten] || 0) + (Number(m.sl) || 0);
                     });
                 }
+            }
 
-                if (matchCustomer) {
-                    tongDoanhThu += total;
+            // ===== FILTER LIST =====
+            let matchCustomer = true;
+            if (customerFilter === "member") matchCustomer = !!o.customerId;
+            else if (customerFilter === "guest") matchCustomer = !o.customerId;
 
-                    const delay = displayedCount * 0.05;
-                    displayedCount++;
+            let matchSearch = true;
+            if (searchText) {
+                const tableName = (o.tableName || "").toLowerCase();
+                const customerName = (o.customerName || "").toLowerCase();
+                matchSearch = tableName.includes(searchText) || customerName.includes(searchText);
+            }
 
-                    const d = new Date(time);
-                    const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')} - ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+            // ✅ LIST = date + customer + search
+            if (matchDate && matchCustomer && matchSearch) {
+                tongThucThu += total;
+                displayedCount++;
 
-                    let chiTietMonHTML = "";
-                    if (o.items) {
-                        o.items.forEach(m => {
-                            chiTietMonHTML += `
-                            <div style="display:flex; justify-content:space-between; font-size:11px; padding:2px 0;">
-                                <span>• ${m.ten} <b style="color:#ef4444">x${m.sl}</b></span>
-                                <span>${(m.gia * m.sl).toLocaleString()}đ</span>
-                            </div>`;
-                        });
-                    }
+                const d = new Date(time);
+                const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+                const dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
 
-                    let discountTag = "";
-                    let discountDetail = "";
+                let voucherBadge = discountAmount > 0 ? `<span style="background:#f0fdf4; color:#166534; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:bold; border:1px solid #bbf7d0; margin-left:5px;">🎁 Voucher</span>` : "";
 
-                    if (discountAmount > 0) {
-                        discountTag = `<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:10px; font-size:10px;">🎁 Voucher</span>`;
-                        discountDetail = `<div style="color:#16a34a; font-size:11px;">- ${discountAmount.toLocaleString()}đ</div>`;
-                    }
+                let discountRowHTML = discountAmount > 0 ? `<div style="display:flex; justify-content:space-between; font-size:12px; padding:6px 0; color:#16a34a; font-weight:bold; border-top:1px solid #f1f5f9;"><span>Giảm giá</span><span>-${discountAmount.toLocaleString()}đ</span></div>` : "";
 
-                    html += `
-                    <div style="background:#fff; padding:15px; border-radius:15px; border:1px solid #eee; margin-bottom:15px;">
-                        
-                        <!-- HEADER -->
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="font-size:12px; font-weight:bold;">🕒 ${timeStr}</span>
-                            <div>
-                                ${discountTag}
-                                <span style="background:#fee2e2; color:#dc2626; padding:2px 10px; border-radius:20px; font-size:11px;">
-                                    ${o.tableName}
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- MÓN -->
-                        <div style="margin:10px 0;">${chiTietMonHTML}</div>
-
-                        <!-- FOOTER -->
-                        <div style="display:flex; justify-content:space-between; background:#f9fafb; padding:10px; border-radius:10px;">
-                            <div style="font-size:11px;">
-                                👤 ${o.customerName || 'Khách vãng lai'}
-                            </div>
-                            <div style="text-align:right;">
-                                ${discountDetail}
-                                <div style="font-weight:bold; color:#dc2626; font-size:16px;">
-                                    ${total.toLocaleString()}đ
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
+                let chiTietMonHTML = "";
+                if (o.items) {
+                    o.items.forEach(m => {
+                        chiTietMonHTML += `<div style="display:flex; justify-content:space-between; font-size:12px; padding:4px 0; border-bottom:1px dashed #eee;"><span>• ${m.ten} <small>x${m.sl}</small></span><span>${(m.gia * m.sl).toLocaleString()}đ</span></div>`;
+                    });
                 }
+
+                html += `
+                <div style="border-bottom: 1px solid #f1f5f9;">
+                    <div onclick="toggleDetail('report-row-${index}')" style="display: grid; grid-template-columns: 120px 180px 180px 1fr 150px 50px; padding: 15px 25px; align-items: center; cursor: pointer;">
+                        <div style="font-size:12px;"><b>${timeStr}</b><br><small style="color:#94a3b8">${dateStr}</small></div>
+                        <div><span style="background:#eff6ff; color:#3b82f6; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:700;">${o.tableName}</span>${voucherBadge}</div>
+                        <div style="font-size:13px; color:#475569;">${o.customerName || 'Vãng lai'}</div>
+                        <div></div>
+                        <div style="text-align:right; font-weight:800; color:#10b981;">${total.toLocaleString()}đ</div>
+                        <div style="text-align:right; color:#3b82f6;"><i class="far fa-eye"></i></div>
+                    </div>
+
+                    <div id="report-row-${index}" style="display:none; background:#fbfcfd; padding:20px 40px; border-top:1px solid #f1f5f9;">
+                        <div style="display:grid; grid-template-columns:2fr 1fr; gap:60px;">
+                            <div>${chiTietMonHTML}${discountRowHTML}</div>
+                            <div style="text-align:right;">
+                                <small>Thực thu</small>
+                                <div style="font-size:20px; font-weight:900; color:#ef4444;">${total.toLocaleString()}đ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
             }
         });
 
-        /* ===============================
-           UPDATE UI
-        =============================== */
-        container.innerHTML = html || "<p style='text-align:center;'>Không có dữ liệu</p>";
-        totalEl.innerText = tongDoanhThu.toLocaleString() + "đ";
+                     // 1. Cập nhật Tổng doanh thu (Card chính)
+        if (totalEl) totalEl.innerText = tongThucThu.toLocaleString() + "đ";
 
-        /* ===============================
-           TOP 5 MÓN
-        =============================== */
+        // --- CHÈN MỤC TIÊU DOANH THU VÀO ĐÂY ---
+        const TARGET_REVENUE = 10000000;
+        if (document.getElementById("stat-revenue-target")) {
+            document.getElementById("stat-revenue-target").innerText = "/ " + (TARGET_REVENUE / 1000000) + "tr";
+        }
+
+        // 2. Tính % tỉ lệ Hội viên / Vãng lai và Cập nhật Card Hội viên/Vãng lai
+        const pctMember = tongThucThu > 0 ? ((thuHoiVien / tongThucThu) * 100).toFixed(1) : 0;
+        const pctGuest = tongThucThu > 0 ? ((thuVangLai / tongThucThu) * 100).toFixed(1) : 0;
+
+        if (document.getElementById("stat-member-total")) 
+            document.getElementById("stat-member-total").innerText = thuHoiVien.toLocaleString() + "đ";
+        if (document.getElementById("pct-member")) 
+            document.getElementById("pct-member").innerText = pctMember + "%";
+
+        if (document.getElementById("stat-guest-total")) 
+            document.getElementById("stat-guest-total").innerText = thuVangLai.toLocaleString() + "đ";
+        if (document.getElementById("pct-guest")) 
+            document.getElementById("pct-guest").innerText = pctGuest + "%";
+
+        // 3. Tính % tăng trưởng so với hôm qua
+        const mộtNgàyMs = 24 * 60 * 60 * 1000;
+        const startYesterday = start - mộtNgàyMs;
+        const endYesterday = start - 1; 
+
+        let thuHômQua = 0, đơnHômQua = 0;
+        list.forEach(o => {
+            const t = o.timestamp || 0;
+            if (t >= startYesterday && t <= endYesterday) {
+                thuHômQua += Number(o.total) || 0;
+                đơnHômQua++;
+            }
+        });
+
+        const tinhPhanTram = (hienTai, quaKhu) => {
+            if (quaKhu === 0) return hienTai > 0 ? 100 : 0;
+            return (((hienTai - quaKhu) / quaKhu) * 100).toFixed(1);
+        };
+
+        // ===== KPI DOANH THU (Trend dưới Card 1) =====
+        const growthRevenue = tinhPhanTram(tongThucThu, thuHômQua);
+        const growthEl = document.getElementById("growth-revenue");
+        if (growthEl) {
+            growthEl.innerText = (growthRevenue >= 0 ? "▲ " : "▼ ") + Math.abs(growthRevenue) + "% so với hôm qua";
+        }
+
+        // ===== KPI SỐ ĐƠN (Card 4) =====
+        if (document.getElementById("stat-order-count"))
+            document.getElementById("stat-order-count").innerText = displayedCount;
+
+        // --- CHÈN MỤC TIÊU SỐ ĐƠN VÀO ĐÂY ---
+        const TARGET_ORDER = 150;
+        if (document.getElementById("stat-order-target")) {
+            document.getElementById("stat-order-target").innerText = "/ " + TARGET_ORDER;
+        }
+
+        const growthOrder = tinhPhanTram(displayedCount, đơnHômQua);
+        const growthOrderEl = document.getElementById("growth-orders");
+        if (growthOrderEl) {
+            growthOrderEl.innerText = (growthOrder >= 0 ? "▲ " : "▼ ") + Math.abs(growthOrder) + "%";
+            growthOrderEl.style.color = growthOrder >= 0 ? "#10b981" : "#ef4444";
+        }
+
+        // ===== KPI GIÁ TRỊ TRUNG BÌNH (Card 5) =====
+        const avgToday = displayedCount > 0 ? tongThucThu / displayedCount : 0;
+        const avgYesterday = đơnHômQua > 0 ? thuHômQua / đơnHômQua : 0;
+
+        if (document.getElementById("stat-avg-order"))
+            document.getElementById("stat-avg-order").innerText = Math.round(avgToday).toLocaleString() + "đ";
+
+        const growthAvg = tinhPhanTram(avgToday, avgYesterday);
+        const growthAvgEl = document.getElementById("growth-avg");
+        if (growthAvgEl) {
+            growthAvgEl.innerText = (growthAvg >= 0 ? "▲ " : "▼ ") + Math.abs(growthAvg) + "%";
+            growthAvgEl.style.color = growthAvg >= 0 ? "#10b981" : "#ef4444";
+        }
+
+
+
+
+
+
+
+        // ===== UPDATE UI =====
+        container.innerHTML = html || "<p style='text-align:center; padding:40px;'>Không tìm thấy dữ liệu.</p>";
+        totalEl.innerText = tongThucThu.toLocaleString() + "đ";
+
+        document.getElementById("stat-member-total").innerText = thuHoiVien.toLocaleString() + "đ";
+        document.getElementById("stat-guest-total").innerText = thuVangLai.toLocaleString() + "đ";
+        document.getElementById("stat-order-count").innerText = displayedCount;
+        document.getElementById("stat-avg-order").innerText = displayedCount > 0 ? Math.round(tongThucThu / displayedCount).toLocaleString() + "đ" : "0đ";
+
+        document.getElementById("footer-count").innerText = displayedCount + " đơn";
+        document.getElementById("footer-total").innerText = tongThucThu.toLocaleString() + "đ";
+        document.getElementById("footer-avg").innerText = displayedCount > 0 ? Math.round(tongThucThu / displayedCount).toLocaleString() + "đ" : "0đ";
+
+        // Cập nhật Footer thống kê dưới bảng
+        if(document.getElementById("footer-count")) document.getElementById("footer-count").innerText = displayedCount + " đơn";
+        if(document.getElementById("footer-total")) document.getElementById("footer-total").innerText = tongThucThu.toLocaleString() + "đ";
+        if(document.getElementById("footer-avg")) {
+            const avg = displayedCount > 0 ? Math.round(tongThucThu / displayedCount) : 0;
+            document.getElementById("footer-avg").innerText = avg.toLocaleString() + "đ";
+        }
+
+    
 /* ========================================================
    RENDER TOP 5 MÓN (SO KHỚP VỚI MENU ĐỂ LẤY ẢNH)
 =========================================================== */
@@ -4568,24 +5207,115 @@ if (memberEl) memberEl.innerText = thuHoiVien.toLocaleString() + "đ";
 const guestEl = document.getElementById("stat-guest-total");
 if (guestEl) guestEl.innerText = thuVangLai.toLocaleString() + "đ";
 
-// 3. Cột Số đơn hàng (Sử dụng displayedCount hoặc list.length tùy logic lọc)
+// 3. Cột Số đơn hàng
 const orderCountEl = document.getElementById("stat-order-count");
 if (orderCountEl) orderCountEl.innerText = displayedCount;
 
-// 4. Cột Giá trị trung bình/Đơn (Bonus thêm cho cột cuối)
+// 4. Cột Giá trị trung bình/Đơn (SỬA TẠI ĐÂY: Dùng tongThucThu thay vì tongDoanhThu)
 const avgOrderEl = document.getElementById("stat-avg-order");
 if (avgOrderEl) {
-    const avg = displayedCount > 0 ? Math.round(tongDoanhThu / displayedCount) : 0;
+    // Sửa tongDoanhThu thành tongThucThu cho khớp với biến bạn đã cộng dồn ở trên
+    const avg = displayedCount > 0 ? Math.round(tongThucThu / displayedCount) : 0;
     avgOrderEl.innerText = avg.toLocaleString() + "đ";
 }
+
     });
 }
 
 
 
+// Đặt đoạn này ở cuối file JavaScript của bạn
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // Lắng nghe sự kiện thay đổi ở ô "Đến ngày"
+    const reportToEl = document.getElementById("report-to");
+    if (reportToEl) {
+        reportToEl.addEventListener("change", function() {
+            const toDateValue = this.value;
+            const fromDateEl = document.getElementById("report-from");
+            
+            if (toDateValue && fromDateEl) {
+                // Gán ngày "Từ" bằng ngày "Đến"
+                fromDateEl.value = toDateValue;
+                
+                // Tự động tải lại dữ liệu báo cáo
+                taiBaoCaoDoanhThu();
+            }
+        });
+    }
+});
 
 
 
+
+
+
+
+function renderTableGiaoDich(list) {
+    const container = document.getElementById("report-body-list");
+    let html = "";
+    let tongTien = 0;
+
+    list.forEach((o, index) => {
+        const total = Number(o.total) || 0;
+        tongTien += total;
+        const d = new Date(o.timestamp);
+        const timeStr = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const dateStr = `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+
+        // Render danh sách món ẩn bên trong
+        let itemsHtml = "";
+        if (o.items) {
+            o.items.forEach(m => {
+                itemsHtml += `
+                <div style="display:flex; justify-content:space-between; font-size:12px; padding:4px 0; border-bottom:1px dashed #eee;">
+                    <span>• ${m.ten} <b style="color:#64748b">x${m.sl}</b></span>
+                    <span>${(m.gia * m.sl).toLocaleString()}đ</span>
+                </div>`;
+            });
+        }
+
+        html += `
+        <div style="border-bottom:1px solid #f1f5f9;">
+            <!-- Dòng chính -->
+            <div onclick="toggleDetail('row-${index}')" style="display: grid; grid-template-columns: 1fr 1fr 2fr 1.5fr 50px; padding: 15px 25px; align-items: center; cursor: pointer;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+                <div style="font-size:12px; color:#1e293b;"><b>${timeStr}</b> <br><small style="color:#94a3b8">${dateStr}</small></div>
+                <div><span style="background:#eff6ff; color:#3b82f6; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:bold;">${o.tableName}</span></div>
+                <div style="font-size:13px; color:#475569;"><i class="fas fa-user-circle" style="color:#cbd5e1; margin-right:5px;"></i> ${o.customerName || 'Khách vãng lai'}</div>
+                <div style="text-align: right; font-weight: 800; color: #10b981;">${total.toLocaleString()}đ</div>
+                <div style="text-align: right; color: #3b82f6;"><i class="far fa-eye"></i></div>
+            </div>
+            
+            <!-- Vùng chi tiết ẩn -->
+            <div id="row-${index}" style="display: none; background: #fbfcfd; padding: 15px 50px; border-top: 1px solid #f1f5f9;">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 50px;">
+                    <div>${itemsHtml}</div>
+                    <div style="text-align: right;">
+                        <small style="color:#94a3b8;">Thực thu</small>
+                        <div style="font-size:18px; font-weight:900; color:#ef4444;">${total.toLocaleString()}đ</div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    container.innerHTML = html || "<p style='text-align:center; padding:30px;'>Không tìm thấy dữ liệu.</p>";
+    
+    // Cập nhật Footer
+    document.getElementById("footer-count").innerText = list.length;
+    document.getElementById("footer-total").innerText = tongTien.toLocaleString() + "đ";
+    document.getElementById("footer-avg").innerText = list.length > 0 ? Math.round(tongTien/list.length).toLocaleString() + "đ" : "0đ";
+}
+
+// Hàm đóng mở hàng
+function toggleDetail(id) {
+    const el = document.getElementById(id);
+    if (el.style.display === "none" || el.style.display === "") {
+        el.style.display = "block";
+    } else {
+        el.style.display = "none";
+    }
+}
 
 
 
@@ -7293,34 +8023,58 @@ function toggleCustomDate() {
                 <button onclick="taiBaoCaoDoanhThu()" style="align-self:flex-end; background:#3b82f6; color:white; border:none; height:38px; border-radius:8px; font-weight:600; cursor:pointer;">⚡ LỌC DỮ LIỆU</button>
             </div>
 
-            <!-- 5 CARD THÔNG SỐ (Top Stats) -->
-            <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:15px; margin-bottom:20px;">
-                <div class="card-stat" style="background:#3b82f6; color:white;">
-                    <small>TỔNG THỰC THU</small>
-                    <h3 id="report-total-amount">0đ</h3>
-                    <span class="trend">▲ 12.5% so với kỳ trước</span>
-                </div>
-                <div class="card-stat">
-                    <small>HỘI VIÊN</small>
-                    <h3 id="stat-member-total" style="color:#1e293b;">0đ</h3>
-                    <span class="trend-up">12.1%</span>
-                </div>
-                <div class="card-stat">
-                    <small>VÃNG LAI</small>
-                    <h3 id="stat-guest-total" style="color:#1e293b;">0đ</h3>
-                    <span class="trend-down">87.9%</span>
-                </div>
-                <div class="card-stat">
-                    <small>SỐ ĐƠN HÀNG</small>
-                    <h3 id="stat-order-count" style="color:#1e293b;">0</h3>
-                    <span class="trend-up">▲ 0.7%</span>
-                </div>
-                <div class="card-stat">
-                    <small>GIÁ TRỊ TB / ĐƠN</small>
-                    <h3 id="stat-avg-order" style="color:#1e293b;">0đ</h3>
-                    <span class="trend-up">▲ 3.2%</span>
-                </div>
-            </div>
+        
+<!-- 5 CARD THÔNG SỐ (Đã gắn ID để chạy code %) -->
+<div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:15px; margin-bottom:20px;">
+    <!-- Tổng doanh thu -->
+   <div class="card-stat" style="background:#fcfdff; color:black; padding:15px; border-radius:12px;">
+    <small style="opacity: 0.8;">📝TỔNG THỰC THU</small>
+    
+    <!-- Container cho số thực tế và mục tiêu -->
+    <div style="display: flex; align-items: baseline; gap: 6px; margin: 5px 0;">
+        <h3 id="report-total-amount" style="margin:0; font-size: 1.5rem;">0đ</h3>
+        <span id="stat-revenue-target" style="font-size: 12px; opacity: 0.7; font-weight: 500;">/ 10tr</span>
+    </div>
+
+    <span id="growth-revenue" class="trend" style="font-size: 10px; opacity: 0.9;">--% so với kỳ trước</span>
+</div>
+
+    <!-- Hội viên -->
+    <div class="card-stat" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:12px;">
+        <small style="color:#64748b;">HỘI VIÊN</small>
+        <h3 id="stat-member-total" style="color:#1e293b; margin:5px 0;">0đ</h3>
+        <span id="pct-member" style="color:#10b981; font-size:11px; font-weight:bold;">0%</span>
+    </div>
+
+    <!-- Vãng lai -->
+    <div class="card-stat" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:12px;">
+        <small style="color:#64748b;">VÃNG LAI</small>
+        <h3 id="stat-guest-total" style="color:#1e293b; margin:5px 0;">0đ</h3>
+        <span id="pct-guest" style="color:#f59e0b; font-size:11px; font-weight:bold;">0%</span>
+    </div>
+
+    <!-- Số đơn hàng -->
+    <div class="card-stat" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:12px;">
+    <small style="color:#64748b;">SỐ ĐƠN HÀNG</small>
+    
+    <!-- Tạo một container flex để số hiện tại và mục tiêu nằm cạnh nhau -->
+    <div style="display: flex; align-items: baseline; gap: 4px; margin: 5px 0;">
+        <h3 id="stat-order-count" style="color:#1e293b; margin:0;">0</h3>
+        <span id="stat-order-target" style="color:#94a3b8; font-size:14px; font-weight: 500;">/ 150</span>
+    </div>
+
+    <span id="growth-orders" style="color:#10b981; font-size:11px; font-weight:bold;">--%</span>
+</div>
+
+    <!-- Giá trị trung bình -->
+    <div class="card-stat" style="background:#fff; border:1px solid #e2e8f0; padding:15px; border-radius:12px;">
+        <small style="color:#64748b;">GIÁ TRỊ TB / ĐƠN</small>
+        <h3 id="stat-avg-order" style="color:#1e293b; margin:5px 0;">0đ</h3>
+        <span id="growth-avg" style="color:#10b981; font-size:11px; font-weight:bold;">--%</span>
+    </div>
+</div>
+
+
 
             <!-- BIỂU ĐỒ & TOP MÓN -->
             <div style="display:grid; grid-template-columns: 1.5fr 1fr 1fr; gap:20px; margin-bottom:20px;">
@@ -7346,17 +8100,44 @@ function toggleCustomDate() {
                 </div>
             </div>
 
-            <!-- BẢNG CHI TIẾT -->
-            <div class="card-white" style="padding:0; overflow:hidden;">
-                <div class="card-head" style="padding:15px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9;">
-                    <b>CHI TIẾT LỊCH SỬ GIAO DỊCH</b>
-                    <button class="btn-outline"><i class="fas fa-file-export"></i> Xuất Excel</button>
-                </div>
-                <div id="report-body-list" style="max-height:400px; overflow-y:auto;"></div>
+            <!-- BẮT ĐẦU BẢNG CHI TIẾT GIAO DỊCH -->
+<div class="card-white" style="background:#fff; border-radius:16px; border:1px solid #e2e8f0; overflow:hidden; margin-top:20px;">
+    <!-- Header của bảng -->
+    <div style="padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9;">
+        <b style="font-size: 14px; color: #1e293b;">CHI TIẾT LỊCH SỬ GIAO DỊCH</b>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="position: relative;">
+                <input 
+    type="text" 
+    id="report-search" 
+    oninput="taiBaoCaoDoanhThu()" 
+    placeholder="Tìm theo bàn, khách..." 
+    style="padding: 6px 12px 6px 30px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px; outline: none; width: 200px;">
+                <i class="fas fa-search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 11px;"></i>
             </div>
+            <button class="btn-outline" style="background:#fff; border:1px solid #e2e8f0; padding:6px 12px; border-radius:8px; font-size:12px; cursor:pointer; color:#64748b; display:flex; align-items:center; gap:5px;">
+                <i class="fas fa-file-excel"></i> Xuất Excel
+            </button>
         </div>
     </div>
+
+    <!-- Vùng đổ dữ liệu (Body) -->
+    <div id="report-body-list" style="max-height: 450px; overflow-y: auto; background: #fff;">
+        <!-- Dữ liệu JS sẽ render vào đây -->
+    </div>
+    
+    <!-- Footer của bảng (Thống kê nhanh) -->
+    <div style="padding: 12px 25px; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; gap: 30px; font-size: 11px; color: #64748b;">
+        <span>Tổng số đơn: <b id="footer-count" style="color:#1e293b;">0</b></span>
+        <span>Tổng giá trị: <b id="footer-total" style="color:#1e293b;">0đ</b></span>
+        <span>Giá trị trung bình: <b id="footer-avg" style="color:#1e293b;">0đ</b></span>
+    </div>
 </div>
+</div>
+</div>
+</div>
+<!-- KẾT THÚC BẢNG CHI TIẾT GIAO DỊCH -->
+
 
 <style>
     .inp-pro { width:100%; border:1px solid #e2e8f0; padding:8px; border-radius:8px; margin-top:5px; outline:none; font-size:13px; }
@@ -8364,9 +9145,374 @@ document.addEventListener('click', function(e) {
 
 
 
+<!-- MODAL QUẢN LÝ HỘI VIÊN MỞ NỔI (Đã đồng bộ vị trí giống Modal Thu Chi) -->
+<div id="modal-hoivien" style="display:none; position:fixed; top:0; bottom:10px; left:300px; right:0; background:rgba(15, 23, 42, 0.7); z-index:9999; padding: 20px; backdrop-filter: blur(8px); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    
+    <!-- Khung nội dung chính -->
+    <div style="background:#f8fafc; width:100%; height:100%; border-radius:24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column; overflow:hidden; border: 1px solid rgba(255,255,255,0.1); animation: modalZoom 0.3s ease-out;">
+        
+        <!-- CSS Animation cho hiệu ứng mở nổi -->
+        <style>
+   /* Style khi một nút bộ lọc nhanh được chọn (Active) */
+    .btn-quick-filter.active {
+        background: #f0fdf4 !important;
+        color: #10b981 !important;
+        border-color: #bbf7d0 !important;
+        font-weight: 700 !important;
+    }
+
+/* 1. Hiệu ứng viền phát sáng màu vàng nhẹ cho hàng của khách VIP */
+    .row-vip {
+        background: #fffbeb !important; /* Màu vàng kem sang trọng */
+        border-left: 4px solid #f59e0b !important; /* Thanh cam/vàng bên lề trái */
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* 2. Hiệu ứng vương miện lấp lánh (Shimmer) cho Badge VIP */
+    .badge-vip {
+        background: linear-gradient(45deg, #fff7ed, #ffedd5);
+        color: #ea580c;
+        border: 1px solid #fed7aa;
+        padding: 3px 8px;
+        border-radius: 6px;
+        font-weight: 800;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        box-shadow: 0 2px 4px rgba(234, 88, 12, 0.15);
+        animation: crownGlow 2s infinite alternate;
+    }
+
+    @keyframes crownGlow {
+        from { box-shadow: 0 0 2px #ffedd5; }
+        to { box-shadow: 0 0 8px #f59e0b; }
+    }
+
+    /* 3. Hiệu ứng Avatar của khách VIP có vương miện nhỏ nổi lên trên */
+    .avatar-vip {
+        border: 2px solid #f59e0b !important;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+        position: relative;
+    }
+    .avatar-vip::after {
+        content: "👑";
+        position: absolute;
+        top: -10px;
+        right: -6px;
+        font-size: 14px;
+        transform: rotate(15deg);
+    }
+
+
+            @keyframes modalZoom {
+                from { transform: scale(0.9); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+            }
+            .member-row {
+                display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr 100px;
+                align-items: center; padding: 15px 25px; background: #fff;
+                border-bottom: 1px solid #f1f5f9; transition: 0.2s;
+            }
+            .member-row:hover { background: #f8fafc; }
+            .avatar-circle {
+                width: 42px; height: 42px; border-radius: 50%; background: #e2e8f0;
+                display: flex; align-items: center; justify-content: center; 
+                font-weight: bold; color: #475569; font-size: 14px;
+            }
+            .stat-card {
+                background:white; padding:20px; border-radius:18px; border:1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+            }
+        </style>
+
+        <!-- 1. THANH TIÊU ĐỀ (TOP BAR) -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: white; border-bottom: 1px solid #e2e8f0;">
+             <div>
+                <h2 style="margin:0; font-size: 18px; color: #1e293b; display:flex; align-items:center; gap:12px;">
+                    <span style="background:#eff6ff; padding:8px; border-radius:10px; font-size: 20px;">👥</span> 
+                    QUẢN LÝ HỘI VIÊN
+                    <small style="font-size: 12px; color: #94a3b8; font-weight: normal; margin-left: 10px;">Chăm sóc khách hàng - Tăng doanh thu bền vững</small>
+                </h2>
+             </div>
+   <!-- 3. THANH CÔNG CỤ: TÌM KIẾM & BỘ LỌC -->
+            <div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:12px; margin-bottom:25px;">
+                <div style="background:white; display:flex; align-items:center; padding:0 15px; border-radius:12px; border:1px solid #e2e8f0;">
+    <i class="fas fa-search" style="color:#94a3b8;"></i>
+    <!-- Thêm id và oninput vào thẻ input -->
+    <input type="text" id="hv-search-input" oninput="timKiemHoiVien()" placeholder="Tìm tên, số điện thoại..." style="width:100%; border:none; outline:none; padding:12px 10px; font-size:14px;">
+</div>
+                <select style="padding:0 15px; border-radius:12px; border:1px solid #e2e8f0; color:#475569; font-size:13px; background:white;"><option>Tích lũy điểm</option></select>
+                <select style="padding:0 15px; border-radius:12px; border:1px solid #e2e8f0; color:#475569; font-size:13px; background:white;"><option>Phân loại</option></select>
+                <input type="date" style="padding:0 15px; border-radius:12px; border:1px solid #e2e8f0; color:#475569; font-size:13px; background:white;">
+                <button onclick="document.getElementById('form-add-member').style.display='block'" style="background:#10b981; color:white; border:none; padding:0 20px; border-radius:12px; font-weight:600; cursor:pointer; font-size:13px;">+ THÊM HỘI VIÊN MỚI</button>
+            </div>
+            <button onclick="dongHoiVien()" style="border:none; background:#f1f5f9; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:22px; color:#64748b; display: flex; align-items: center; justify-content: center;">&times;</button>
+        </div>
+
+        <!-- 2. VÙNG NỘI DUNG CUỘN (SCROLLABLE AREA) -->
+        <div id="tab-hoi-vien" style="overflow-y:auto; flex:1; padding: 25px 30px;">
+            
+            <!-- 4 CARD THÔNG SỐ (KPI) -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px;">
+    
+    <!-- Card 1: Tổng hội viên -->
+    <div class="stat-card" style="background:white; padding:20px; border-radius:18px; border:1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #f0fdf4; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            👥
+        </div>
+        <div style="flex: 1;">
+            <small style="color:#64748b; font-weight:600; text-transform: uppercase;">Tổng hội viên</small>
+            <div style="display: flex; align-items: baseline; gap: 8px; margin: 5px 0;">
+                <h3 style="margin:0; font-size:24px; color:#1e293b;" id="stat-total-members">1.247</h3>
+                <span style="font-size:12px; color:#10b981; font-weight: bold;" id="stat-members-growth">+12</span>
+            </div>
+            <span style="font-size:11px; color:#94a3b8;">so với tháng trước</span>
+        </div>
+    </div>
+
+    <!-- Card 2: Hội viên tích cực -->
+    <div class="stat-card" style="background:white; padding:20px; border-radius:18px; border:1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #f5f3ff; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            👤
+        </div>
+        <div style="flex: 1;">
+            <small style="color:#64748b; font-weight:600; text-transform: uppercase;">Hội viên tích cực</small>
+            <h3 style="margin:5px 0; font-size:24px; color:#1e293b;" id="stat-active-members">856</h3>
+            <span style="font-size:12px; color:#3b82f6; font-weight: bold;" id="stat-active-percent">68.7%</span>
+        </div>
+    </div>
+
+    <!-- Card 3: Sắp đạt thưởng -->
+    <div class="stat-card" style="background:white; padding:20px; border-radius:18px; border:1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #fffbeb; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            🏆
+        </div>
+        <div style="flex: 1;">
+            <small style="color:#64748b; font-weight:600; text-transform: uppercase;">Sắp đạt thưởng</small>
+            <h3 style="margin:5px 0; font-size:24px; color:#1e293b;" id="stat-reward-members">132</h3>
+            <span style="font-size:12px; color:#f59e0b; font-weight: bold;" id="stat-reward-percent">10.6%</span>
+        </div>
+    </div>
+
+    <!-- Card 4: Tổng tích lũy -->
+    <div class="stat-card" style="background:white; padding:20px; border-radius:18px; border:1px solid #e2e8f0; display: flex; align-items: center; gap: 15px;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+            🛢️
+        </div>
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <small style="color:#64748b; font-weight:600; text-transform: uppercase;">Tổng tích lũy</small>
+                <span style="font-size: 11px; color: #64748b;" id="stat-progress-text">8.247 / 10.000</span>
+            </div>
+            <h3 style="margin:5px 0; font-size:20px; color:#1e293b;">Bát</h3>
+            <div style="height:6px; background:#f1f5f9; border-radius:10px; margin-top:6px; overflow: hidden; border:1px solid #e2e8f0;">
+                <div id="stat-progress-bar" style="width: 82.4%; height:100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius:10px; transition: width 0.5s ease-in-out;"></div>
+            </div>
+        </div>
+    </div>
+            </div>
+
+         
+
+            <!-- 4. FORM THÊM HỘI VIÊN (ẨN/HIỆN) -->
+            <div id="form-add-member" style="display:none; background: #fff; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 2px solid #10b981; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                <h4 style="margin:0 0 15px 0; color:#1e293b;">Điền thông tin hội viên mới</h4>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px;">
+                    <input type="text" id="hv-ten" placeholder="Tên khách hàng" style="padding:12px; border:1px solid #e2e8f0; border-radius:10px; outline:none;">
+                    <input type="tel" id="hv-sdt" placeholder="Số điện thoại" style="padding:12px; border:1px solid #e2e8f0; border-radius:10px; outline:none;">
+                    <input type="date" id="hv-ngaysinh" style="padding:12px; border:1px solid #e2e8f0; border-radius:10px; outline:none; color:#64748b;">
+                    <input type="text" id="hv-sothich" placeholder="Sở thích khách hàng..." style="padding:12px; border:1px solid #e2e8f0; border-radius:10px; outline:none;">
+                </div>
+                <div style="display:flex; justify-content: flex-end; gap:10px;">
+                    <button onclick="document.getElementById('form-add-member').style.display='none'" style="padding:12px 25px; background:#f1f5f9; color:#64748b; border:none; border-radius:10px; cursor:pointer; font-weight:600;">Hủy bỏ</button>
+                    <button onclick="themHoiVien()" style="padding:12px 30px; background:#10b981; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">Lưu hội viên</button>
+                </div>
+            </div>
+
+
+<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 0 5px;">
+    <span style="font-size: 13px; color: #64748b; font-weight: 600;">Bộ lọc nhanh:</span>
+    <div style="display: flex; gap: 8px;" id="quick-filter-container">
+        <button onclick="locNhanhHoiVien('tat-ca', this)" class="btn-quick-filter active" style="border: none; background: #f0fdf4; color: #10b981; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid #bbf7d0; transition: all 0.2s;">Tất cả</button>
+        <button onclick="locNhanhHoiVien('VIP', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">VIP</button>
+        <button onclick="locNhanhHoiVien('ACTIVE', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Thân thiết</button>
+        <button onclick="locNhanhHoiVien('NEW', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Mới tham gia</button>
+        <button onclick="locNhanhHoiVien('sap-dat-thuong', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Sắp đạt thưởng</button>
+    </div>
+</div>
 
 
 
+
+
+            <!-- 5. BẢNG DANH SÁCH HỘI VIÊN -->
+            <div style="background:white; border-radius:20px; border:1px solid #e2e8f0; overflow:hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <!-- Header Bảng -->
+               <div style="display: grid; grid-template-columns: 2.5fr 2fr 2fr 2fr 1.2fr; padding: 15px 25px; background: #f8fafc; font-size: 11px; font-weight: bold; color: #94a3b8; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: 1px; margin-top: 20px; border-radius: 12px 12px 0 0;">
+    <div>Hội viên</div>
+    <div style="padding-left: 10px;">Liên hệ</div>
+    <div>Tích lũy điểm</div>
+    <div>THỐNG KÊ</div>
+    <div style="text-align:right">Thao tác</div>
+</div>
+                
+                <!-- Body Bảng (Nơi render dữ liệu) -->
+                <div id="ds-hoi-vien-body">
+                    <!-- Một hàng dữ liệu mẫu -->
+                    <div class="member-row">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <div class="avatar-circle">AK</div>
+                            <div>
+                                <div style="font-weight:700; color:#1e293b; font-size: 14px;">Anh Kim <span style="font-size:9px; background:#fef3c7; color:#92400e; padding:2px 6px; border-radius:6px; margin-left:5px; vertical-align: middle;">VIP</span></div>
+                                <div style="font-size:11px; color:#64748b; margin-top: 2px;">⭐ Sở thích: Nhiều thịt</div>
+                                <div style="font-size:10px; color:#94a3b8; margin-top: 2px;">📅 Tham gia: 12/12/2022</div>
+                            </div>
+                        </div>
+                        <div style="font-size:13px; color:#475569; line-height: 1.5;">
+                            📞 0386.256.958<br>
+                            <small style="color:#94a3b8">🎂 1991-12-13 (32 tuổi)</small>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; font-size:12px; font-weight:700; color:#1e293b;">
+                                <span>9/10 bát</span>
+                            </div>
+                            <div style="height:6px; background:#f1f5f9; border-radius:10px; margin-top:6px; overflow:hidden; width: 120px;">
+                                <div style="width:90%; height:100%; background:#10b981; border-radius:10px;"></div>
+                            </div>
+                            <div style="font-size: 9px; color: #f59e0b; margin-top: 4px; font-weight: 600;">90% - Sắp nhận thưởng!</div>
+                        </div>
+                        <div style="font-size:13px;">
+                            <div style="font-weight:bold; color:#10b981;">12.450.000đ</div>
+                            <div style="font-size:11px; color:#64748b;">28 lần đến</div>
+                            <div style="font-size:10px; color:#94a3b8;">Lần cuối: 20/05/2026</div>
+                        </div>
+                        <div style="display:flex; justify-content:flex-end; gap:8px;">
+                            <button title="Lịch sử" style="border:none; background:#f1f5f9; color:#64748b; width:32px; height:32px; border-radius:8px; cursor:pointer;"><i class="far fa-clock"></i></button>
+                            <button title="Sửa" style="border:none; background:#eff6ff; color:#3b82f6; width:32px; height:32px; border-radius:8px; cursor:pointer;"><i class="far fa-edit"></i></button>
+                            <button title="Xóa" style="border:none; background:#fef2f2; color:#ef4444; width:32px; height:32px; border-radius:8px; cursor:pointer;"><i class="far fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                    <!-- Kết thúc mẫu -->
+                </div>
+            </div>
+
+            <!-- Footer Danh sách (Phân trang) -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 10px;">
+                <span style="font-size: 13px; color: #64748b;">Hiển thị 1 - 10 / 1.247 hội viên</span>
+                <div style="display: flex; gap: 5px;">
+                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">&laquo;</button>
+                    <button style="padding: 5px 12px; border-radius: 8px; border: none; background: #10b981; color: white; cursor: pointer; font-weight: bold;">1</button>
+                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">2</button>
+                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">3</button>
+                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">&raquo;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- THẺ CHI TIẾT HỘI VIÊN (DRAWER BÊN PHẢI) -->
+<div id="member-detail-drawer" style="display:none; position:absolute; top:0; right:0; width:420px; height:100%; background:white; box-shadow:-5px 0 25px rgba(0,0,0,0.1); z-index:10000; flex-direction:column; overflow-y:auto; border-left:1px solid #e2e8f0; animation: slideIn 0.3s ease-out; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+    </style>
+
+    <!-- Header Drawer -->
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:20px 25px;">
+        <span style="color:#64748b; font-size:13px; font-weight:600;">HỒ SƠ CHI TIẾT</span>
+        <button onclick="document.getElementById('member-detail-drawer').style.display='none'" style="border:none; background:none; font-size:24px; color:#64748b; cursor:pointer;">&times;</button>
+    </div>
+
+    <!-- Nội dung chính -->
+    <div style="padding:0 25px 25px 25px; flex:1;">
+        <!-- Avatar & Tên -->
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+            <div id="det-avatar" style="width:65px; height:65px; border-radius:50%; background:#f0fdf4; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:bold; color:#10b981; border:2px solid #bbf7d0;">NK</div>
+            <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <h3 id="det-name" style="margin:0; font-size:18px; color:#1e293b;">Nguyễn Kim Tuệ Lâm</h3>
+                    <span id="det-badge" class="badge-vip">👑 VIP</span>
+                </div>
+                <div id="det-phone" style="font-size:13px; color:#475569; margin-top:4px;">📞 0388.888.888</div>
+                <div id="det-birth-age" style="font-size:12px; color:#64748b; margin-top:2px;">🎂 04/01/2004 (22 tuổi)</div>
+                <div id="det-join" style="font-size:11px; color:#94a3b8; margin-top:2px;">📅 Tham gia: 04/05/2024</div>
+            </div>
+        </div>
+
+        <!-- Phần Tích lũy điểm -->
+        <div style="background:#fafafa; border-radius:16px; padding:15px; border:1px solid #f1f5f9; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="flex:1;">
+                <small style="color:#64748b; font-weight:600; text-transform:uppercase; font-size:11px;">Tích lũy điểm</small>
+                <div style="font-size:18px; font-weight:800; color:#1e293b; margin:6px 0;">
+                    <span id="det-points" style="color:#10b981;">10</span>/10 bát
+                </div>
+                <div style="height:8px; background:#e2e8f0; border-radius:10px; overflow:hidden; width:100%; max-width:180px;">
+                    <div id="det-progress" style="width:100%; height:100%; background:#10b981; border-radius:10px;"></div>
+                </div>
+                <div id="det-slogan" style="font-size:10px; font-weight:700; color:#ef4444; margin-top:6px;">100% - ĐÃ ĐỦ QUÀ TẶNG! 🎁</div>
+            </div>
+            <div style="font-size:45px;">🎁</div>
+        </div>
+
+        <!-- Bảng 4 ô Thống kê (Giống hệt ảnh) -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:25px;">
+            <!-- Tổng chi tiêu -->
+            <div style="background:#fff; border:1px solid #edf2f7; padding:12px; border-radius:12px; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:18px;">💵</span>
+                <div>
+                    <small style="color:#64748b; font-size:11px;">Tổng chi tiêu</small>
+                    <div id="det-total-spent" style="font-size:14px; font-weight:700; color:#1e293b;">5.371.320đ</div>
+                </div>
+            </div>
+            <!-- Số lần đến -->
+            <div style="background:#fff; border:1px solid #edf2f7; padding:12px; border-radius:12px; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:18px;">🕒</span>
+                <div>
+                    <small style="color:#64748b; font-size:11px;">Số lần đến</small>
+                    <div id="det-visit-count" style="font-size:14px; font-weight:700; color:#1e293b;">28 lần</div>
+                </div>
+            </div>
+            <!-- Lần cuối đến -->
+            <div style="background:#fff; border:1px solid #edf2f7; padding:12px; border-radius:12px; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:18px;">📅</span>
+                <div>
+                    <small style="color:#64748b; font-size:11px;">Lần cuối đến</small>
+                    <div id="det-last-visit" style="font-size:12px; font-weight:700; color:#1e293b;">20/05/2026</div>
+                </div>
+            </div>
+            <!-- Hạng khách -->
+            <div style="background:#fff; border:1px solid #edf2f7; padding:12px; border-radius:12px; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:18px;">⭐</span>
+                <div>
+                    <small style="color:#64748b; font-size:11px;">Hạng khách</small>
+                    <div id="det-rank-text" style="font-size:13px; font-weight:700; color:#1e293b;">VIP</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lịch sử giao dịch gần đây -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-weight:700; color:#1e293b; font-size:13px;">LỊCH SỬ GIAO DỊCH GẦN ĐÂY</span>
+            <small style="color:#10b981; font-weight:bold; cursor:pointer;">Xem tất cả</small>
+        </div>
+        <div id="det-order-list" style="border:1px solid #f1f5f9; border-radius:12px; overflow:hidden; font-size:12px; background:white;">
+            <!-- Danh sách các đơn hàng gần đây của khách sẽ render ở đây -->
+        </div>	
+
+        <!-- Ghi chú -->
+        <div style="margin-top:20px; background:#fafafa; padding:12px; border-radius:12px; border:1px solid #f1f5f9;">
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:12px; color:#1e293b;">
+                <span>📝 GHI CHÚ</span>
+                <span style="color:#10b981; cursor:pointer;">+ Thêm ghi chú</span>
+            </div>
+            <p id="det-note" style="font-size:12px; color:#64748b; margin:6px 0 0 0;">Chưa có ghi chú nào.</p>
+        </div>
+    </div>
+</div>
 
 
 
