@@ -1642,6 +1642,10 @@ body {
 
 <script>
 
+
+let currentPage = 1;
+const recordsPerPage = 5;
+
 let dangSuaId = null;
 let daDangNhap = false; // Biến kiểm soát trạng thái đăng nhập toàn cục
 
@@ -2380,16 +2384,28 @@ function renderHoiVien() {
         // 2. Tải danh sách hội viên (Sử dụng .on để tự động tải lại khi có thay đổi)
         db.ref("members").on("value", (memberSnap) => {
             const memberData = memberSnap.val();
-               tinhKpiHoiVien();
+            tinhKpiHoiVien();
             let h = "";
-           if (!memberData) {
-    const el = document.getElementById("ds-hoi-vien-body");
-    if (el) el.innerHTML = "<p style='text-align:center; padding:20px;'>Chưa có hội viên</p>";
-    return;
-}
-  tuDongCapNhatHangKhachHang();
+            
+            if (!memberData) {
+                const el = document.getElementById("ds-hoi-vien-body");
+                if (el) el.innerHTML = "<p style='text-align:center; padding:20px;'>Chưa có hội viên</p>";
+                return;
+            }
+            
+            tuDongCapNhatHangKhachHang();
 
-            Object.keys(memberData).forEach((id) => {
+            // 🟢 THỰC HIỆN PHÂN TRANG TẠI ĐÂY
+            const memberKeys = Object.keys(memberData);
+            const totalMembers = memberKeys.length;
+
+            // Tính toán vị trí cắt mảng lấy 10 phần tử
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = Math.min(startIndex + recordsPerPage, totalMembers);
+            const paginatedKeys = memberKeys.slice(startIndex, endIndex);
+
+            // Duyệt qua danh sách hội viên của trang hiện tại
+            paginatedKeys.forEach((id) => {
                 const v = memberData[id];
                 
                 // === BẮT ĐẦU TÍNH TOÁN THỐNG KÊ CHO TỪNG HỘI VIÊN ===
@@ -2435,7 +2451,6 @@ function renderHoiVien() {
                 // Tính số tuổi hiện tại
                 const tuoiStr = tinhTuoi(ngaySinh);
 
-
                 let slogan = "";
                 let sloganColor = "";
 
@@ -2456,22 +2471,22 @@ function renderHoiVien() {
                     sloganColor = "#94a3b8"; // Xám
                 }
 
-const hang = v.rank || "MEMBER";
+                const hang = v.rank || "MEMBER";
 
-// Tạo class đặc biệt cho hàng và avatar nếu là VIP
-const rowVipClass = hang === "VIP" ? "row-vip" : "";
-const avatarVipClass = hang === "VIP" ? "avatar-vip" : "";
+                // Tạo class đặc biệt cho hàng và avatar nếu là VIP
+                const rowVipClass = hang === "VIP" ? "row-vip" : "";
+                const avatarVipClass = hang === "VIP" ? "avatar-vip" : "";
 
-let badgeHTML = "";
-if (hang === "VIP") {
-    badgeHTML = `<span class="badge-vip">👑 VIP</span>`;
-} else if (hang === "NEW") {
-    badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">🆕 NEW</span>`;
-} else if (hang === "ACTIVE") {
-    badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">🔥 ACTIVE</span>`;
-} else {
-    badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">MEMBER</span>`;
-}
+                let badgeHTML = "";
+                if (hang === "VIP") {
+                    badgeHTML = `<span class="badge-vip">👑 VIP</span>`;
+                } else if (hang === "NEW") {
+                    badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">🆕 NEW</span>`;
+                } else if (hang === "ACTIVE") {
+                    badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">🔥 ACTIVE</span>`;
+                } else {
+                    badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;">MEMBER</span>`;
+                }
 
 // Render HTML hàng hội viên
 h += `
@@ -2543,11 +2558,49 @@ h += `
            const el = document.getElementById("ds-hoi-vien-body");
 if (el) {
     el.innerHTML = h;
+// 🟢 VẼ NÚT PHÂN TRANG RA GIAO DIỆN
+            renderPagination(totalMembers);
 } else {
     console.error("Không tìm thấy thẻ HTML có id='ds-hoi-vien-body' trên giao diện!");
 }
         });
     });
+}
+
+
+// Hàm hỗ trợ vẽ nút phân trang
+function renderPagination(totalRecords) {
+    const totalPages = Math.ceil(totalRecords / recordsPerPage);
+    const paginationInfo = document.getElementById("pagination-info");
+    const paginationButtons = document.getElementById("pagination-buttons");
+
+    if (!paginationInfo || !paginationButtons) return;
+
+    const start = totalRecords === 0 ? 0 : (currentPage - 1) * recordsPerPage + 1;
+    const end = Math.min(currentPage * recordsPerPage, totalRecords);
+    paginationInfo.innerText = `Hiển thị ${start} - ${end} / ${totalRecords} hội viên`;
+
+    let buttonsHTML = "";
+
+    // Nút lùi
+    buttonsHTML += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: ${currentPage === 1 ? '#f1f5f9' : 'white'}; cursor: ${currentPage === 1 ? 'not-allowed' : 'pointer'};">&laquo;</button>`;
+
+    // Các nút số trang
+    for (let i = 1; i <= totalPages; i++) {
+        const isActive = i === currentPage;
+        buttonsHTML += `<button onclick="changePage(${i})" style="padding: 5px 12px; border-radius: 8px; border: ${isActive ? 'none' : '1px solid #e2e8f0'}; background: ${isActive ? '#10b981' : 'white'}; color: ${isActive ? 'white' : '#1e293b'}; cursor: pointer; font-weight: ${isActive ? 'bold' : 'normal'};">${i}</button>`;
+    }
+
+    // Nút tiến
+    buttonsHTML += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''} style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: ${currentPage === totalPages || totalPages === 0 ? '#f1f5f9' : 'white'}; cursor: ${currentPage === totalPages || totalPages === 0 ? 'not-allowed' : 'pointer'};">&raquo;</button>`;
+
+    paginationButtons.innerHTML = buttonsHTML;
+}
+
+// Hàm chuyển trang
+function changePage(page) {
+    currentPage = page;
+    renderHoiVien();
 }
 
 function tinhKpiHoiVien() {
@@ -2677,7 +2730,7 @@ function tinhKpiHoiVien() {
             }
 
             // --- CARD 4: Tổng tích lũy ---
-            const MUC_TIEU_HE_THONG = 10000;
+            const MUC_TIEU_HE_THONG = 4500;
             const percentProgress = Math.min((tongTichLuyHeThong / MUC_TIEU_HE_THONG) * 100, 100).toFixed(1);
 
             if (document.getElementById("stat-progress-text")) {
@@ -3552,7 +3605,7 @@ window.moChiTietHoiVien = function(id) {
         document.getElementById("det-avatar").innerText = (hv.ten || "K").split(' ').pop().charAt(0).toUpperCase();
 
         // --- Tính điểm tích lũy ---
-        const points = (Number(hv.tuy_tam_count) || 0) + (Number(hv.tuy_thuong_count) || 0);
+          const points = (Number(hv.tuy_tam_count) || 0) + (Number(hv.tuy_thuong_count) || 0);
         document.getElementById("det-points").innerText = points;
         document.getElementById("det-progress").style.width = Math.min((points / 10) * 100, 100) + "%";
 
@@ -3564,6 +3617,38 @@ window.moChiTietHoiVien = function(id) {
         const sloganEl = document.getElementById("det-slogan");
         sloganEl.innerText = sloganText;
         sloganEl.style.color = sloganColor;
+
+        // ==========================================================
+        // 🟢 BẠN DÁN ĐOẠN CODE NÀY VÀO ĐÂY
+        // ==========================================================
+        const giftContainer = document.getElementById("det-gift-container");
+        if (giftContainer) {
+            if (points >= 10) {
+                // Đủ 10 bát: Có hào quang, sao lớn/nhỏ lấp lánh và tự động xoay
+                giftContainer.innerHTML = `
+                    <div class="gift-glow-container" onclick="moQuaPhaoHoa(this)" title="Bấm để mở quà!">
+                        <!-- Hào quang nền -->
+                        <div class="gift-glow-bg"></div>
+                        
+                        <!-- Hệ thống sao xoay xung quanh -->
+                        <div class="stars-orbit">
+                            <span class="star star-big-1">✦</span>
+                            <span class="star star-big-2">✦</span>
+                            <span class="star star-small-1">✦</span>
+                            <span class="star star-small-2">✦</span>
+                        </div>
+                        
+                        <!-- Hộp quà ở giữa -->
+                        <div class="gift-shake-pro">🎁</div>
+                    </div>
+                `;
+            } else {
+                // Chưa đủ: Hiện hộp quà tĩnh mờ 40%
+                giftContainer.innerHTML = `
+                    <div style="font-size:34px; opacity: 0.4; text-align:center; width:80px;">🎁</div>
+                `;
+            }
+        }
 
         // 2. Tải lịch sử đơn hàng để tính toán Tổng chi tiêu, Số lần đến và Xét hạng chính xác
         db.ref("history_orders").once("value").then(orderSnap => {
@@ -3673,6 +3758,53 @@ window.moChiTietHoiVien = function(id) {
         document.getElementById("member-detail-drawer").style.display = "flex";
     }).catch(err => console.error(err));
 };
+
+
+window.moQuaPhaoHoa = function(el) {
+    // 1. Đổi icon hộp quà thành mở tung
+    el.innerHTML = "🎉";
+    el.classList.remove("gift-shake"); // Dừng lắc sau khi mở
+
+    // 2. Kích hoạt pháo hoa (Confetti)
+    const duration = 2 * 1000; // Thời gian bắn 2 giây
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100001 };
+
+    function randomInRange(min, max) {
+        return Math.random() * (max - min) + min;
+    }
+
+    const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+            return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        
+        // Bắn pháo hoa từ 2 góc màn hình
+        confetti(Object.assign({}, defaults, { 
+            particleCount, 
+            origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
+        }));
+        confetti(Object.assign({}, defaults, { 
+            particleCount, 
+            origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+        }));
+    }, 250);
+
+    // 3. Sau khi pháo hoa xong, hiện thông báo xác nhận đã trao quà
+    setTimeout(() => {
+        if(confirm("Bạn đã trao quà (tặng bát miễn phí) cho khách hàng này chưa? \nBấm OK để trừ 10 điểm tích lũy và reset lại hành trình.")){
+            // Code trừ điểm tích lũy của bạn sẽ viết ở đây
+            alert("Đã reset điểm tích lũy của khách về 0!");
+            el.innerHTML = "🎁"; // Trả lại icon cũ
+            document.getElementById('member-detail-drawer').style.display = 'none'; // Đóng drawer
+        }
+    }, 2500);
+};
+
 
 
 
@@ -4658,6 +4790,67 @@ db.ref("menu").on("value", s => {
     renderMenu();
     renderStockStatus(); // 🔥 thêm dòng này
 });
+
+/* HÀM KIỂM TRA VÀ RESET LÚC 05:00 SÁNG */
+function checkAndResetStockAt5AM() {
+    return new Promise((resolve) => {
+        // 1. Lấy mốc thời gian hiện tại
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const currentDate = now.getDate();
+
+        // 2. Tạo mốc 05:00:00 sáng ngày hôm nay
+        const mốc5hSángHômNay = new Date(currentYear, currentMonth, currentDate, 5, 0, 0, 0).getTime();
+
+        // 3. Đọc ngày reset gần nhất từ Firebase
+        db.ref("last_reset_date").once("value").then(snap => {
+            const lastResetDate = snap.val(); // Định dạng lưu: YYYY-MM-DD
+            
+            const todayStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDate).padStart(2, '0')}`;
+            
+            // Nếu đã bước qua mốc 05:00 sáng và ngày hôm nay chưa được reset
+            if (now.getTime() >= mốc5hSángHômNay && lastResetDate !== todayStr) {
+                
+                // Đọc Menu để reset
+                db.ref("menu").once("value").then(menuSnap => {
+                    const menuData = menuSnap.val();
+                    if (!menuData) return resolve();
+
+                    const updates = {};
+                    menuData.forEach((mon, index) => {
+                        const tenMon = (mon.ten || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        
+                        // Chỉ reset các món "Tuỳ Tâm" và "Tuỳ Thượng"
+                        if (tenMon.includes('tuy tam') || tenMon.includes('tuy thuong')) {
+                            updates[`menu/${index}/soldToday`] = 0;
+                        }
+                    });
+
+                    // Cập nhật lại soldToday = 0 và đánh dấu ngày đã reset
+                    updates["last_reset_date"] = todayStr;
+
+                    db.ref().update(updates).then(() => {
+                        console.log("🔥 Đã reset số lượng bán lúc 05:00 sáng!");
+                        resolve();
+                    });
+                });
+            } else {
+                resolve(); // Không cần reset
+            }
+        });
+    });
+}
+
+
+
+
+
+
+
+
+
+
 
 /*56.TẶNG QUÀ NGÔI SAO*/
 /* Hàm thêm quà tặng 0đ khi nhấn vào ngôi sao - Đã thêm xác nhận */
@@ -7997,8 +8190,10 @@ function toggleCustomDate() {
 
 
 
-<div id="modal-bao-cao-tong" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.7); z-index:10000; align-items:center; justify-content:center; backdrop-filter: blur(8px); font-family: 'Inter', sans-serif;">
-    <div style="background:#f1f5f9; width:98%; max-width:1300px; height:96vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+<div id="modal-bao-cao-tong" style="display:none; position:fixed; top:0; bottom:10px; left:300px; right:0; background:rgba(15, 23, 42, 0.7); z-index:10000; padding: 20px; backdrop-filter: blur(8px); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    
+    <!-- Khung nội dung chính -->
+    <div style="background:#f8fafc; width:100%; height:100%; border-radius:24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column; overflow:hidden; border: 1px solid rgba(255,255,255,0.1); animation: modalZoom 0.3s ease-out;">
         
         <!-- HEADER -->
         <div style="padding: 15px 25px; background:#fff; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0;">
@@ -8673,26 +8868,32 @@ document.addEventListener('click', function(e) {
 
     <!-- 2. Danh sách Menu (Đã chỉnh vùng chữ theo yêu cầu) -->
 <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
-    <div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">🏠</span> Tổng quan</div>
+<div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">🏠</span> Tổng quan</div>
+   <div class="menu-item" onclick="moChucNangTuSidebar('baocao')">
+    <span class="menu-icon">📊</span> Báo Cáo
+</div>
+ <div class="menu-item" onclick="moChucNangTuSidebar('nhansu')">
+    <span class="menu-icon">👥</span> Nhân Sự
+</div>
+<div class="menu-item" onclick="moHoiVienTuSidebar()"><span class="menu-icon">💳</span> Hội viên</div>
+  <div class="menu-item" onclick="moChucNangTuSidebar('kho')"><span class="menu-icon">📦</span> Kho Hàng</div>
+<div class="menu-item" onclick="moChucNangTuSidebar('thuchi')">
+    <span class="menu-icon">💰</span> Thu Chi
+</div>
+
+    
     <div class="menu-item" onclick="moChucNangTuSidebar('bep')"><span class="menu-icon">🖥️</span> Màn Hình Bếp</div>
     <div class="menu-item" onclick="doiTabActive(this); dongSideMenu()"><span class="menu-icon">🪑</span> Sơ Đồ Bàn</div>
   <div class="menu-item" onclick="moChucNangTuSidebar('qr')">
     <span class="menu-icon">📋</span> Đơn hàng <span id="count-qr-sidebar" style="margin-left:auto; background:red; color:white; border-radius:50%; padding:2px 6px; font-size:10px; display:none;">0</span>
 </div>
-    <div class="menu-item" onclick="moHoiVienTuSidebar()"><span class="menu-icon">💳</span> Hội viên</div>
-    <div class="menu-item" onclick="moChucNangTuSidebar('kho')"><span class="menu-icon">📦</span> Kho Hàng</div>
+    
+  
 
-    <div class="menu-item" onclick="moChucNangTuSidebar('nhansu')">
-    <span class="menu-icon">👥</span> Nhân Sự
-</div>
+   
 
-<div class="menu-item" onclick="moChucNangTuSidebar('thuchi')">
-    <span class="menu-icon">💰</span> Thu Chi
-</div>
 
-   <div class="menu-item" onclick="moChucNangTuSidebar('baocao')">
-    <span class="menu-icon">📊</span> Báo Cáo
-</div>
+
 
     <div class="menu-item" onclick="doiTabActive(this); moChucNangTuSidebar('caidat')">
     <span class="menu-icon">⚙️</span> Cài Đặt
@@ -9153,6 +9354,75 @@ document.addEventListener('click', function(e) {
         
         <!-- CSS Animation cho hiệu ứng mở nổi -->
         <style>
+
+/* --- HIỆU ỨNG CHO 4 CARD THÔNG SỐ TRÊN ĐẦU --- */
+.stat-card, .card-stat {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+.stat-card:hover, .card-stat:hover {
+    transform: translateY(-5px); /* Nổi nhẹ lên trên */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08); /* Đổ bóng đậm hơn */
+    border-color: #cbd5e1; /* Đổi màu viền nhẹ */
+}
+
+/* --- HIỆU ỨNG CHO CÁC HÀNG HỘI VIÊN --- */
+#ds-hoi-vien-body > div {
+    transition: all 0.2s ease-in-out;
+}
+#ds-hoi-vien-body > div:hover {
+    background-color: #f8fafc !important; /* Đổi màu nền nhẹ */
+    transform: scale(1.005); /* Phóng to cực nhẹ để tạo cảm giác nổi */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    z-index: 10;
+}
+
+/* --- HIỆU ỨNG CHO CÁC NÚT THAO TÁC (Sửa, Xóa, Lịch sử) --- */
+div[style*="justify-content: flex-end"] button {
+    transition: all 0.2s ease;
+}
+div[style*="justify-content: flex-end"] button:hover {
+    transform: translateY(-2px) scale(1.1); /* Nhô lên và to hơn một chút */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- HIỆU ỨNG CHO NÚT BỘ LỌC NHANH (Quick Filter) --- */
+.btn-quick-filter {
+    transition: all 0.2s ease;
+}
+.btn-quick-filter:hover:not(.active) {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+    transform: translateY(-1px);
+}
+
+/* --- HIỆU ỨNG CHO NÚT THÊM HỘI VIÊN MỚI --- */
+button[onclick*="form-add-member"], button[onclick*="moFormThemHoiVien"] {
+    transition: all 0.3s ease;
+}
+button[onclick*="form-add-member"]:hover, button[onclick*="moFormThemHoiVien"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); /* Đổ bóng màu xanh */
+    opacity: 0.95;
+}
+
+/* --- HIỆU ỨNG CHO Ô TÌM KIẾM --- */
+div[style*="display:flex; align-items:center"]:has(#hv-search-input) {
+    transition: all 0.3s ease;
+}
+div[style*="display:flex; align-items:center"]:has(#hv-search-input):focus-within {
+    border-color: #10b981 !important; /* Đổi viền sang xanh khi gõ */
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1); /* Hào quang xanh */
+}
+
+
+
+
+
+
+
+
+
    /* Style khi một nút bộ lọc nhanh được chọn (Active) */
     .btn-quick-filter.active {
         background: #f0fdf4 !important;
@@ -9227,29 +9497,28 @@ document.addEventListener('click', function(e) {
             }
         </style>
 
-        <!-- 1. THANH TIÊU ĐỀ (TOP BAR) -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: white; border-bottom: 1px solid #e2e8f0;">
-             <div>
-                <h2 style="margin:0; font-size: 18px; color: #1e293b; display:flex; align-items:center; gap:12px;">
-                    <span style="background:#eff6ff; padding:8px; border-radius:10px; font-size: 20px;">👥</span> 
-                    QUẢN LÝ HỘI VIÊN
-                    <small style="font-size: 12px; color: #94a3b8; font-weight: normal; margin-left: 10px;">Chăm sóc khách hàng - Tăng doanh thu bền vững</small>
-                </h2>
-             </div>
-   <!-- 3. THANH CÔNG CỤ: TÌM KIẾM & BỘ LỌC -->
-            <div style="display:grid; grid-template-columns: 1fr auto auto auto auto; gap:12px; margin-bottom:25px;">
-                <div style="background:white; display:flex; align-items:center; padding:0 15px; border-radius:12px; border:1px solid #e2e8f0;">
-    <i class="fas fa-search" style="color:#94a3b8;"></i>
-    <!-- Thêm id và oninput vào thẻ input -->
-    <input type="text" id="hv-search-input" oninput="timKiemHoiVien()" placeholder="Tìm tên, số điện thoại..." style="width:100%; border:none; outline:none; padding:12px 10px; font-size:14px;">
+       <!-- 1. THANH TIÊU ĐỀ GỘP GỌN (TOP BAR) -->
+<div style="display: grid; grid-template-columns: auto 1fr auto auto; gap: 20px; align-items: center; padding: 15px 30px; background: white; border-bottom: 1px solid #f1f5f9;">
+    
+    <!-- Tiêu đề bên trái -->
+    <h2 style="margin:0; font-size: 16px; color: #1e293b; display:flex; align-items:center; gap:10px; white-space: nowrap;">
+        <span style="background:#eff6ff; padding:6px 10px; border-radius:8px; font-size: 16px;">👥</span> 
+        QUẢN LÝ HỘI VIÊN
+    </h2>
+
+    <!-- Ô tìm kiếm ở giữa (Tự động giãn rộng) -->
+    <div style="background: #f8fafc; display: flex; align-items: center; padding: 0 15px; border-radius: 10px; border: 1px solid #e2e8f0; max-width: 400px; margin-left: 20px;">
+        <i class="fas fa-search" style="color:#94a3b8; font-size: 13px;"></i>
+        <input type="text" id="hv-search-input" oninput="timKiemHoiVien()" placeholder="Tìm tên, số điện thoại..." style="width:100%; border:none; outline:none; padding:8px 10px; font-size:13px; color: #334155; background: transparent;">
+    </div>
+    
+    <!-- Nút Thêm mới -->
+    <button onclick="document.getElementById('form-add-member').style.display='block'" style="background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">+ THÊM HỘI VIÊN MỚI</button>
+
+    <!-- Nút Đóng ngoài cùng bên phải -->
+    <button onclick="dongHoiVien()" style="border:none; background:#f1f5f9; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:18px; color:#64748b; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">&times;</button>
 </div>
-                <select style="padding:0 15px; border-radius:12px; border:1px solid #e2e8f0; color:#475569; font-size:13px; background:white;"><option>Tích lũy điểm</option></select>
-                <select style="padding:0 15px; border-radius:12px; border:1px solid #e2e8f0; color:#475569; font-size:13px; background:white;"><option>Phân loại</option></select>
-                <input type="date" style="padding:0 15px; border-radius:12px; border:1px solid #e2e8f0; color:#475569; font-size:13px; background:white;">
-                <button onclick="document.getElementById('form-add-member').style.display='block'" style="background:#10b981; color:white; border:none; padding:0 20px; border-radius:12px; font-weight:600; cursor:pointer; font-size:13px;">+ THÊM HỘI VIÊN MỚI</button>
-            </div>
-            <button onclick="dongHoiVien()" style="border:none; background:#f1f5f9; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:22px; color:#64748b; display: flex; align-items: center; justify-content: center;">&times;</button>
-        </div>
+
 
         <!-- 2. VÙNG NỘI DUNG CUỘN (SCROLLABLE AREA) -->
         <div id="tab-hoi-vien" style="overflow-y:auto; flex:1; padding: 25px 30px;">
@@ -9336,10 +9605,10 @@ document.addEventListener('click', function(e) {
     <span style="font-size: 13px; color: #64748b; font-weight: 600;">Bộ lọc nhanh:</span>
     <div style="display: flex; gap: 8px;" id="quick-filter-container">
         <button onclick="locNhanhHoiVien('tat-ca', this)" class="btn-quick-filter active" style="border: none; background: #f0fdf4; color: #10b981; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; border: 1px solid #bbf7d0; transition: all 0.2s;">Tất cả</button>
-        <button onclick="locNhanhHoiVien('VIP', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">VIP</button>
-        <button onclick="locNhanhHoiVien('ACTIVE', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Thân thiết</button>
-        <button onclick="locNhanhHoiVien('NEW', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Mới tham gia</button>
-        <button onclick="locNhanhHoiVien('sap-dat-thuong', this)" class="btn-quick-filter" style="border: none; background: white; color: #64748b; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Sắp đạt thưởng</button>
+        <button onclick="locNhanhHoiVien('VIP', this)" class="btn-quick-filter" style="border: none; background: white; color: #EA580C; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">VIP</button>
+        <button onclick="locNhanhHoiVien('ACTIVE', this)" class="btn-quick-filter" style="border: none; background: white; color: #166534; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Thân thiết</button>
+        <button onclick="locNhanhHoiVien('NEW', this)" class="btn-quick-filter" style="border: none; background: white; color: #2563EB; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Mới tham gia</button>
+        <button onclick="locNhanhHoiVien('sap-dat-thuong', this)" class="btn-quick-filter" style="border: none; background: white; color: #f207c3	; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid #e2e8f0; transition: all 0.2s;">Sắp đạt thưởng</button>
     </div>
 </div>
 
@@ -9399,26 +9668,123 @@ document.addEventListener('click', function(e) {
             </div>
 
             <!-- Footer Danh sách (Phân trang) -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 10px;">
-                <span style="font-size: 13px; color: #64748b;">Hiển thị 1 - 10 / 1.247 hội viên</span>
-                <div style="display: flex; gap: 5px;">
-                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">&laquo;</button>
-                    <button style="padding: 5px 12px; border-radius: 8px; border: none; background: #10b981; color: white; cursor: pointer; font-weight: bold;">1</button>
-                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">2</button>
-                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">3</button>
-                    <button style="padding: 5px 12px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; cursor: pointer;">&raquo;</button>
-                </div>
+           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 10px;">
+    <span id="pagination-info" style="font-size: 13px; color: #64748b;">Hiển thị 0 - 0 / 0 hội viên</span>
+    <div style="display: flex; gap: 5px;" id="pagination-buttons">
+        <!-- Các nút 1, 2, 3... sẽ tự sinh ra ở đây -->
+    </div>
+</div>
             </div>
         </div>
     </div>
 </div>
+
+
+
+
 <!-- THẺ CHI TIẾT HỘI VIÊN (DRAWER BÊN PHẢI) -->
 <div id="member-detail-drawer" style="display:none; position:absolute; top:0; right:0; width:420px; height:100%; background:white; box-shadow:-5px 0 25px rgba(0,0,0,0.1); z-index:10000; flex-direction:column; overflow-y:auto; border-left:1px solid #e2e8f0; animation: slideIn 0.3s ease-out; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
     <style>
+
+ /* Vùng chứa tổng thể */
+    .gift-glow-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    /* Hào quang vàng cam phát sáng phía sau */
+    .gift-glow-bg {
+        position: absolute;
+        width: 70px;
+        height: 70px;
+        background: radial-gradient(circle, rgba(254, 215, 170, 0.9) 0%, rgba(254, 215, 170, 0) 70%);
+        border-radius: 50%;
+        animation: pulseGlow 1.5s infinite alternate ease-in-out;
+        z-index: 1;
+    }
+
+    @keyframes pulseGlow {
+        from { transform: scale(0.85); opacity: 0.5; }
+        to { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* Khung chứa các ngôi sao xoay vòng */
+    .stars-orbit {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        animation: orbitRotate 4s linear infinite;
+        z-index: 2;
+    }
+
+    @keyframes orbitRotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Style chung cho các ngôi sao lấp lánh */
+    .star {
+        position: absolute;
+        color: #f59e0b;
+        animation: blinkStar 1s infinite alternate ease-in-out;
+    }
+
+    @keyframes blinkStar {
+        from { opacity: 0.3; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1.2); }
+    }
+
+    /* Vị trí và kích thước từng ngôi sao */
+    .star-big-1 { top: 5px; right: 5px; font-size: 16px; animation-delay: 0.2s; }
+    .star-big-2 { bottom: 5px; left: 5px; font-size: 14px; animation-delay: 0.6s; }
+    .star-small-1 { top: 15px; left: 10px; font-size: 8px; animation-delay: 0.4s; }
+    .star-small-2 { bottom: 15px; right: 10px; font-size: 10px; animation-delay: 0.8s; }
+
+    /* Hộp quà lắc lư chuyên nghiệp */
+    .gift-shake-pro {
+        font-size: 34px;
+        z-index: 3;
+        position: relative;
+        animation: shakeGift 0.8s ease-in-out infinite;
+        transform-origin: bottom center;
+    }
+
+    @keyframes shakeGift {
+        0% { transform: rotate(0deg); }
+        15% { transform: rotate(8deg); }
+        30% { transform: rotate(-8deg); }
+        45% { transform: rotate(4deg); }
+        60% { transform: rotate(-4deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+
         @keyframes slideIn {
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
         }
+.gift-shake {
+        display: inline-block;
+        animation: shakeGift 0.8s ease-in-out infinite;
+        transform-origin: bottom center;
+        cursor: pointer;
+    }
+
+    @keyframes shakeGift {
+        0% { transform: rotate(0deg); }
+        15% { transform: rotate(8deg); }
+        30% { transform: rotate(-8deg); }
+        45% { transform: rotate(4deg); }
+        60% { transform: rotate(-4deg); }
+        75% { transform: rotate(2deg); }
+        100% { transform: rotate(0deg); }
+    }
+
     </style>
 
     <!-- Header Drawer -->
@@ -9454,9 +9820,14 @@ document.addEventListener('click', function(e) {
                     <div id="det-progress" style="width:100%; height:100%; background:#10b981; border-radius:10px;"></div>
                 </div>
                 <div id="det-slogan" style="font-size:10px; font-weight:700; color:#ef4444; margin-top:6px;">100% - ĐÃ ĐỦ QUÀ TẶNG! 🎁</div>
-            </div>
-            <div style="font-size:45px;">🎁</div>
-        </div>
+</div>
+
+<!-- Thêm id="det-gift-container" vào thẻ bao ngoài này -->
+<div id="det-gift-container" style="font-size:45px;">
+    <div class="gift-shake" onclick="moQuaPhaoHoa(this)">🎁</div>
+</div>
+</div>
+
 
         <!-- Bảng 4 ô Thống kê (Giống hệt ảnh) -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:25px;">
