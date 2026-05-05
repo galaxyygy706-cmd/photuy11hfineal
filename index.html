@@ -3009,50 +3009,64 @@ function addItem(monId) {
                 return db.ref("orders/" + currentTableId).set(items).then(() => hoanTatAddItem(items));
             }
 
-            // 👉 TRƯỜNG HỢP 2: CÓ HỘI VIÊN (Tính bát và cộng Real-time)
-            return db.ref(`members/${customerId}`).once('value').then(snap => {
-                let kh = snap.val() || { tuy_tam_count: 0, tuy_thuong_count: 0 };
-                let plusTam = 0, plusThuong = 0;
-                
-                if (monDangBam.id === "tuy_tam" || monDangBam.id === "combo_tam_chau") plusTam = 1;
-                else if (monDangBam.id === "tuy_thuong" || monDangBam.id === "combo_thuong_thuy") plusThuong = 1;
-                else if (monDangBam.id === "combo_song_long") plusThuong = 2;
+           // 👉 TRƯỜNG HỢP 2: CÓ HỘI VIÊN (Tính bát và cộng Real-time)
+return db.ref(`members/${customerId}`).once('value').then(snap => {
+    let kh = snap.val() || { tuy_tam_count: 0, tuy_thuong_count: 0 };
+    let plusTam = 0, plusThuong = 0;
+    
+    // Kiểm tra món ăn vừa bấm có thuộc nhóm tích điểm hay không
+    if (monDangBam.id === "tuy_tam" || monDangBam.id === "combo_tam_chau") plusTam = 1;
+    else if (monDangBam.id === "tuy_thuong" || monDangBam.id === "combo_thuong_thuy") plusThuong = 1;
+    else if (monDangBam.id === "combo_song_long") plusThuong = 2;
 
-                let tongTruoc = (Number(kh.tuy_tam_count) || 0) + (Number(kh.tuy_thuong_count) || 0);
+    let tongTruoc = (Number(kh.tuy_tam_count) || 0) + (Number(kh.tuy_thuong_count) || 0);
 
-                // Khách đã đủ 10 bát và gọi tiếp bát có tích điểm -> Tặng bát miễn phí
-                if (tongTruoc >= 10 && (plusTam > 0 || plusThuong > 0)) {
-                    let giaUuDai = (kh.tuy_thuong_count >= kh.tuy_tam_count) ? 0 : 50000;
-                    items.push({
-                        id_mon: "tuy_thuong",
-                        ten: "Túy Thượng (Ưu đãi mốc 10)",
-                        gia: giaUuDai,
-                        sl: 1,
-                        id: Date.now(),
-                        isReward: true,
-                        isSent: false
-                    });
-                    kh.tuy_tam_count = 0; kh.tuy_thuong_count = 0;
-                    alert(`🎁 Đã áp dụng bát miễn phí / nâng cấp!`);
-                } else {
-                    addOrUpdateItem(items, monDangBam);
-                    kh.tuy_tam_count = (Number(kh.tuy_tam_count) || 0) + plusTam;
-                    kh.tuy_thuong_count = (Number(kh.tuy_thuong_count) || 0) + plusThuong;
+    // Khách đã đủ 10 bát và gọi tiếp bát có tích điểm -> Tặng bát miễn phí
+    if (tongTruoc >= 10 && (plusTam > 0 || plusThuong > 0)) {
+        let giaUuDai = (kh.tuy_thuong_count >= kh.tuy_tam_count) ? 0 : 50000;
+        items.push({
+            id_mon: "tuy_thuong",
+            ten: "Túy Thượng (Ưu đãi mốc 10)",
+            gia: giaUuDai,
+            sl: 1,
+            id: Date.now(),
+            isReward: true,
+            isSent: false
+        });
+        kh.tuy_tam_count = 0; kh.tuy_thuong_count = 0;
+        alert(`🎁 Đã áp dụng bát miễn phí / nâng cấp!`);
+    } else {
+        addOrUpdateItem(items, monDangBam);
 
-                    let tongSau = kh.tuy_tam_count + kh.tuy_thuong_count;
-                    // Đạt đúng mốc 5 bát -> Tặng quẩy
-                    if (tongSau === 5) {
-                        items.push({ id_mon: "quay", ten: "Quẩy (Quà tặng 5 bát)", gia: 0, sl: 1, id: Date.now() + 1, isReward: true, isSent: false });
-                        alert(`🎯 Tặng Quẩy mốc 5 bát!`);
-                    }
-                }
+        // Chỉ cộng điểm và xét quà tặng mốc 5 nếu món vừa thêm có tích điểm
+        if (plusTam > 0 || plusThuong > 0) {
+            kh.tuy_tam_count = (Number(kh.tuy_tam_count) || 0) + plusTam;
+            kh.tuy_thuong_count = (Number(kh.tuy_thuong_count) || 0) + plusThuong;
 
-                // Cập nhật điểm ngay lập tức lên Firebase
-                db.ref(`members/${customerId}`).update(kh);
-                return db.ref("orders/" + currentTableId).set(items);
-            }).then(() => {
-                hoanTatAddItem(items);
-            });
+            let tongSau = kh.tuy_tam_count + kh.tuy_thuong_count;
+            
+            // 🔥 SỬA LỖI TẠI ĐÂY: Thêm điều kiện (plusTam > 0 || plusThuong > 0)
+            if (tongSau === 5) {
+                items.push({ 
+                    id_mon: "quay", 
+                    ten: "Quẩy (Quà tặng 5 bát)", 
+                    gia: 0, 
+                    sl: 1, 
+                    id: Date.now() + 1, 
+                    isReward: true, 
+                    isSent: false 
+                });
+                alert(`🎯 Tặng Quẩy mốc 5 bát!`);
+            }
+        }
+    }
+
+    // Cập nhật điểm ngay lập tức lên Firebase
+    db.ref(`members/${customerId}`).update(kh);
+    return db.ref("orders/" + currentTableId).set(items);
+}).then(() => {
+    hoanTatAddItem(items);
+});
         });
     });
 }
@@ -4983,7 +4997,7 @@ function renderStockStatus() {
     const warningBox = document.getElementById('stock-warning-box');
     if (!displayList || typeof MENU === 'undefined') return;
 
-    // 1. Cập nhật ngày tháng (Giữ nguyên logic của bạn)
+    // 1. Cập nhật ngày tháng
     const dateEl = document.getElementById('current-date-display');
     if (dateEl) {
         const now = new Date();
@@ -5009,32 +5023,31 @@ function renderStockStatus() {
             if (conLai <= (tenMon.includes('tuy tam') ? 25 : 15)) bgColor = '#ffa000';
             if (conLai <= 0) bgColor = '#d32f2f';
 
-            let phanTram = (conLai / limit) * 100;
+            // Tránh chia cho 0
+            let phanTram = limit > 0 ? Math.min(100, Math.max(0, (conLai / limit) * 100)) : 0;
 
-displayList.innerHTML += `
-    <div class="stock-item-row" style="display:flex; align-items:center; padding:10px 0; border-bottom:1px solid #eee; font-weight:bold; gap: 15px;">
-        <!-- 1. Tên món nằm bên trái -->
-        <span style="color: #333; min-width: 100px; flex-shrink: 0;">🍜 ${mon.ten}</span>
-        
-        <!-- 2. Thanh tiến độ nằm ở giữa (Sử dụng margin: 0 auto để cân đối) -->
-        <div style="flex: 1; height: 18px; background: #eee; border-radius: 20px; position: relative; overflow: hidden; margin: 0 auto; min-width: 200px;">
-            <!-- Thanh màu chạy theo số lượng còn lại -->
-            <div style="width: ${phanTram}%; height: 100%; background: ${bgColor}; border-radius: 20px; transition: width 0.5s ease; display: flex; align-items: center; justify-content: center;">
-                <!-- Con số hiển thị đè lên thanh màu -->
-                <span style="color: white; font-size: 11px; white-space: nowrap; position: absolute; left: 50%; transform: translateX(-50%);">
-                    ${conLai} / ${limit}
-                </span>
-            </div>
-        </div>
-        
-        <!-- 3. Nút bấm nằm bên phải -->
-        <button onclick="congLaiSuat(${index})" style="width:28px; height:28px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; font-weight:bold; flex-shrink: 0;">+</button>
-    </div>`;
+            displayList.innerHTML += `
+                <div class="stock-item-row" style="display:flex; align-items:center; padding:10px 0; border-bottom:1px solid #eee; font-weight:bold; gap: 15px;">
+                    <!-- 1. Tên món -->
+                    <span style="color: #333; min-width: 100px; flex-shrink: 0;">🍜 ${mon.ten}</span>
+                    
+                    <!-- 2. Thanh tiến độ -->
+                    <div style="flex: 1; height: 18px; background: #eee; border-radius: 20px; position: relative; overflow: hidden; margin: 0 auto; min-width: 200px;">
+                        <!-- Thanh màu chạy (Tách biệt hoàn toàn với text để không bị che chữ) -->
+                        <div style="width: ${phanTram}%; height: 100%; background: ${bgColor}; border-radius: 20px; transition: width 0.5s ease;"></div>
+                        
+                        <!-- Con số hiển thị đè lên chính giữa thanh tiến độ -->
+                        <span style="color: ${phanTram < 45 ? '#333' : 'white'}; font-size: 11px; white-space: nowrap; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; pointer-events: none;">
+                            ${conLai} / ${limit}
+                        </span>
+                    </div>
+                    
+                    <!-- 3. Nút bấm -->
+                    <button onclick="congLaiSuat(${index})" style="width:28px; height:28px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; font-weight:bold; flex-shrink: 0;">+</button>
+                </div>`;
 
-            // 🔥 CẢNH BÁO (Giữ nguyên logic của bạn)
-            let nguong = 10;
-            if (tenMon.includes('tuy tam')) nguong = 25;
-            if (tenMon.includes('tuy thuong')) nguong = 15;
+            // 🔥 CẢNH BÁO
+            let nguong = tenMon.includes('tuy tam') ? 25 : 15;
 
             if (conLai <= 0) {
                 alertMsg += `🏮 Món ${mon.ten} đã hết! --- `;
@@ -5045,21 +5058,33 @@ displayList.innerHTML += `
         }
     });
 
-    if (alertMsg && warningBox) {
-        warningBox.style.display = "block";
-        warningBox.innerHTML = `<marquee style="color:black; font-weight:bold;">${alertMsg}</marquee>`;
+    if (warningBox) {
+        if (alertMsg) {
+            warningBox.style.display = "block";
+            warningBox.innerHTML = `<marquee style="color:black; font-weight:bold;">${alertMsg}</marquee>`;
+        } else {
+            warningBox.style.display = "none"; // Ẩn đi nếu không có cảnh báo nào
+        }
     }
 }
 
-// GỌI HÀM ĐỂ CHẠY
+// chạy ngay khi vào app
+checkAndResetStockAt5AM();
+
+// chạy mỗi phút (để đảm bảo đúng 08:00)
+setInterval(() => {
+    checkAndResetStockAt5AM();
+}, 60000);
+
+// realtime menu
 db.ref("menu").on("value", s => {
     MENU = s.val() || [];
     renderMenu();
-    renderStockStatus(); // 🔥 thêm dòng này
+    renderStockStatus();
 });
 
 /* HÀM KIỂM TRA VÀ RESET LÚC 05:00 SÁNG */
-function checkAndResetStockAt5AM() {
+function checkAndResetStockAt5AM() { // Bạn có thể đổi tên hàm thành checkAndResetStockAt8AM nếu muốn
     return new Promise((resolve) => {
         // 1. Lấy mốc thời gian hiện tại
         const now = new Date();
@@ -5067,16 +5092,16 @@ function checkAndResetStockAt5AM() {
         const currentMonth = now.getMonth();
         const currentDate = now.getDate();
 
-        // 2. Tạo mốc 05:00:00 sáng ngày hôm nay
+        // 2. Tạo mốc 05:00:00 sáng ngày hôm nay (Đã sửa từ 5 thành 8)
         const mốc5hSángHômNay = new Date(currentYear, currentMonth, currentDate, 5, 0, 0, 0).getTime();
 
         // 3. Đọc ngày reset gần nhất từ Firebase
         db.ref("last_reset_date").once("value").then(snap => {
-            const lastResetDate = snap.val(); // Định dạng lưu: YYYY-MM-DD
+            const lastResetDate = snap.val(); 
             
             const todayStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDate).padStart(2, '0')}`;
             
-            // Nếu đã bước qua mốc 05:00 sáng và ngày hôm nay chưa được reset
+            // Nếu đã bước qua mốc 08:00 sáng và ngày hôm nay chưa được reset
             if (now.getTime() >= mốc5hSángHômNay && lastResetDate !== todayStr) {
                 
                 // Đọc Menu để reset
@@ -5085,20 +5110,24 @@ function checkAndResetStockAt5AM() {
                     if (!menuData) return resolve();
 
                     const updates = {};
-                    menuData.forEach((mon, index) => {
-                        const tenMon = (mon.ten || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                        
-                        // Chỉ reset các món "Tuỳ Tâm" và "Tuỳ Thượng"
-                        if (tenMon.includes('tuy tam') || tenMon.includes('tuy thuong')) {
-                            updates[`menu/${index}/soldToday`] = 0;
-                        }
-                    });
+                   Object.keys(menuData).forEach(key => {
+    const mon = menuData[key];
+
+    const tenMon = (mon.ten || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+    if (tenMon.includes('tuy tam') || tenMon.includes('tuy thuong')) {
+        updates[`menu/${key}/soldToday`] = 0;
+    }
+});
 
                     // Cập nhật lại soldToday = 0 và đánh dấu ngày đã reset
                     updates["last_reset_date"] = todayStr;
 
                     db.ref().update(updates).then(() => {
-                        console.log("🔥 Đã reset số lượng bán lúc 05:00 sáng!");
+                        console.log("🔥 Đã reset số lượng bán lúc 08:00 sáng!");
                         resolve();
                     });
                 });
@@ -5704,8 +5733,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
-
-
 
 
 
