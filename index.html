@@ -1331,18 +1331,15 @@ body {
     <!-- TAB -->
     <div class="tab-headers">
         <button class="tab-btn active" onclick="switchTab('tab-so-do', this)">SƠ ĐỒ BÀN</button>
-        <button class="tab-btn" onclick="switchTab('tab-chi-tieu', this)" style="background:#EEEEEE;color:#d32f2f;">
-            Chi tiêu💸
-        </button>
+       
     </div>
 
     <!-- CONTENT -->
     <div id="tab-so-do" class="tab-content active">
-     <h3 style="text-align:left; color:#1a1a1a; margin-top:0; display:flex; align-items:center; gap:10px; font-size:18px; text-transform: uppercase; letter-spacing: 0.5px;">
-    <span style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:#f0f0f0; border-radius:8px; font-size:18px;">
-        🏠
-    </span> 
-    SƠ ĐỒ BÀN
+     <h3 ondblclick="moManHinhBep()" 
+    style="text-align:left; color:#1a1a1a; margin-top:0; display:flex; align-items:center; gap:10px; font-size:18px; text-transform: uppercase; letter-spacing: 0.5px; cursor: default; user-select: none;"> 
+    <span style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:#f0f0f0; border-radius:8px; font-size:18px;"> 🏠 </span> 
+    SƠ ĐỒ BÀN 
 </h3>
 
         <div style="font-size:11px; font-weight:bold; margin-bottom:5px">🟢KHU BÀN</div>
@@ -1497,6 +1494,8 @@ body {
             <div id="stock-display-list" style="font-size: 12px; display: flex; flex-direction: column; gap: 8px;">
                 <!-- Nơi đổ Progress bar từ JS -->
             </div>
+<div id="stock-warning-box" style="display:none; width: 100%; margin-bottom: 10px;"></div>
+
         </div>
 
         <!-- 3. Nút chuyển Tab (Đã thêm Đồ uống) -->
@@ -1642,7 +1641,7 @@ body {
 
 <script>
 
-
+let ALL_ORDERS = {};
 let currentPage = 1;
 const recordsPerPage = 5;
 
@@ -1660,7 +1659,7 @@ window.addEventListener('DOMContentLoaded', () => {
         moModalDoiNgu();
     }
 });
-/*1. PHÂN QUYỀN*/
+/*1.PHÂN QUYỀN*/
 const HE_THONG_QUYEN = {
     "ADMIN": ["full_control", "manage_staff", "view_history", "edit_menu", "delete_order"],
     "Đại sứ Minh Bạch": ["payment", "order", "view_history", "print_bill"], // Thu ngân
@@ -1682,7 +1681,6 @@ const BANG_LUONG = {
 
 
 /*3.KHAI BÁO KHO*/
-
 let currentDiscountPercent = 0;
 // 1. KHAI BÁO DỮ LIỆU KHO MẶC ĐỊNH
 const KHO_MASTER = [
@@ -1715,7 +1713,7 @@ const KHO_MASTER = [
 
 
 
-/*4. KHAI BÁO ĐỊNH LƯỢNG MÓN*/
+/*4.KHAI BÁO ĐỊNH LƯỢNG MÓN*/
 const RECIPES = {
     // --- MÓN ĐƠN ---
     tuy_tam: { banh_pho: 150, thit_bo: 65, nuoc_dung: 350 },
@@ -1757,7 +1755,7 @@ const MENU_MASTER = [
     { id: "combo_song_long", ten: 'Combo Song Long Hội Tụ', gia: 175000, loai: 'combo', desc: '2 Túy Thượng + 2 Túy Long Tiềm Thủy + quẩy', soldToday: 0, limit: 10, img: "" }
 ];
 
-
+/*2.KHAI BÁO THU CHI*/
 const THU_CHI_MASTER = [
     { 
         id: "TC001", 
@@ -1804,17 +1802,14 @@ let TABLES = [], MENU = [], KHO = [], HOIVIEN = [], CHITIEU = [], currentTableId
 
 
 
-// Khai báo biến toàn cục ở đầu file script
-let ALL_ORDERS = {}; 
 
-// Lắng nghe toàn bộ đơn hàng
-db.ref("orders").on("value", snap => {
-    ALL_ORDERS = snap.val() || {}; // Cập nhật dữ liệu mới nhất
-    if (typeof renderTables === "function") {
-        renderTables(); // Ép sơ đồ bàn vẽ lại ngay khi có món mới
-    }
+
+// 2. Lắng nghe toàn bộ node "orders" để cập nhật số người Real-time [INDEX]
+// Lắng nghe toàn bộ đơn hàng đang hoạt động
+db.ref("orders").on("value", snapshot => {
+    ALL_ORDERS = snapshot.val() || {};
+    if (typeof renderTables === "function") renderTables();
 });
-
 
 
 // 🔥 LẮNG NGHE KHO REALTIME
@@ -1976,6 +1971,7 @@ function switchTab(id, btn) {
 
 let currentFilter = 'all'; 
 
+/*8.LỌC KHO*/
 function filterKho(type, element) {
     // 1. Cập nhật biến lọc toàn cục
     currentFilter = type;
@@ -2001,7 +1997,7 @@ function filterKho(type, element) {
     renderKho();
 }
 
-/* 8. VẼ KHO PREMIUM - ĐÃ SỬA LỖI CẬP NHẬT */
+/*8.VẼ KHO*/
 function renderKho() {
     const dataSource = (typeof KHO !== 'undefined') ? KHO : KHO_MASTER;
     const container = document.getElementById("kho-list-body");
@@ -2103,36 +2099,59 @@ function renderKho() {
     if(document.getElementById('stat-kho-duhang')) document.getElementById('stat-kho-duhang').innerText = s.duHang;
 }
 
-/* 9. THAY ĐỔI KHO - ĐÃ FIX LỖI NHẢY ĐỊNH MỨC */
-function changeKho(index, direction) {
+/* 9. THAY ĐỔI KHO - CÓ XÁC NHẬN, GHI NHẬT KÝ & CẬP NHẬT REAL-TIME */
+async function changeKho(index, direction) {
     const inputElement = document.getElementById(`input-kho-${index}`);
     const amount = parseFloat(inputElement.value);
     const item = KHO[index];
 
+    // 1. Kiểm tra số lượng nhập
     if (isNaN(amount) || amount <= 0) {
-        alert("Vui lòng nhập số lượng!");
+        alert("Vui lòng nhập số lượng hợp lệ vào ô trống!");
         return;
     }
 
-    if (!confirm(`Bạn muốn thay đổi kho cho ${item.ten}?`)) return;
+    // 2. Hiện thông báo xác nhận chi tiết
+    const hanhDong = direction > 0 ? "NHẬP THÊM" : "XUẤT KHO";
+    const xacNhan = confirm(`Bạn xác nhận ${hanhDong} ${amount} ${item.dvt} cho món: ${item.ten}?`);
+    if (!xacNhan) return;
 
+    // 3. Tính toán tồn mới
     let newTon = parseFloat((item.ton + (amount * direction)).toFixed(1));
     if (newTon < 0) {
-        alert("Kho không đủ!");
+        alert("Lỗi: Số lượng tồn kho không đủ để xuất!");
         return;
     }
 
-    // CẬP NHẬT CỤC BỘ (Quan trọng để giữ định mức đứng yên)
+    // 4. CẬP NHẬT CỤC BỘ TRƯỚC (Giúp giao diện mượt mà và giữ nguyên định mức)
     KHO[index].ton = newTon;
 
-    // Gửi lên Firebase
-    db.ref("kho/" + index).update({ 
-        ton: newTon 
-        // Tuyệt đối không gửi kèm trường limit ở đây
-    }).then(() => {
+    try {
+        // 5. Cập nhật tồn kho lên Firebase (Chỉ update field 'ton')
+        await db.ref("kho/" + index).update({ ton: newTon });
+
+        // 6. GHI NHẬT KÝ BIẾN ĐỘNG (Tab Nhật ký)
+        await db.ref("lich_su_kho").push({
+            thoi_gian: new Date().toLocaleString('vi-VN'),
+            ten_sp: item.ten,
+            hanh_dong: direction > 0 ? "Nhập kho" : "Xuất kho",
+            so_luong: amount,
+            dvt: item.dvt,
+            ton_moi: newTon,
+            nguoi_thuc_hien: "Nguyễn Kim Anh" // Tên cố định
+        });
+
+        // 7. Reset giao diện & Render lại
         inputElement.value = 0;
-        renderKho(); // Vẽ lại giao diện với tồn mới và định mức cũ
-    });
+        if (typeof renderKho === "function") {
+            renderKho(); // Vẽ lại giao diện với tồn mới và định mức cũ
+        }
+        alert("Đã cập nhật kho thành công!");
+        
+    } catch (error) {
+        console.error("Lỗi cập nhật:", error);
+        alert("Có lỗi xảy ra khi kết nối Firebase!");
+    }
 }
 
 /*10.HÀM CẬP NHẬT GIỚI HẠN */
@@ -2154,56 +2173,7 @@ function updateLimitKho(index, giaTriMoi) {
     });
 }
 
-/* 9. THAY ĐỔI KHO - CÓ XÁC NHẬN & GHI NHẬT KÝ */
-async function changeKho(index, direction) {
-    const inputElement = document.getElementById(`input-kho-${index}`);
-    const amount = parseFloat(inputElement.value);
-    const item = KHO[index];
-
-    // 1. Kiểm tra số lượng nhập
-    if (isNaN(amount) || amount <= 0) {
-        alert("Vui lòng nhập số lượng hợp lệ vào ô trống!");
-        return;
-    }
-
-    // 2. Hiện thông báo xác nhận (Hành động này sẽ hiện khi bấm + hoặc -)
-    const hanhDong = direction > 0 ? "NHẬP THÊM" : "XUẤT KHO";
-    const xacNhan = confirm(`Bạn xác nhận ${hanhDong} ${amount} ${item.dvt} cho món: ${item.ten}?`);
-    
-    if (!xacNhan) return;
-
-    // 3. Tính toán tồn mới
-    let newTon = parseFloat((item.ton + (amount * direction)).toFixed(1));
-    if (newTon < 0) {
-        alert("Lỗi: Số lượng tồn kho không đủ để xuất!");
-        return;
-    }
-
-    try {
-        // 4. Cập nhật tồn kho lên Firebase (Chỉ update field 'ton')
-        await db.ref("kho/" + index).update({ ton: newTon });
-
-        // 5. GHI NHẬT KÝ BIẾN ĐỘNG (Để hiện bên Tab Nhật ký)
-        await db.ref("lich_su_kho").push({
-            thoi_gian: new Date().toLocaleString('vi-VN'),
-            ten_sp: item.ten,
-            hanh_dong: direction > 0 ? "Nhập kho" : "Xuất kho",
-            so_luong: amount,
-            dvt: item.dvt,
-            ton_moi: newTon,
-            nguoi_thuc_hien: "Nguyễn Kim Anh" // Tên cố định theo ảnh của bạn
-        });
-
-        // 6. Reset giao diện
-        inputElement.value = 0;
-        alert("Đã cập nhật kho thành công!");
-        
-    } catch (error) {
-        console.error("Lỗi cập nhật:", error);
-        alert("Có lỗi xảy ra khi kết nối Firebase!");
-    }
-}
-
+/*10.LỊCH SỬ KHO*/
 function listenLichSu() {
     db.ref("lich_su_kho").limitToLast(50).on("value", s => {
         const data = s.val();
@@ -2245,6 +2215,7 @@ function listenLichSu() {
 // Gọi hàm này 1 lần khi ứng dụng khởi chạy
 listenLichSu();
 
+/*10.MỞ LỊCH SỬ KHO*/
 function moLichSuKho() {
     const khungLichSu = document.getElementById('khung-lich-su');
     
@@ -2259,7 +2230,7 @@ function moLichSuKho() {
     }
 }
 
-
+/*10.CHUYỂN TAB KHO*/
 function switchTabKho(tab, element) {
     const vTon = document.getElementById('view-ton-kho');
     const vLichSu = document.getElementById('view-lich-su-kho');
@@ -2277,7 +2248,7 @@ function switchTabKho(tab, element) {
     }
 }
 
-// Xóa lịch sử (Xóa trắng nhánh trên Firebase)
+/*10.XÓA LỊCH SỬ KHO*/
 function xoaLichSu() {
     // 1. Thiết lập mật khẩu admin của bạn ở đây
     const ADMIN_PASSWORD = "123"; 
@@ -2303,6 +2274,7 @@ function xoaLichSu() {
     }
 }
 
+/*10.XUẤT EXCEL KHO*/
 function xuatExcelKho() {
     // Kiểm tra xem thư viện đã load chưa
     if (typeof XLSX === 'undefined') {
@@ -2331,36 +2303,6 @@ function xuatExcelKho() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*11.Vẽ hội viên*/
 function renderHoiVien() {
     // Hàm tính tuổi chính xác từ ngày sinh
@@ -2376,6 +2318,136 @@ function renderHoiVien() {
         }
         return ` (${age} tuổi)`;
     };
+// =========================
+// CSS HIỆU ỨNG SINH NHẬT
+// =========================
+if (!document.getElementById('birthday-member-style')) {
+
+    const style = document.createElement('style');
+
+    style.id = 'birthday-member-style';
+
+    style.innerHTML = `
+
+    @keyframes birthdayGlowMember {
+
+        0% {
+            box-shadow:
+                0 0 0px rgba(251,191,36,0),
+                0 0 0px rgba(236,72,153,0);
+        }
+
+        50% {
+            box-shadow:
+                0 0 25px rgba(251,191,36,0.35),
+                0 0 40px rgba(236,72,153,0.25);
+        }
+
+        100% {
+            box-shadow:
+                0 0 0px rgba(251,191,36,0),
+                0 0 0px rgba(236,72,153,0);
+        }
+    }
+
+    @keyframes birthdayBorderMember {
+
+        0% {
+            border-color:#f59e0b;
+        }
+
+        50% {
+            border-color:#ec4899;
+        }
+
+        100% {
+            border-color:#f59e0b;
+        }
+    }
+
+    @keyframes giftFloatMember {
+
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-3px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    .birthday-member-row {
+
+        position:relative;
+
+        overflow:hidden;
+
+        border-radius:18px !important;
+
+        animation:
+            birthdayGlowMember 2.5s infinite ease-in-out,
+            birthdayBorderMember 2s infinite linear;
+
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff,
+                #fff7ed,
+                #fdf2f8
+            ) !important;
+
+        border:1px solid #f59e0b !important;
+    }
+
+    .birthday-member-row::before {
+
+        content:'';
+
+        position:absolute;
+
+        top:0;
+        left:-150%;
+
+        width:120%;
+        height:100%;
+
+        background:
+            linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.5),
+                transparent
+            );
+
+        transform:skewX(-25deg);
+
+        animation: birthdayShineMember 4s infinite;
+    }
+
+    @keyframes birthdayShineMember {
+
+        0% {
+            left:-150%;
+        }
+
+        100% {
+            left:150%;
+        }
+    }
+
+    .birthday-gift-btn {
+
+        animation: giftFloatMember 1.5s infinite ease-in-out;
+    }
+
+    `;
+    
+    document.head.appendChild(style);
+}
 
     // 1. Tải dữ liệu đơn hàng trước để làm dữ liệu đối chiếu
     db.ref("history_orders").once("value").then(orderSnap => {
@@ -2450,6 +2522,29 @@ function renderHoiVien() {
                 
                 // Tính số tuổi hiện tại
                 const tuoiStr = tinhTuoi(ngaySinh);
+// =========================
+// CHECK SINH NHẬT
+// =========================
+let laSinhNhat = false;
+
+if (ngaySinh && ngaySinh !== "---") {
+
+    try {
+
+        const birth = new Date(ngaySinh);
+
+        if (!isNaN(birth.getTime())) {
+
+            const today = new Date();
+
+            laSinhNhat =
+                birth.getDate() === today.getDate()
+                &&
+                birth.getMonth() === today.getMonth();
+        }
+
+    } catch(e) {}
+}
 
                 let slogan = "";
                 let sloganColor = "";
@@ -2490,7 +2585,9 @@ function renderHoiVien() {
 
 // Render HTML hàng hội viên
 h += `
-<div id="member-row-${id}" class="${rowVipClass}" style="border-bottom: 1px solid #f1f5f9;">
+<div
+    id="member-row-${id}"
+    class="${rowVipClass} ${laSinhNhat ? 'birthday-member-row' : ''}" style="border-bottom: 1px solid #f1f5f9;">
     <div style="display: grid; grid-template-columns: 2.5fr 2fr 2fr 2.5fr 1.2fr; align-items: center; padding: 15px 25px;">
     
         <!-- CỘT 1: HỘI VIÊN (Đã thêm sự kiện click vào Avatar) -->
@@ -2501,10 +2598,64 @@ h += `
     </div>
     <div style="overflow: hidden;">
         <div style="font-weight:700; color:#1e293b; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; display: flex; align-items: center; gap: 5px;">
-            ${tenKhach} ${badgeHTML}
+           ${tenKhach}
+
+${badgeHTML}
+
+${laSinhNhat ? `
+<span style="
+    font-size:10px;
+    background:linear-gradient(135deg,#f59e0b,#ec4899);
+    color:#fff;
+    padding:3px 8px;
+    border-radius:999px;
+    font-weight:bold;
+    box-shadow:0 0 10px rgba(236,72,153,0.3);
+">
+    🎂 SINH NHẬT
+</span>
+` : ''}
         </div>
         <div style="font-size:11px; color:#f59e0b; margin-top: 2px;">⭐ ${soThich}</div>
         <div style="font-size:10px; color:#94a3b8; margin-top: 2px;">📅 Tham gia: ${ngayThamGia}</div>
+${laSinhNhat ? `
+
+<div style="margin-top:8px;">
+
+    <button
+        class="birthday-gift-btn"
+        onclick="
+            if(!this.dataset.opened){
+
+                this.dataset.opened='1';
+
+                this.innerHTML='🎉 ĐÃ MỞ QUÀ';
+
+                this.style.background='linear-gradient(135deg,#10b981,#059669)';
+
+                alert(
+                    '🎉 Chúc mừng sinh nhật ${tenKhach}!\\n\\n🎁 Phở Túy 11h xin gửi tặng tới quý anh chị 1 món quà bất ngờ nhân ngày sinh thành, cảm ơn quý anh chị đã luôn ủng hộ và nhớ tới Phở Túy.✨'
+                );
+            }
+        "
+        style="
+            border:none;
+            background:linear-gradient(135deg,#7c3aed,#ec4899);
+            color:#fff;
+            font-size:10px;
+            font-weight:bold;
+            padding:6px 10px;
+            border-radius:10px;
+            cursor:pointer;
+            box-shadow:0 0 15px rgba(236,72,153,0.3);
+        "
+    >
+        🎁 MỞ QUÀ SINH NHẬT
+    </button>
+
+</div>
+
+` : ''}
     </div>
 </div>
 
@@ -2568,7 +2719,8 @@ if (el) {
 }
 
 
-// Hàm hỗ trợ vẽ nút phân trang
+
+/*11.HÀM HỖ TRỢ PHÂN TRANG HỘI VIÊN*/
 function renderPagination(totalRecords) {
     const totalPages = Math.ceil(totalRecords / recordsPerPage);
     const paginationInfo = document.getElementById("pagination-info");
@@ -2597,12 +2749,14 @@ function renderPagination(totalRecords) {
     paginationButtons.innerHTML = buttonsHTML;
 }
 
-// Hàm chuyển trang
+/*11.HÀM CHUYỂN TRANG HỘI VIÊN*/
 function changePage(page) {
     currentPage = page;
     renderHoiVien();
 }
 
+
+/*11.KPI HỘI VIÊN*/
 function tinhKpiHoiVien() {
     // 1. Tải dữ liệu đơn hàng trước
     db.ref("history_orders").once("value").then(orderSnap => {
@@ -2907,6 +3061,9 @@ function selectTable(id) {
         }
     }
 }
+
+
+/*11.HIỂN THÌ CARD HỘI VIÊN THEO BÀN*/
 window.hienThiProfileCardTheoBan = function(tableId) {
     const inputBox = document.querySelector(".customer-select-box");
     const infoEl = document.getElementById("selected-customer-card");
@@ -3176,7 +3333,11 @@ function renderOrder(items) {
         if (table?.status === 'paid') btnClear.style.display = 'block';
     }
 }
-// HÀM LẮNG NGHE ĐIỂM SỐ REAL-TIME (TÁCH ĐỘC LẬP) [INDEX]
+
+
+
+
+/*11.LẮNG NGHE HỘI VIÊN THEO BÀN*/
 function langNgheHoiVienTheoBan(tableId) {
     if (!tableId) return;
 
@@ -3321,24 +3482,28 @@ function chuyenBuoc(st) {
                 // --------------------------------------------------------------------------------
 
                 // D. Cập nhật đồng thời đơn hàng và Menu lên Firebase
-                return Promise.all([
-                    db.ref("orders/" + currentTableId).set(items),
-                    db.ref("menu").set(menuFromServer),
-                    kitchenPush // Đợi đẩy lên bếp xong
-                ]);
-            })
-            .then(() => updateStatus(currentTableId, "waiting"))
-            .then(() => {
-                // E. Cập nhật mốc thời gian chờ cho màn hình Bếp (F5 không mất)
-                const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
-                if (tableIdx !== -1) {
-                    db.ref(`tables/${tableIdx}/timeAtBep`).set(Date.now());
-                }
-                
-                alert("✅ Đã gửi các món mới xuống bếp!");
-                if (typeof renderStockStatus === "function") renderStockStatus();
-                capNhatNut();
-            });
+               return Promise.all([
+    db.ref("orders/" + currentTableId).set(items),
+    db.ref("menu").set(menuFromServer),
+    kitchenPush // Đợi đẩy lên bếp xong
+]);
+})
+.then(() => updateStatus(currentTableId, "waiting"))
+.then(() => {
+
+    // E. Cập nhật mốc thời gian chờ cho màn hình Bếp (F5 không mất)
+    const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+
+    if (tableIdx !== -1) {
+        db.ref(`tables/${tableIdx}/timeAtBep`).set(Date.now());
+    }
+
+    if (typeof renderStockStatus === "function") {
+        renderStockStatus();
+    }
+
+    capNhatNut();
+});
         }
 
         // =====================================================
@@ -3404,31 +3569,61 @@ function chuyenBuoc(st) {
 });
         }
 
-        // =====================================================
-        // 3. DỌN BÀN (LÀM SẠCH DỮ LIỆU)
-        // =====================================================
-        else if (st === "empty") {
-            if (!confirm("Xác nhận đã dọn sạch bàn để đón khách mới?")) return Promise.reject("cancel");
+       // =====================================================
+// 3. DỌN BÀN (Ghi lịch sử & Làm sạch dữ liệu)
+// =====================================================
+else if (st === "empty") {
+    if (!confirm("Xác nhận đã dọn sạch bàn để đón khách mới?")) return Promise.reject("cancel");
 
-            const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+    const tableIdx = TABLES.findIndex(t => String(t.id) === String(currentTableId));
+    const table = TABLES[tableIdx];
 
-            return db.ref("orders/" + currentTableId).remove()
-            .then(() => {
-                if (tableIdx !== -1) {
-                    return db.ref(`tables/${tableIdx}`).update({
-                        status: "empty",
-                        discount: 0,
-                        customerName: "",
-                        customerId: "",
-                        timeAtBep: null // Xóa luôn mốc giờ chờ của bếp
-                    });
-                }
-            })
-            .then(() => {
-               
-                capNhatNut();
-            });
-        }
+    // Tạo một mảng chứa các yêu cầu xử lý Firebase
+    let tasks = [];
+
+    // 🟢 KIỂM TRA ĐIỀU KIỆN LƯU LỊCH SỬ
+    if (table && table.timeGiaoMon) {
+        const gioKetThuc = Date.now();
+        const soPhutAn = Math.floor((gioKetThuc - table.timeGiaoMon) / 60000);
+
+        const lichSu = {
+            tableId: table.id,
+            tableName: table.name,
+            customerName: table.customerName || "Khách vãng lai",
+            startTime: table.timeGiaoMon,
+            endTime: gioKetThuc,
+            duration: soPhutAn >= 0 ? soPhutAn : 0,
+            date: new Date().toLocaleDateString('vi-VN')
+        };
+        
+        // Thêm lệnh push vào danh sách chờ xử lý
+        tasks.push(db.ref("eating_history").push(lichSu));
+    }
+
+    // Lệnh xóa đơn hàng
+    tasks.push(db.ref("orders/" + currentTableId).remove());
+
+    // Lệnh cập nhật trạng thái bàn về trống
+    if (tableIdx !== -1) {
+        tasks.push(db.ref(`tables/${tableIdx}`).update({
+            status: "empty",
+            discount: 0,
+            customerName: "",
+            customerId: "",
+            timeAtBep: null,    
+            timeGiaoMon: null 
+        }));
+    }
+
+    // Thực hiện tất cả các tác vụ cùng lúc
+    return Promise.all(tasks).then(() => {
+        console.log("✅ Đã dọn bàn và lưu lịch sử thành công!");
+        capNhatNut();
+        if (typeof renderTables === "function") renderTables();
+    });
+}
+
+
     })
     .catch(err => {
         if (err !== "cancel") {
@@ -3677,7 +3872,7 @@ window.chuanBiSua = function(id) {
     }).catch(err => alert("Lỗi khi tải dữ liệu: " + err.message));
 };
 
-/* HÀM LƯU DỮ LIỆU ĐÃ SỬA */
+/*29.HÀM LƯU DỮ LIỆU ĐÃ SỬA*/
 window.luuTrucTiep = function(id) {
     const tenRaw = document.getElementById(`edit-ten-${id}`).value.trim();
     const ten = window.chuanHoaTen ? window.chuanHoaTen(tenRaw) : tenRaw;
@@ -3699,7 +3894,7 @@ window.luuTrucTiep = function(id) {
     }).catch(err => alert("Lỗi khi lưu: " + err.message));
 };
 
-/* HÀM THOÁT CHẾ ĐỘ SỬA (HỦY) */
+/*29.HÀM THOÁT CHẾ ĐỘ SỬA (HỦY) */
 window.huySua = function(id) {
     if (!id) return;
     window.dangSuaId = null;
@@ -3711,6 +3906,8 @@ window.huySua = function(id) {
     }
 };
 
+
+/*29.TÌM KIẾM HỘI VIÊN*/
 window.timKiemHoiVien = function() {
     // 1. Lấy từ khóa tìm kiếm và chuyển sang chữ thường
     const keyWord = document.getElementById("hv-search-input").value.toLowerCase().trim();
@@ -3731,6 +3928,9 @@ window.timKiemHoiVien = function() {
     });
 };
 
+
+
+/*29.TỰ ĐỘNG CẬP NHẬT KHÁCH HÀNG*/
 window.tuDongCapNhatHangKhachHang = function() {
     // 1. Tải lịch sử đơn hàng để đối chiếu
     db.ref("history_orders").once("value").then(orderSnap => {
@@ -3774,6 +3974,8 @@ window.tuDongCapNhatHangKhachHang = function() {
 };
 
 
+
+/*29.MỞ BẢNG CHI TIẾT HỘI VIÊN*/
 window.moChiTietHoiVien = function(id) {
     if (!id) return;
 
@@ -3951,6 +4153,8 @@ window.moChiTietHoiVien = function(id) {
 };
 
 
+
+/*29.MỞ QUÀ PHÁO HOA*/
 window.moQuaPhaoHoa = function(el) {
     // 1. Đổi icon hộp quà thành mở tung
     el.innerHTML = "🎉";
@@ -3960,6 +4164,7 @@ window.moQuaPhaoHoa = function(el) {
     const duration = 2 * 1000; // Thời gian bắn 2 giây
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100001 };
+
 
     function randomInRange(min, max) {
         return Math.random() * (max - min) + min;
@@ -3998,7 +4203,7 @@ window.moQuaPhaoHoa = function(el) {
 
 
 
-
+/*29.LỌC NHANH HỘI VIÊN*/
 window.locNhanhHoiVien = function(filterType, btnEl) {
     // 1. Đổi màu hiệu ứng nút bấm đang được chọn
     const allButtons = document.querySelectorAll("#quick-filter-container .btn-quick-filter");
@@ -4329,7 +4534,7 @@ function chonKhachVaoBan(hvJson) {
     }
 }
 
-/* HÀM HỦY CHỌN KHÁCH KHỎI BÀN (BỔ SUNG) */
+/*29.HÀM HỦY CHỌN KHÁCH KHỎI BÀN (BỔ SUNG) */
 window.huyChonKhachVaoBan = function(tableIdx) {
     if (tableIdx === undefined) return;
 
@@ -4645,32 +4850,36 @@ function renderTables() {
     TABLES.forEach(t => {
         const isActive = t.id === currentTableId ? 'active-table' : '';
         
-        // --- BẮT ĐẦU LOGIC TÍNH SỐ NGƯỜI (SUẤT ĂN) ---
+        // --- 1. LOGIC TÍNH SỐ NGƯỜI (SUẤT ĂN) ---
         let tongSuat = 0;
-        // Kiểm tra dữ liệu đơn hàng của bàn này (thay ALL_ORDERS bằng biến bạn đang dùng nếu khác tên)
-        const orderOfTable = (typeof ALL_ORDERS !== 'undefined') ? ALL_ORDERS[t.id] : null;
+        // Sửa điều kiện: Chấp nhận mọi trạng thái trừ bàn Trống
+if (t.status && t.status !== "empty") {
+    // Lấy dữ liệu đơn hàng từ biến Real-time
+    const orderOfTable = ALL_ORDERS[t.id]; 
+    
+    if (orderOfTable) {
+        // Chuyển object thành mảng để duyệt (phòng trường hợp Firebase trả về object)
+        const itemsArray = Array.isArray(orderOfTable) ? orderOfTable : Object.values(orderOfTable);
         
-        if (orderOfTable) {
-            Object.values(orderOfTable).forEach(item => {
-                const idMon = item.id_mon || item.id;
-                const sl = Number(item.sl) || 0;
-                
-                if (idMon === 'combo_song_long') {
-                    tongSuat += (sl * 2); // Song Long tính 2 suất
-                } else if (['tuy_tam', 'tuy_thuong', 'combo_tam_chau', 'combo_thuong_thuy'].includes(idMon)) {
-                    tongSuat += sl; // Các món khác tính 1 suất
-                }
-            });
-        }
+        itemsArray.forEach(item => {
+            const idMon = item.id_mon || item.id;
+            const sl = Number(item.sl) || 0;
+            if (idMon === 'combo_song_long') {
+                tongSuat += (sl * 2); 
+            } else if (['tuy_tam', 'tuy_thuong', 'combo_tam_chau', 'combo_thuong_thuy'].includes(idMon)) {
+                tongSuat += sl; 
+            }
+        });
+    }
+}
 
-        // Tạo nhãn số người nếu có suất ăn
         const badgeNguoi = tongSuat > 0 
             ? `<div style="position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.8); color:#fff; font-size:11px; padding:2px 7px; border-radius:12px; font-weight:bold; z-index:10; display:flex; align-items:center; gap:3px;">
                  ${tongSuat}
                </div>` 
             : "";
-        // --- KẾT THÚC LOGIC TÍNH SỐ NGƯỜI ---
 
+        // --- 2. THIẾT LẬP TRẠNG THÁI & THỜI GIAN ---
         let statusClass = "empty"; 
         let statusText = "Trống";
         let statusIcon = `<div class="status-circle color-empty"></div>`;
@@ -4683,7 +4892,12 @@ function renderTables() {
         } 
         else if (t.status === "waiting") {
             statusClass = "waiting"; 
-            let phutCho = t.timeAtBep ? Math.floor((Date.now() - t.timeAtBep) / 60000) : 0;
+            // Tính phút chờ bếp (Bẫy lỗi nếu số quá lớn)
+            let phutCho = 0;
+            if (t.timeAtBep) {
+                let tinhCho = Math.floor((Date.now() - t.timeAtBep) / 60000);
+                phutCho = (tinhCho < 0 || tinhCho > 600) ? 0 : tinhCho;
+            }
             statusText = `Đợi: <b style="color:#ff9800;">${phutCho}p</b>`; 
             statusIcon = `<div style="font-size:20px; margin-bottom:5px;">📄</div>`;
             confirmBtn = `
@@ -4697,9 +4911,14 @@ function renderTables() {
                 ✓
             </div>`;
         }
-         else if (t.status === "eating") {
+        else if (t.status === "eating") {
             statusClass = "eating"; 
-            let phutNgoi = t.timeGiaoMon ? Math.floor((Date.now() - t.timeGiaoMon) / 60000) : 0;
+            // 🔥 FIX: Tính phút đang ăn (Bẫy lỗi nếu số quá lớn hoặc âm)
+            let phutNgoi = 0;
+            if (t.timeGiaoMon) {
+                let tinhToan = Math.floor((Date.now() - t.timeGiaoMon) / 60000);
+                phutNgoi = (tinhToan < 0 || tinhToan > 600) ? 0 : tinhToan;
+            }
             statusText = `Đang ăn • <b style="color:#d32f2f;">${phutNgoi}p</b>`;
             statusIcon = `<div style="font-size:24px; margin-bottom:5px;">🍜</div>`;
         }
@@ -4709,9 +4928,10 @@ function renderTables() {
             statusIcon = `<div style="font-size:24px; margin-bottom:5px;">💰</div>`;
         }
 
+        // --- 3. RENDER HTML ---
         const html = `
         <div class="table-card ${statusClass} ${isActive}" onclick="selectTable(${t.id})" style="position:relative;">
-            ${badgeNguoi} <!-- CHÈN BADGE VÀO ĐÂY -->
+            ${badgeNguoi}
             ${confirmBtn}
             <div class="icon-box">${statusIcon}</div>
             <div class="table-name">${t.name}</div>
@@ -4725,6 +4945,9 @@ function renderTables() {
     document.getElementById("table-grid").innerHTML = tH;
     document.getElementById("bar-grid").innerHTML = bH;
 }
+
+// 🔥 ĐỪNG QUÊN DÒNG NÀY Ở CUỐI FILE JS ĐỂ ĐỒNG HỒ TỰ NHẢY REAL-TIME
+setInterval(() => { if (typeof renderTables === "function") renderTables(); }, 60000);
 
 /*44. XÁC NHẬN PHỤ VỤ*/
 function xacNhanPhucVu(event, tableId) {
@@ -5083,7 +5306,7 @@ db.ref("menu").on("value", s => {
     renderStockStatus();
 });
 
-/* HÀM KIỂM TRA VÀ RESET LÚC 05:00 SÁNG */
+/*55.HÀM KIỂM TRA VÀ RESET LÚC 05:00 SÁNG */
 function checkAndResetStockAt5AM() { // Bạn có thể đổi tên hàm thành checkAndResetStockAt8AM nếu muốn
     return new Promise((resolve) => {
         // 1. Lấy mốc thời gian hiện tại
@@ -5137,12 +5360,6 @@ function checkAndResetStockAt5AM() { // Bạn có thể đổi tên hàm thành 
         });
     });
 }
-
-
-
-
-
-
 
 
 
@@ -5205,23 +5422,308 @@ function congLaiSuat(index) {
 }
 
 /*58.XÁC NHẬN GIAO MÓN XONG*/
-function xacNhanGiaoMon(tableId) {
-    // 1. Tìm index của bàn trong mảng TABLES
-    const tableIdx = TABLES.findIndex(t => t.id == tableId);
-    if (tableIdx === -1) return;
+window.xacNhanGiaoMon = function(tableId) {
+    if (!tableId) return;
 
-    if (!confirm(`Xác nhận đã bưng món ra cho ${TABLES[tableIdx].name}?`)) return;
+    // 1. Lấy toàn bộ đơn hàng trong bếp để kiểm tra
+    db.ref("kitchen_orders").once("value").then(snapshot => {
+        const kOrders = snapshot.val() || {};
+        let ticketKey = null;
+        let ticketData = null;
 
-    // 2. Cập nhật trạng thái lên Firebase
-    db.ref(`tables/${tableIdx}`).update({
-        status: "eating"
-    }).then(() => {
-        // Cập nhật lại nút nếu đang mở đúng bàn này
-        if (currentTableId == tableId) {
-            capNhatNut();
+        // Tìm ticket tương ứng với tableId
+        for (let key in kOrders) {
+            if (String(kOrders[key].tableId) === String(tableId)) {
+                ticketKey = key;
+                ticketData = kOrders[key];
+                break;
+            }
         }
+
+        // Tìm vị trí bàn trong danh sách tables để update trạng thái màu sắc
+        db.ref("tables").once("value").then(tSnap => {
+            const tablesArr = tSnap.val() || [];
+            const tIdx = tablesArr.findIndex(t => t && String(t.id) === String(tableId));
+
+            // --- TRƯỜNG HỢP 1: BẾP ẤN (Đơn chưa đánh dấu xong) ---
+            if (ticketData && !ticketData.isDoneByChef) {
+                // Đánh dấu đơn bếp đã xong (để đổi màu nút)
+                db.ref(`kitchen_orders/${ticketKey}`).update({ isDoneByChef: true });
+                
+                // Chuyển màu bàn sang "Đợi giao" (Màu cam)
+                if (tIdx !== -1) {
+                    db.ref(`tables/${tIdx}`).update({ status: "waiting", timeAtBep: Date.now() });
+                }
+            } 
+            // --- TRƯỜNG HỢP 2: PHỤC VỤ ẤN (Đơn đã đánh dấu xong hoặc ấn từ sơ đồ bàn) ---
+            else {
+                // Xóa đơn khỏi bếp
+                if (ticketKey) db.ref(`kitchen_orders/${ticketKey}`).remove();
+                
+                // Chuyển màu bàn sang "Đang ăn" (Màu đỏ)
+                if (tIdx !== -1) {
+                    db.ref(`tables/${tIdx}`).update({ 
+                        status: "eating", 
+                        timeGiaoMon: Date.now(), 
+                        timeAtBep: null 
+                    });
+                }
+            }
+        });
+    });
+};
+
+/*58.TÍNH THỜI GIAN ĂN TRUNG BÌNH*/
+function tinhThoiGianAnTrungBinh() {
+    db.ref("eating_history").once("value").then(snap => {
+        const data = snap.val();
+        if (!data) return console.log("Chưa có lịch sử ăn.");
+
+        let stats = {}; // Lưu tổng phút và số lần ăn của từng bàn
+        let tongPhutHeThong = 0;
+        let tongLuotHeThong = 0;
+
+        Object.values(data).forEach(h => {
+            if (!stats[h.tableId]) {
+                stats[h.tableId] = { name: h.tableName, totalMin: 0, count: 0 };
+            }
+            stats[h.tableId].totalMin += h.duration;
+            stats[h.tableId].count += 1;
+            
+            tongPhutHeThong += h.duration;
+            tongLuotHeThong += 1;
+        });
+
+        // Vẽ bảng hiển thị ra Console hoặc Giao diện
+        console.log("--- THỐNG KÊ THỜI GIAN ĂN TRUNG BÌNH ---");
+        for (let id in stats) {
+            let avg = Math.round(stats[id].totalMin / stats[id].count);
+            console.log(`${stats[id].name}: ${avg} phút/lượt (Tổng ${stats[id].count} lượt)`);
+        }
+        
+        let avgTotal = Math.round(tongPhutHeThong / tongLuotHeThong);
+        console.log(`=> TRUNG BÌNH TOÀN QUÁN: ${avgTotal} phút`);
     });
 }
+
+
+/*58.HÀM VẼ BẢNG THỐNG KÊ TIME TRUNG BÌNH RA HTML */
+function renderEatingStats() {
+    db.ref("eating_history").once("value").then(snap => {
+        const data = snap.val();
+        let html = `
+            <table style="width:100%; border-collapse: collapse; font-size:13px;">
+                <tr style="background:#f1f5f9; text-align:left;">
+                    <th style="padding:10px;">Tên bàn</th>
+                    <th style="padding:10px;">Số lượt ăn</th>
+                    <th style="padding:10px;">Trung bình</th>
+                </tr>`;
+        
+        // ... (Logic tính stats như Bước 2) ...
+        
+        for (let id in stats) {
+            let avg = Math.round(stats[id].totalMin / stats[id].count);
+            html += `
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:10px;">${stats[id].name}</td>
+                    <td style="padding:10px;">${stats[id].count} lượt</td>
+                    <td style="padding:10px; font-weight:bold; color:#d32f2f;">${avg} phút</td>
+                </tr>`;
+        }
+        html += `</table>`;
+        
+        const container = document.getElementById("vung-thong-ke-gio-an");
+        if (container) container.innerHTML = html;
+    });
+}
+
+let myChart = null;
+/*58.RENDER LỊCH SỬ ĂN CHO TIME TRUNG BÌNH*/
+window.renderLichSuAn = function() {
+    const container = document.getElementById("vung-thong-ke-gio-an");
+    if (!container) return;
+
+    db.ref("eating_history").once("value").then(snap => {
+        const data = snap.val();
+        if (!data) {
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Chưa có lịch sử ăn nào được ghi lại.</p>";
+            return;
+        }
+
+        let stats = {}; // Gom nhóm theo bàn
+        let historyArray = Object.values(data);
+
+        historyArray.forEach(h => {
+            if (!stats[h.tableId]) {
+                stats[h.tableId] = { name: h.tableName, totalMin: 0, count: 0 };
+            }
+            stats[h.tableId].totalMin += (h.duration || 0);
+            stats[h.tableId].count += 1;
+        });
+
+        // Vẽ bảng
+        let html = `
+            <table style="width:100%; border-collapse: collapse; font-size:13px;">
+                <thead style="background:#f8fafc; color:#64748b;">
+                    <tr>
+                        <th style="padding:12px; text-align:left; border-bottom:1px solid #eee;">Tên bàn</th>
+                        <th style="padding:12px; text-align:center; border-bottom:1px solid #eee;">Số lượt khách</th>
+                        <th style="padding:12px; text-align:right; border-bottom:1px solid #eee;">Trung bình/lượt</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        for (let id in stats) {
+            let row = stats[id];
+            let avg = Math.round(row.totalMin / row.count);
+            html += `
+                <tr style="border-bottom:1px solid #f1f5f9;">
+                    <td style="padding:12px; font-weight:600; color:#1e293b;">${row.name}</td>
+                    <td style="padding:12px; text-align:center; color:#64748b;">${row.count} lượt</td>
+                    <td style="padding:12px; text-align:right; font-weight:bold; color:#d32f2f;">${avg} phút</td>
+                </tr>`;
+        }
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    });
+};
+
+
+/*58.HÀM MỞ MODAL THỐNG KÊ GIỜ ĂN TRUNG BÌNH */
+window.moModalTimeAverage = function() {
+    document.getElementById("modal-time-average").style.display = "flex";
+    // Gọi hàm render dữ liệu (Hàm renderLichSuAn bạn đã có từ bước trước)
+    if (typeof renderLichSuAn === "function") {
+        renderLichSuAn();
+    }
+};
+
+/*58.HÀM ĐÓNG MODAL THỐNG KÊ GIỜ ĂN TRUNG BÌNH*/
+window.dongModalTimeAverage = function() {
+    document.getElementById("modal-time-average").style.display = "none";
+};
+
+/*58.BIỂU ĐỒ GIỜ ĂN*/
+window.renderLichSuAn = function() {
+    const tableContainer = document.getElementById("eating-stats-table");
+    
+    db.ref("eating_history").once("value").then(snap => {
+        const data = snap.val();
+        if (!data) {
+            tableContainer.innerHTML = "<p style='text-align:center; padding:20px; color:#94a3b8;'>Chưa có dữ liệu lịch sử</p>";
+            return;
+        }
+
+        let stats = {}; 
+        Object.values(data).forEach(h => {
+            if (!stats[h.tableId]) {
+                stats[h.tableId] = { name: h.tableName, totalMin: 0, count: 0 };
+            }
+            stats[h.tableId].totalMin += (h.duration || 0);
+            stats[h.tableId].count += 1;
+        });
+
+        let labels = [];
+        let averageData = [];
+        let tableHtml = `
+            <table style="width:100%; border-collapse: collapse; font-size:13px;">
+                <thead style="color:#94a3b8; font-size:10px; text-transform:uppercase; letter-spacing:1px;">
+                    <tr>
+                        <th style="padding:10px 5px; text-align:left; border-bottom:2px solid #f1f5f9;">Vị trí</th>
+                        <th style="padding:10px 5px; text-align:center; border-bottom:2px solid #f1f5f9;">Lượt</th>
+                        <th style="padding:10px 5px; text-align:right; border-bottom:2px solid #f1f5f9;">T.Bình</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        for (let id in stats) {
+            let avg = Math.round(stats[id].totalMin / stats[id].count);
+            labels.push(stats[id].name);
+            averageData.push(avg);
+            
+            tableHtml += `
+                <tr style="border-bottom:1px solid #f8fafc; transition: all 0.2s;" onmouseover="this.style.background='#fcfcfc'" onmouseout="this.style.background='transparent'">
+                    <td style="padding:14px 5px; font-weight:600; color:#334155;">${stats[id].name}</td>
+                    <td style="padding:14px 5px; text-align:center; color:#64748b;">${stats[id].count}</td>
+                    <td style="padding:14px 5px; text-align:right;">
+                        <span style="background:#fef2f2; color:#ef4444; padding:4px 8px; border-radius:6px; font-weight:800; font-size:12px;">${avg}p</span>
+                    </td>
+                </tr>`;
+        }
+        tableContainer.innerHTML = tableHtml + `</tbody></table>`;
+
+        // --- CẤU HÌNH BIỂU ĐỒ CHUYÊN NGHIỆP ---
+        const ctx = document.getElementById('eatingChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        // Tạo màu Gradient từ Đỏ sang Cam cho hiện đại
+        const gradient = ctx.createLinearGradient(0, 0, 400, 0);
+        gradient.addColorStop(0, '#f43f5e'); // Rose 500
+        gradient.addColorStop(1, '#fb923c'); // Orange 400
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Thời gian ăn (phút)',
+                    data: averageData,
+                    backgroundColor: gradient,
+                    hoverBackgroundColor: '#e11d48',
+                    borderRadius: 10, // Bo góc cột cực đẹp
+                    borderSkipped: false,
+                    barPercentage: 0.5,
+                    categoryPercentage: 0.8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `⏱ Trung bình: ${context.raw} phút`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9', drawBorder: false },
+                        ticks: { 
+                            color: '#94a3b8',
+                            font: { size: 11 },
+                            callback: v => v + 'p'
+                        }
+                    },
+                    y: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: { 
+                            color: '#475569',
+                            font: { size: 12, weight: '600' }
+                        }
+                    }
+                }
+            }
+        });
+    });
+};
+
+
 
 
 /*59.HISTORY HVIEN*/
@@ -5530,11 +6032,7 @@ function taiBaoCaoDoanhThu() {
 
 
 
-
-
-
-
-        // ===== UPDATE UI =====
+     // ===== UPDATE UI =====
         container.innerHTML = html || "<p style='text-align:center; padding:40px;'>Không tìm thấy dữ liệu.</p>";
         totalEl.innerText = tongThucThu.toLocaleString() + "đ";
 
@@ -5737,7 +6235,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
-
+/*60.VẼ CHI TIẾT LỊCH SỬ GIAO DỊCH Ở BÁO CÁO DOANH THU*/
 function renderTableGiaoDich(list) {
     const container = document.getElementById("report-body-list");
     let html = "";
@@ -5794,7 +6292,7 @@ function renderTableGiaoDich(list) {
     document.getElementById("footer-avg").innerText = list.length > 0 ? Math.round(tongTien/list.length).toLocaleString() + "đ" : "0đ";
 }
 
-// Hàm đóng mở hàng
+/*60.ĐÓNG MỞ HÀNG Ở DOANH THU*/
 function toggleDetail(id) {
     const el = document.getElementById(id);
     if (el.style.display === "none" || el.style.display === "") {
@@ -5803,33 +6301,6 @@ function toggleDetail(id) {
         el.style.display = "none";
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -6101,14 +6572,12 @@ let bepTimer = null;
 function moManHinhBep() {
     document.getElementById('modal-bep').style.display = 'flex';
     
-    // Lắng nghe danh sách phiếu từ bếp
     db.ref("kitchen_orders").on("value", snapshot => {
         const bepQueue = snapshot.val() || {};
         const bepGrid = document.getElementById('bep-grid');
         bepGrid.innerHTML = "";
         let count = 0;
 
-        // Sắp xếp phiếu: Cũ nhất hiện trước
         const tickets = Object.keys(bepQueue).map(key => ({
             id: key,
             ...bepQueue[key]
@@ -6117,11 +6586,12 @@ function moManHinhBep() {
         tickets.forEach(ticket => {
             count++;
             const items = ticket.items || [];
-            
+            const isDone = ticket.isDoneByChef === true; // Trạng thái bếp đã làm xong
+
             let itemsHtml = items.map(i => {
                 const ghiChu = i.note ? `<div style="color:#d32f2f; font-size:13px; font-weight:bold; font-style:italic; margin-top:2px;">⚠️ Ghi chú: ${i.note}</div>` : "";
                 return `
-                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #ccc;">
+                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #ccc; opacity: ${isDone ? '0.5' : '1'}">
                     <div style="text-align:left; flex:1;">
                         <b style="font-size:18px; color:#333;">${i.ten}</b>
                         ${ghiChu}
@@ -6133,12 +6603,16 @@ function moManHinhBep() {
             const startTime = ticket.timestamp || Date.now();
             const orderTime = new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
+            // Thiết lập nút bấm động
+            const btnBg = isDone ? "#78909c" : "#2e7d32";
+            const btnText = isDone ? "CHỜ PHỤC VỤ BƯNG... ⏳" : "XÁC NHẬN XONG ✅";
+            const btnAction = isDone ? "" : `onclick="xacNhanGiaoMon('${ticket.tableId}')"`;
+
             bepGrid.innerHTML += `
             <div class="order-card-bep card-safe" id="ticket-${ticket.id}" 
-                 style="background:#fff; border-radius:15px; overflow:hidden; display:flex; flex-direction:column; min-height: 250px; height: 100%;">
+                 style="background:${isDone ? '#f5f5f5' : '#fff'}; border: 2px solid ${isDone ? '#78909c' : 'transparent'}; border-radius:15px; overflow:hidden; display:flex; flex-direction:column; min-height: 250px; height: 100%; transition: 0.3s;">
                 
-                <!-- 1. HEADER: Tên bàn & Giờ -->
-                <div class="card-header-pos header-safe" style="padding:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink: 0;">
+                <div class="card-header-pos header-safe" style="padding:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink: 0; background:${isDone ? '#546e7a' : ''}">
                     <div>
                         <b style="font-size:16px;">${ticket.tableName}</b>
                         <div style="font-size:10px; opacity:0.8;">🕙 ${orderTime}</div>
@@ -6146,15 +6620,13 @@ function moManHinhBep() {
                     <div id="timer-${ticket.id}" class="bep-timer" data-start="${startTime}" style="font-family:monospace; font-weight:bold; font-size:18px;">00:00</div>
                 </div>
 
-                <!-- 2. BODY: Danh sách món (Sẽ chiếm hết khoảng trống ở giữa) -->
                 <div style="padding:15px; flex-grow: 1; overflow-y:auto;">
                     ${itemsHtml}
                 </div>
 
-                <!-- 3. FOOTER: Nút bấm (Luôn nằm dưới cùng) -->
-                <button onclick="xongMonBep('${ticket.id}', '${ticket.tableId}')" 
-                        style="background:#2e7d32; color:#fff; border:none; padding:15px; font-weight:bold; cursor:pointer; font-size:16px; width: 100%; flex-shrink: 0; margin-top: auto;">
-                    XÁC NHẬN XONG ✅
+                <button ${btnAction} 
+                    style="background:${btnBg}; color:#fff; border:none; padding:15px; font-weight:bold; cursor:${isDone ? 'default' : 'pointer'}; font-size:16px; width: 100%; flex-shrink: 0; margin-top: auto;">
+                    ${btnText}
                 </button>
             </div>`;
         });
@@ -6165,6 +6637,7 @@ function moManHinhBep() {
     if(window.bepTimer) clearInterval(window.bepTimer);
     window.bepTimer = setInterval(updateAllTimers, 1000);
 }
+
 /*71.TÍNH TOÁN ĐỘ LỆCH TIME*/
 function updateAllTimers() {
     const now = Date.now();
@@ -6196,21 +6669,9 @@ function updateAllTimers() {
         }
     });
 }
-/*72.DONE MEAL KITCHEN*/
-function xongMonBep(ticketId, tableId) {
-    if(!confirm("Xác nhận đã nấu xong phiếu này?")) return;
-    
-    // Xóa phiếu khỏi bếp
-    db.ref(`kitchen_orders/${ticketId}`).remove()
-    .then(() => {
-        // Cập nhật trạng thái bàn sang 'eating' (nếu cần)
-        const tableIdx = TABLES.findIndex(t => String(t.id) === String(tableId));
-        if (tableIdx !== -1) {
-            db.ref(`tables/${tableIdx}/status`).set("eating");
-        }
-    })
-    .catch(err => alert("Lỗi: " + err));
-}
+
+
+
 
 /*73.ĐÓNG MÀN HÌNH BẾP*/
 function dongManHinhBep() {
@@ -6219,31 +6680,6 @@ function dongManHinhBep() {
 }
 
 
-/*74.XÁC NHẬN MÓN GIAO*/
-function xacNhanGiaoMon(tableId) {
-    const tableIndex = TABLES.findIndex(t => String(t.id) === String(tableId));
-    if (tableIndex === -1) return;
-
-    if (!confirm("Xác nhận đã nấu xong và giao đủ món cho bàn này?")) return;
-
-    // Cập nhật TRẠNG THÁI và GIỜ GIAO MÓN cùng lúc
-    db.ref(`tables/${tableIndex}`).update({
-        status: "eating",
-        timeGiaoMon: Date.now() // <--- DÒNG QUAN TRỌNG NHẤT
-    }).then(() => {
-        
-        db.ref("kitchen_orders").once("value", snapshot => {
-            const orders = snapshot.val();
-            for (let key in orders) {
-                if (String(orders[key].tableId) === String(tableId)) {
-                    db.ref(`kitchen_orders/${key}`).remove();
-                }
-            }
-        });
-
-        console.log("Bàn " + tableId + " đã giao món xong và bắt đầu tính giờ!");
-    });
-}
 /*75.MỞ MENU TỪ TÊN BÀN CHO MOBILE*/
 function moMenuTuTenBan() {
     if (!currentTableId) return;
@@ -6338,6 +6774,8 @@ document.getElementById('menu-column').onclick = function(e) { e.stopPropagation
 document.getElementById('order-column').onclick = function(e) { e.stopPropagation(); };
 
 
+
+/*75.CẢM ỨNG MENU CHO MOBILE*/
 function handleSwipe(elementId) {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -6664,36 +7102,69 @@ function hienFormDangNhap(tenNhanVien) {
     `;
 }
 
+
+
+
 /*85. CHECK THÔNG TIN ĐĂNG NHẬP (FIX LỖI UNDEFINED)*/
 function xuLyDangNhap(ten) {
     const uInput = document.getElementById('login-user').value.trim();
     const pInput = document.getElementById('login-pass').value.trim();
     
-    // Tạo ID từ tên (Nguyễn Kim Anh -> Nguyen_Kim_Anh)
-    const idFirebase = ten.replace(/\s+/g, '_');
+    // 🔥 BƯỚC 1: TÀI KHOẢN MASTER ĐỂ ĐĂNG NHẬP KHI DATABASE TRỐNG
+    // Bạn có thể đổi lại username và password theo ý muốn
+    if (uInput === "admin" && pInput === "123456") {
+        alert("🎉 Đăng nhập bằng tài khoản Master Admin thành công!");
+        
+        // Gọi hàm phân quyền cho Admin
+        if (typeof chonDaiSu === "function") {
+            chonDaiSu("Đại sứ Minh Bạch", "Quản trị viên", "https://placeholder.com", "Cả ngày");
+        }
+        return;
+    }
 
-    // Lấy dữ liệu nhân viên này từ Firebase
-    firebase.database().ref('NhanSu/' + idFirebase).once('value', (snapshot) => {
-        const nv = snapshot.val();
+    if (!ten) return;
 
-        // Kiểm tra xem nhân viên có tồn tại và khớp User/Pass không
-        if (nv && uInput === nv.username && pInput === nv.password) {
-            
-            // 1. Cập nhật trạng thái ONLINE
-            firebase.database().ref('NhanSu/' + idFirebase).update({ isOnline: true });
+    // BƯỚC 2: LOGIC ĐỐI CHIẾU FIREBASE BÌNH THƯỜNG
+    firebase.database().ref('NhanSu').once('value', (snapshot) => {
+        const allStaff = snapshot.val();
+        
+        // Nếu không có dữ liệu trên Firebase
+        if (!allStaff) {
+            alert("❌ Không tìm thấy dữ liệu nhân sự! Hãy dùng tài khoản Master Admin để đăng nhập.");
+            return;
+        }
 
-            // 2. Gọi hàm chọn đại sứ để cập nhật giao diện & phân quyền
-            // Truyền đủ: Vai trò, Tên, Ảnh, Ca làm
-            chonDaiSu(nv.vaiTro, nv.ten, nv.avatarUrl, nv.ca);
+        let nv = null;
+        let idFirebase = "";
+        const tenChuan = String(ten).toLowerCase().normalize("NFC").replace(/[\s_]+/g, "");
 
-            console.log("🔓 Đăng nhập thành công!");
+        for (let key in allStaff) {
+            const keyChuan = String(key).toLowerCase().normalize("NFC").replace(/[\s_]+/g, "");
+            const tenTrongDb = allStaff[key].ten 
+                ? String(allStaff[key].ten).toLowerCase().normalize("NFC").replace(/[\s_]+/g, "") 
+                : "";
+
+            if (keyChuan === tenChuan || tenTrongDb === tenChuan) {
+                nv = allStaff[key];
+                idFirebase = key;
+                break;
+            }
+        }
+
+        if (nv) {
+            if (String(uInput) === String(nv.username) && String(pInput) === String(nv.password)) {
+                firebase.database().ref('NhanSu/' + idFirebase).update({ isOnline: true });
+                chonDaiSu(nv.vaiTro, nv.ten, nv.avatarUrl, nv.ca);
+                alert(`🎉 Chào mừng Đại sứ ${nv.ten} đã vào ca!`);
+            } else {
+                alert("❌ Sai tài khoản hoặc mật khẩu!");
+            }
         } else {
-            // Nếu sai tài khoản hoặc mật khẩu
-            alert("❌ Sai tài khoản hoặc mật khẩu, vui lòng kiểm tra lại!");
+            alert("❌ Không tìm thấy thông tin đại sứ!");
         }
     }).catch(error => {
         console.error("Lỗi Firebase:", error);
-        alert("❌ Không thể kết nối dữ liệu!");
+        alert("❌ Lỗi kết nối dữ liệu!");
     });
 }
 
@@ -6922,7 +7393,6 @@ function doiTabActive(element) {
 
 
 
-
 /*91.HÀM MỞ HỘI VIÊN TỪ SIDEBAR */
 function moHoiVienTuSidebar() {
     // 1. KHÔNG gọi dongSideMenu() để Sidebar luôn hiện
@@ -6961,16 +7431,18 @@ function moQuanLyNhanSu() {
 
 /*93. THÊM / CẬP NHẬT NHÂN SỰ (FULL DATA + TÍNH LƯƠNG TỰ ĐỘNG)*/
 function themNhanSuMoi() {
+
     // 1. Lấy dữ liệu cơ bản
     const ten = document.getElementById('ins-ten').value.trim();
     const sdt = document.getElementById('ins-sdt').value.trim();
     const ngaySinh = document.getElementById('ins-ngaysinh').value;
     const cccd = document.getElementById('ins-cccd').value.trim();
     const diachi = document.getElementById('ins-diachi').value.trim();
-    
+
     // 2. Lấy dữ liệu đăng nhập & phân quyền
     const user = document.getElementById('ins-username').value.trim();
     const pass = document.getElementById('ins-password').value.trim();
+
     const capDoEl = document.getElementById('ins-capdo');
     const capDo = capDoEl ? capDoEl.value : "STAFF";
 
@@ -6979,392 +7451,1504 @@ function themNhanSuMoi() {
     const ca = document.getElementById('ins-ca').value;
     const viTri = document.getElementById('ins-vitri').value;
 
-    // 4. FIX LỖI: Lấy giá trị chuỗi (vd: "12,000,000") -> Xóa dấu phẩy -> Chuyển thành số
+    // 4. Xử lý lương
     const luongThangRaw = document.getElementById('ins-luong').value;
-    const luongThang = Number(luongThangRaw.replace(/,/g, "")) || 0;
-    
-    // Công thức: Lương tháng / 26 ngày / 8 tiếng (làm tròn)
+
+    const luongThang = Number(
+        String(luongThangRaw).replace(/,/g, "")
+    ) || 0;
+
+    // Công thức tính lương giờ
     const luongGio = Math.round((luongThang / 26) / 8);
 
     // 5. Kiểm tra bắt buộc
-    if (!ten || !user) return alert("⚠️ Vui lòng nhập ít nhất Tên và ID đăng nhập!");
+    if (!ten || !user) {
+        alert("⚠️ Vui lòng nhập ít nhất Tên và ID đăng nhập!");
+        return;
+    }
 
-    // 6. Xác định ID Firebase (Dùng ID đăng nhập làm khóa cho an toàn)
-    const id = dangSuaId || user;
+    // 6. ID NHÂN VIÊN CỐ ĐỊNH
+    // Nếu đang sửa => giữ nguyên ID cũ
+    // Nếu thêm mới => tạo ID mới
+    const id = dangSuaId || ("nv_" + Date.now());
 
-    // 7. Đóng gói dữ liệu gửi lên Firebase
+    // 7. Kiểm tra username bị trùng
+    const usernameDaTonTai = DANH_SACH_NV.find(nv => 
+        nv.username &&
+        nv.username.trim().toLowerCase() === user.toLowerCase() &&
+        nv.id !== id
+    );
+
+    if (usernameDaTonTai) {
+        alert("⚠️ ID đăng nhập đã tồn tại!");
+        return;
+    }
+
+    // 8. Đóng gói dữ liệu
     const data = {
+        id: id,
         ten: ten,
         sdt: sdt,
         ngaySinh: ngaySinh,
         cccd: cccd,
         diachi: diachi,
+
         username: user,
         password: pass,
         capDo: capDo,
+
         vaiTro: vaiTro,
         ca: ca,
         viTri: viTri,
+
         luongCoBan: luongThang,
-        luong: luongGio
+        luong: luongGio,
+
+        updatedAt: Date.now()
     };
 
-    // NẾU LÀ THÊM MỚI (không có dangSuaId) THÌ MỚI KHỞI TẠO TRẠNG THÁI
+    // 9. Chỉ thêm mặc định khi là nhân sự mới
     if (!dangSuaId) {
+
+        data.createdAt = Date.now();
+
         data.danhGia = 100;
+
         data.lastCheckInDate = "chưa có";
+
         data.daVaoCa = false;
+
         data.daTanCa = false;
+
         data.isOnline = false;
     }
 
-  // 8. Thực hiện lưu
-      firebase.database().ref('NhanSu/' + id).update(data)
-    .then(() => {
-        alert(dangSuaId ? "✅ Cập nhật hồ sơ thành công!" : "✅ Thêm nhân sự thành công!");
-        resetFormNV(); 
-    })
-    .catch(err => {
-        console.error("Lỗi:", err);
-        alert("❌ Lỗi lưu dữ liệu: " + err.message);
-    });
+    // 10. Lưu Firebase
+    firebase.database()
+        .ref('NhanSu/' + id)
+        .update(data)
+
+        .then(() => {
+
+            alert(
+                dangSuaId
+                    ? "✅ Cập nhật hồ sơ thành công!"
+                    : "✅ Thêm nhân sự thành công!"
+            );
+
+            resetFormNV();
+
+        })
+
+        .catch(err => {
+
+            console.error("Lỗi:", err);
+
+            alert("❌ Lỗi lưu dữ liệu: " + err.message);
+
+        });
 }
 
 /*94.CẬP NHẬT THỐNG KÊ DATA*/
 function capNhatThongKe(data) {
-    document.getElementById('stat-total-nv').innerText = data.length;
-    const avg = data.length ? Math.round(data.reduce((a, b) => a + (b.danhGia || 0), 0) / data.length) : 0;
-    document.getElementById('stat-avg-perf').innerText = avg + "%";
+
+    // 1. Luôn đảm bảo là mảng sạch
+    const safeData = Array.isArray(data)
+        ? data.filter(nv => nv && nv.id)
+        : [];
+
+    // 2. Tổng nhân sự
+    const totalEl = document.getElementById('stat-total-nv');
+
+    if (totalEl) {
+        totalEl.innerText = safeData.length;
+    }
+
+    // 3. Tính trung bình hiệu suất
+    const avg = safeData.length
+        ? Math.round(
+            safeData.reduce((tong, nv) => {
+                return tong + (Number(nv.danhGia) || 0);
+            }, 0) / safeData.length
+        )
+        : 0;
+
+    const avgEl = document.getElementById('stat-avg-perf');
+
+    if (avgEl) {
+        avgEl.innerText = avg + "%";
+    }
 }
 
-// Giả lập sync Firebase
+
+/* 🔥 SYNC REALTIME FIREBASE NHÂN SỰ */
 firebase.database().ref('NhanSu').on('value', (snap) => {
-    DANH_SACH_NV = snap.val() ? Object.values(snap.val()) : [];
-    renderDanhSach(DANH_SACH_NV);
+
+    const rawData = snap.val();
+
+    // Chuyển object Firebase => mảng an toàn
+    window.DANH_SACH_NV = rawData
+        ? Object.values(rawData).filter(nv =>
+            nv &&
+            nv.id &&
+            nv.ten &&
+            nv.username
+        )
+        : [];
+
+    // Render danh sách
+    if (typeof renderDanhSach === "function") {
+        renderDanhSach(window.DANH_SACH_NV);
+    }
+
+    // Update thống kê
+    capNhatThongKe(window.DANH_SACH_NV);
+
 });
+
 
 
 /*95.RS FORM NV*/
 function resetFormNV() {
+
+    // 🔥 Reset trạng thái sửa
     dangSuaId = null;
-    
-    // 1. Xóa trắng các trường nhập văn bản
-    document.getElementById('ins-ten').value = "";
-    document.getElementById('ins-sdt').value = "";
-    document.getElementById('ins-ngaysinh').value = "";
-    document.getElementById('ins-cccd').value = "";
-    document.getElementById('ins-diachi').value = "";
-    document.getElementById('ins-username').value = "";
-    document.getElementById('ins-password').value = "";
-    
-    // 2. Reset các trường lựa chọn về mặc định
-    document.getElementById('ins-vaitro').selectedIndex = 0; // Về vai trò đầu tiên
-    
-    // 3. QUAN TRỌNG: Gọi lại hàm cập nhật vị trí để đồng bộ lại danh sách và lương
-    // Việc này giúp ô Vị trí và ô Lương không bị dính dữ liệu cũ
+
+    // 1. Xóa trắng các ô input text
+    const fields = [
+        'ins-ten',
+        'ins-sdt',
+        'ins-ngaysinh',
+        'ins-cccd',
+        'ins-diachi',
+        'ins-username',
+        'ins-password'
+    ];
+
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+
+    // 2. Reset dropdown vai trò
+    const vaiTroEl = document.getElementById('ins-vaitro');
+
+    if (vaiTroEl) {
+        vaiTroEl.selectedIndex = 0;
+    }
+
+    // 3. Reset cấp độ nếu có
+    const capDoEl = document.getElementById('ins-capdo');
+
+    if (capDoEl) {
+        capDoEl.selectedIndex = 0;
+    }
+
+    // 4. Đồng bộ lại vị trí + lương mặc định
     if (typeof capNhatViTriTuDong === "function") {
-        capNhatViTriTuDong(); 
+        capNhatViTriTuDong();
     }
 
-    // 4. Đưa nút Lưu về trạng thái thêm mới
-    const btnLuu = document.querySelector('button[onclick*="themNhanSuMoi"]');
+    // 5. Reset nút lưu về trạng thái THÊM MỚI
+    const btnLuu = document.querySelector(
+        'button[onclick*="themNhanSuMoi"]'
+    );
+
     if (btnLuu) {
-        btnLuu.innerText = "💾 LƯU THÔNG TIN NHÂN VIÊN";
-        btnLuu.style.background = "#10b981"; 
-        btnLuu.style.boxShadow = "0 4px 15px rgba(16, 185, 129, 0.3)";
+
+        btnLuu.innerHTML = "💾 LƯU THÔNG TIN NHÂN VIÊN";
+
+        btnLuu.style.background = "#10b981";
+
+        btnLuu.style.boxShadow =
+            "0 4px 15px rgba(16, 185, 129, 0.3)";
     }
+
 }
 
-/*96.CHUẨN BỊ SỬA */
-function chuanBiSua(index) {
-    const nv = DANH_SACH_NV[index];
-    if (!nv) return;
+/*96.CHUẨN BỊ SỬA NHÂN VIÊN*/
+window.chuanBiSuaNhanSu = function(idNhanVien) {
 
-    dangSuaId = nv.ten.replace(/\s+/g, '_');
+    // 1. Kiểm tra ID
+    if (!idNhanVien) {
 
-    // Đổ dữ liệu vào các ô input
-    document.getElementById('ins-ten').value = nv.ten || "";
-    document.getElementById('ins-sdt').value = nv.sdt || "";
-    document.getElementById('ins-ngaysinh').value = nv.ngaySinh || "";
-    document.getElementById('ins-cccd').value = nv.cccd || "";
-    document.getElementById('ins-diachi').value = nv.diachi || "";
-    document.getElementById('ins-username').value = nv.username || "";
-    document.getElementById('ins-password').value = nv.password || "";
-    document.getElementById('ins-vaitro').value = nv.vaiTro || "Đại sứ Hương Vị";
-    document.getElementById('ins-ca').value = nv.ca || "05:00 - 12:00";
-    
-    // CẬP NHẬT VỊ TRÍ VÀ LƯƠNG
-    capNhatViTriTuDong(); // Gọi hàm này để nó load danh sách vị trí tương ứng
-    document.getElementById('ins-vitri').value = nv.viTri || "";
-    document.getElementById('ins-luong').value = nv.luongCoBan || 0; // ĐỔ LƯƠNG VÀO ĐÂY
+        alert("❌ Không đọc được ID nhân viên!");
 
-    // Đổi màu nút Lưu thành nút Cập nhật
-    const btnLuu = document.querySelector('button[onclick="themNhanSuMoi()"]');
+        return;
+    }
+
+    // 2. Tìm nhân sự theo ID CỐ ĐỊNH
+    const nv = DANH_SACH_NV.find(item =>
+        item &&
+        item.id === idNhanVien
+    );
+
+    // 3. Không tìm thấy
+    if (!nv) {
+
+        console.error(
+            "Không tìm thấy nhân sự với ID:",
+            idNhanVien
+        );
+
+        alert("❌ Không tìm thấy dữ liệu nhân sự!");
+
+        return;
+    }
+
+    // 4. Ghi nhận ID đang sửa
+    dangSuaId = nv.id;
+
+    // 5. Đổ dữ liệu vào form
+    const setValue = (id, value) => {
+
+        const el = document.getElementById(id);
+
+        if (el) {
+            el.value = value || "";
+        }
+    };
+
+    setValue('ins-ten', nv.ten);
+    setValue('ins-sdt', nv.sdt);
+    setValue('ins-ngaysinh', nv.ngaySinh);
+    setValue('ins-cccd', nv.cccd);
+    setValue('ins-diachi', nv.diachi);
+
+    setValue('ins-username', nv.username);
+    setValue('ins-password', nv.password);
+
+    setValue('ins-vaitro', nv.vaiTro || "Đại sứ Hương Vị");
+
+    setValue('ins-ca', nv.ca || "05:00 - 12:00");
+
+    // 6. Đồng bộ vị trí theo vai trò
+    if (typeof capNhatViTriTuDong === "function") {
+        capNhatViTriTuDong();
+    }
+
+    // 7. Đổ vị trí + lương
+    setValue('ins-vitri', nv.viTri);
+
+    setValue(
+        'ins-luong',
+        typeof dinhDangTien === "function"
+            ? dinhDangTien(nv.luongCoBan || 0)
+            : (nv.luongCoBan || 0)
+    );
+
+    // 8. Đổi nút lưu thành nút cập nhật
+    const btnLuu = document.querySelector(
+        'button[onclick*="themNhanSuMoi"]'
+    );
+
     if (btnLuu) {
-        btnLuu.innerText = "🆙 CẬP NHẬT HỒ SƠ";
+
+        btnLuu.innerHTML = "🆙 CẬP NHẬT HỒ SƠ";
+
         btnLuu.style.background = "#3b82f6";
+
+        btnLuu.style.boxShadow =
+            "0 4px 15px rgba(59, 130, 246, 0.3)";
     }
-}
+
+    // 9. Scroll lên form
+    document
+        .querySelector('.hồ-sơ-nhân-sự')
+        ?.scrollIntoView({
+            behavior: 'smooth'
+        });
+
+};
 
 
+/*97.XÓA NHÂN VIÊN*/
+function xoaNhanSu(idNhanVien) {
 
-/*97.XÓA NHÂN SỰ*/
-function xoaNhanSu(ten) {
-    if (confirm(`⚠️ Bạn có chắc chắn muốn xóa nhân sự "${ten}"?\nHành động này không thể hoàn tác!`)) {
-        const id = ten.replace(/\s+/g, '_');
-        firebase.database().ref('NhanSu/' + id).remove()
+    // 1. Kiểm tra ID
+    if (!idNhanVien) {
+
+        alert("❌ Không tìm thấy ID nhân sự!");
+
+        return;
+    }
+
+    // 2. Tìm nhân sự trong danh sách
+    const nv = DANH_SACH_NV.find(item =>
+        item &&
+        item.id === idNhanVien
+    );
+
+    // 3. Không tìm thấy
+    if (!nv) {
+
+        alert("❌ Không tìm thấy nhân sự trong hệ thống!");
+
+        return;
+    }
+
+    // 4. Xác nhận xóa
+    if (
+        !confirm(
+            `⚠️ Bạn có chắc chắn muốn xóa nhân sự "${nv.ten}"?\nHành động này không thể hoàn tác!`
+        )
+    ) {
+        return;
+    }
+
+    // 5. ID Firebase chuẩn
+    const idFirebase = idNhanVien;
+
+    console.log(
+        "Đang tiến hành xóa tại path:",
+        'NhanSu/' + idFirebase
+    );
+
+    // 6. Xóa Firebase
+    db.ref('NhanSu/' + idFirebase)
+        .remove()
+
         .then(() => {
-            console.log("Đã xóa ID:", id);
-            // Thông báo nhỏ xinh thay vì alert truyền thống nếu muốn
+
+            console.log(
+                "✅ Đã xóa thành công:",
+                idFirebase
+            );
+
+            // 7. Xóa local cache
+            if (typeof DANH_SACH_NV !== 'undefined') {
+
+                DANH_SACH_NV = DANH_SACH_NV.filter(item =>
+                    item &&
+                    item.id !== idNhanVien
+                );
+            }
+
+            // 8. Render lại UI
+            if (typeof renderDanhSach === "function") {
+                renderDanhSach(DANH_SACH_NV);
+            }
+
+            // 9. Update thống kê
+            if (typeof capNhatThongKe === "function") {
+                capNhatThongKe(DANH_SACH_NV);
+            }
+
+            // 10. Nếu đang sửa đúng người bị xóa
+            if (dangSuaId === idNhanVien) {
+                resetFormNV();
+            }
+
+            alert(`✅ Đã xóa thành công nhân sự "${nv.ten}"!`);
+
         })
-        .catch(err => alert("❌ Lỗi xóa: " + err.message));
-    }
+
+        .catch(err => {
+
+            console.error("❌ Lỗi xóa Firebase:", err);
+
+            alert("❌ Lỗi xóa: " + err.message);
+
+        });
 }
 
+window.xoaNhanSu = xoaNhanSu;
 
-
-
-/*98.HÀM CHUẨN HÓA VIẾT HOA CHỮ CÁI ĐẦU */
+/*98.HÀM CHUẨN HÓA VIẾT HOA CHỮ CÁI ĐẦU NHÂN VIÊN*/
 function chuanHoaTen(str) {
+
     if (!str) return "";
-    return str.toLowerCase().split(' ')
-              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ');
+
+    return String(str)
+
+        .trim()
+
+        // Gộp khoảng trắng dư
+        .replace(/\s+/g, ' ')
+
+        .toLowerCase()
+
+        .split(' ')
+
+        .map(word => {
+
+            // Bỏ qua từ rỗng
+            if (!word) return "";
+
+            return word.charAt(0).toUpperCase() + word.slice(1);
+
+        })
+
+        .join(' ');
 }
 
 
-/*99. CẬP NHẬT THỐNG KÊ NHÂN SỰ*/
+/*🔥 AUTO FORMAT TÊN KHI NHẬP*/
+document.addEventListener("DOMContentLoaded", () => {
+
+    const oNhapTen = document.getElementById('ins-ten');
+
+    if (!oNhapTen) return;
+
+    // Khi rời ô input
+    oNhapTen.addEventListener('blur', function () {
+
+        this.value = chuanHoaTen(this.value);
+
+    });
+
+});
+
+
+/*🔥 LOẠI BỎ DẤU TIẾNG VIỆT*/
+function loaiBoDau(str) {
+
+    if (!str) return "";
+
+    return String(str)
+
+        .toLowerCase()
+
+        .trim()
+
+        // Chuẩn unicode
+        .normalize("NFD")
+
+        // Xóa dấu
+        .replace(/[\u0300-\u036f]/g, "")
+
+        // đ -> d
+        .replace(/đ/g, "d")
+
+        // Xóa khoảng trắng
+        .replace(/\s+/g, "")
+
+        // Xóa ký tự đặc biệt
+        .replace(/[^a-z0-9]/g, "");
+}
+
+
+/*99. CẬP NHẬT THỐNG KÊ NHÂN VIÊN*/
 function capNhatThongKeNhanSu() {
-    if (!DANH_SACH_NV || DANH_SACH_NV.length === 0) return;
 
-    // 1. Tổng nhân viên
-    const tongNV = DANH_SACH_NV.length;
+    // 1. Luôn đảm bảo là mảng
+    const list = Array.isArray(DANH_SACH_NV)
+        ? DANH_SACH_NV.filter(nv => nv && nv.id)
+        : [];
 
-    // 2. Nhân viên đang hoạt động (Online - Dựa trên logic của bạn)
-    const dangTrucCa = document.getElementById('main-staff-name')?.innerText.replace("Nhân viên: ", "");
-    // Giả sử ở đây ta đếm những người có thuộc tính đang làm việc hoặc đơn giản là tổng số
-    const dangHoatDong = DANH_SACH_NV.length; 
+    // 2. Tổng nhân viên
+    const tongNV = list.length;
 
     // 3. Tính hiệu suất trung bình
-    const tongHieuSuat = DANH_SACH_NV.reduce((sum, nv) => sum + (Number(nv.danhGia) || 0), 0);
-    const avgPerf = Math.round(tongHieuSuat / tongNV);
+    const tongHieuSuat = list.reduce((sum, nv) => {
+        return sum + (Number(nv.danhGia) || 0);
+    }, 0);
 
-    // Đổ dữ liệu ra màn hình
-    if(document.getElementById('stat-total-nv')) document.getElementById('stat-total-nv').innerText = tongNV;
-    if(document.getElementById('stat-active-nv')) document.getElementById('stat-active-nv').innerText = dangHoatDong;
-    if(document.getElementById('stat-avg-perf')) document.getElementById('stat-avg-perf').innerText = avgPerf + "%";
-    
-    // Cập nhật thanh bar cho đẹp
-    if(document.getElementById('stat-perf-bar')) document.getElementById('stat-perf-bar').style.width = avgPerf + "%";
+    const avgPerf = tongNV > 0
+        ? Math.round(tongHieuSuat / tongNV)
+        : 0;
+
+    // 4. Đếm nhân viên hoạt động
+    const dangHoatDong = list.filter(nv =>
+        nv.isOnline === true ||
+        nv.status === "online" ||
+        nv.isWorking === true
+    ).length;
+
+    // 5. Hàm cập nhật text an toàn
+    function updateText(id, value) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.innerText = value;
+        }
+    }
+
+    // 6. Render giao diện
+    updateText('stat-total-nv', tongNV);
+    updateText('stat-active-nv', dangHoatDong);
+    updateText('stat-avg-perf', avgPerf + "%");
+
+    // 7. Thanh hiệu suất
+    const perfBar = document.getElementById('stat-perf-bar');
+
+    if (perfBar) {
+        perfBar.style.width = avgPerf + "%";
+    }
 }
 
 
 /*100.FUNCTION TÌM KIẾM NHÂN VIÊN */
 function timKiemNhanSu() {
-    const tuKhoa = document.getElementById('search-nhan-su').value.toLowerCase().trim();
+
+    const tuKhoa = document.getElementById('search-nhan-su')
+        .value
+        .toLowerCase()
+        .trim();
+
     const vaiTroLoc = document.getElementById('filter-vaitro').value;
+
     const container = document.getElementById('nhan-su-list-body');
 
-    // 1. Lọc danh sách dựa trên từ khóa và vai trò
-    const danhSachLoc = DANH_SACH_NV.filter(nv => {
-        const matchesName = nv.ten.toLowerCase().includes(tuKhoa);
-        const matchesSdt = (nv.sdt || "").includes(tuKhoa);
-        const matchesRole = (vaiTroLoc === "Tất cả" || nv.vaiTro === vaiTroLoc);
-        
-        return (matchesName || matchesSdt) && matchesRole;
+    // 🔥 Luôn kiểm tra DANH_SACH_NV an toàn
+    const danhSach = Array.isArray(DANH_SACH_NV)
+        ? DANH_SACH_NV.filter(nv => nv && nv.id)
+        : [];
+
+    // 1. Lọc danh sách
+    const danhSachLoc = danhSach.filter(nv => {
+
+        const ten = String(nv.ten || "").toLowerCase();
+        const sdt = String(nv.sdt || "").toLowerCase();
+        const username = String(nv.username || "").toLowerCase();
+
+        // Tìm theo tên / sdt / username
+        const matchesName = ten.includes(tuKhoa);
+        const matchesSdt = sdt.includes(tuKhoa);
+        const matchesUser = username.includes(tuKhoa);
+
+        // Lọc vai trò
+        const matchesRole =
+            vaiTroLoc === "Tất cả" ||
+            nv.vaiTro === vaiTroLoc;
+
+        return (
+            (matchesName || matchesSdt || matchesUser)
+            && matchesRole
+        );
     });
 
-    // 2. Vẽ lại danh sách đã lọc
+    // 2. Không có kết quả
     if (danhSachLoc.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:#64748b; padding:20px;">Không tìm thấy nhân viên nào phù hợp.</div>`;
+
+        if (container) {
+            container.innerHTML = `
+                <div style="
+                    text-align:center;
+                    color:#64748b;
+                    padding:30px;
+                    font-size:14px;
+                ">
+                    🔍 Không tìm thấy nhân viên nào phù hợp
+                </div>
+            `;
+        }
+
         return;
     }
 
-    // Tận dụng lại logic vẽ của veDanhSachNhanSu nhưng truyền mảng đã lọc vào
+    // 3. Render danh sách lọc
     renderDanhSach(danhSachLoc);
 }
 
 
+
 /*101. RENDER DANH SÁCH NHÂN SỰ*/
 function renderDanhSach(mangDuLieu) {
+
     const container = document.getElementById('nhan-su-list-body');
-    const paginationContainer = document.getElementById('pagination-controls'); // Cần 1 div id này ở dưới list
+    const paginationContainer = document.getElementById('pagination-controls');
+
     if (!container) return;
 
-    const ngayHomNay = new Date().toLocaleDateString('sv-SE'); 
-    const roleConfig = { "Đại sứ Hương Vị": "#fb7185", "Đại sứ Đón Tiếp": "#34d399", "Đại sứ Ngoại Giao": "#60a5fa", "Đại sứ Minh Bạch": "#a855f7", "Đại sứ Sạch Sẽ": "#22d3ee" };
+    // =========================
+    // CSS HIỆU ỨNG SINH NHẬT
+    // =========================
+    if (!document.getElementById('birthday-effect-style')) {
 
-    // --- BƯỚC A: LOGIC CẮT DỮ LIỆU ---
-    const tongSoNV = mangDuLieu.length;
-    const tongSoTrang = Math.ceil(tongSoNV / soNhanVienMoiTrang);
-    
-    // Đảm bảo trang hiện tại không vượt quá tổng số trang khi xóa bớt nhân viên
-    if (trangHienTai > tongSoTrang && tongSoTrang > 0) trangHienTai = tongSoTrang;
+        const style = document.createElement('style');
 
-    const batDau = (trangHienTai - 1) * soNhanVienMoiTrang;
-    const ketThuc = batDau + soNhanVienMoiTrang;
-    const duLieuTrangNay = mangDuLieu.slice(batDau, ketThuc);
+        style.id = 'birthday-effect-style';
 
-    // --- BƯỚC B: VẼ DANH SÁCH ---
-    container.innerHTML = duLieuTrangNay.map((nv) => {
-        const color = roleConfig[nv.vaiTro] || "#94a3b8";
-        const statusColor = nv.isOnline ? "#10b981" : "#64748b"; 
-        const originalIndex = DANH_SACH_NV.findIndex(item => item.username === nv.username);
+        style.innerHTML = `
 
-        const laNgayMoi = nv.lastCheckInDate !== ngayHomNay;
-        const daVaoCa = !laNgayMoi && nv.daVaoCa === true;
-        const daTanCa = !laNgayMoi && nv.daTanCa === true;
+@keyframes birthdayGiftFloat {
 
-        let vungNutBam = "";
-        if (daTanCa) {
-            vungNutBam = `<div style="color:#94a3b8; font-size:9px; font-weight:bold; text-align:center; width:100%; border:1px dashed #334155; padding:5px; border-radius:6px;">✨ HOÀN THÀNH</div>`;
-        } else if (daVaoCa) {
-            vungNutBam = `<button onclick="chamCong('${nv.ten}', 'ra')" style="width:100%; background:#ef4444; color:#fff; border:none; padding:6px; border-radius:6px; font-size:9px; cursor:pointer; font-weight:bold;">TAN CA</button>`;
-        } else {
-            vungNutBam = `<button onclick="chamCong('${nv.ten}', 'vao')" style="width:100%; background:#10b981; color:#fff; border:none; padding:6px; border-radius:6px; font-size:9px; cursor:pointer; font-weight:bold;">VÀO CA</button>`;
-        }
-
-        return `
-        <div style="display:flex; align-items:center; padding:15px; background:#1e293b; border:1px solid #334155; border-radius:16px; margin-bottom:12px; transition:0.3s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);">
-            <!-- Cột 1: Profile (40%) -->
-            <div style="width:40%; display:flex; align-items:flex-start; gap:15px;">
-                <div onclick="document.getElementById('file-input-${originalIndex}').click()" style="position:relative; width:52px; height:52px; cursor:pointer; flex-shrink:0;">
-                    <img src="${nv.avatarUrl || 'https://placeholder.com'}" style="width:100%; height:100%; border-radius:12px; object-fit:cover; border:2px solid ${nv.isOnline ? '#10b981' : '#334155'};">
-                    <span style="position:absolute; bottom:-2px; right:-2px; width:10px; height:10px; background:${statusColor}; border:2px solid #1e293b; border-radius:50%;"></span>
-                    <input type="file" id="file-input-${originalIndex}" style="display:none" accept="image/*" onchange="uploadAvatarFirebase(event, ${originalIndex})">
-                </div>
-                <div style="display:flex; flex-direction:column; gap:4px; min-width: 0; flex: 1;">
-                    <div style="font-weight:bold; color:#fff; font-size:14px; display:flex; align-items:center; gap:8px;">${nv.ten}</div>
-                    <div style="display:flex; align-items:center; gap:12px; font-size:11px; color:#94a3b8;">
-                        <span>📞 ${nv.sdt || '---'}</span>
-                        <span style="color:#3b82f6;">🔑 ${nv.username || '---'}</span>
-                    </div>
-                    <div style="font-size:10px; color:#94a3b8; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">🏠 ${nv.diachi || 'Chưa có địa chỉ'}</div>
-                </div>
-            </div>
-
-            <!-- Cột 2: Chức danh (25%) -->
-            <div style="width:25%; display:flex; flex-direction:column; gap:6px;">
-    <div>
-        <span style="background:${color}15; color:${color}; padding:3px 10px; border-radius:6px; font-size:11px; font-weight:bold; border:1px solid ${color}33;">
-            ${nv.vaiTro}
-        </span>
-        <div style="font-size:12px; color:#fff; font-weight:bold; margin-top:5px; padding-left:2px;">📍 ${nv.viTri || '---'}</div>
-        
-        <!-- THÊM DÒNG HIỂN THỊ LƯƠNG DƯỚI ĐÂY -->
-       <div style="font-size:11px; color:#fbbf24; font-weight:bold; margin-top:2px; padding-left:2px;">
-    💰 Lương: ${ 
-        (() => {
-            // Lấy giá trị từ Firebase (chấp nhận cả luong hoặc luongCoBan)
-            let val = nv.luongCoBan || nv.luong || 0; 
-            // Nếu là chuỗi "7,500,000", xóa dấu phẩy đi để thành số
-            let soThuan = typeof val === 'string' ? val.replace(/,/g, "") : val;
-            return (Number(soThuan) || 0).toLocaleString('vi-VN');
-        })()
-    }đ
-</div>
-</div>
-    <div style="font-size:10px; color:#64748b; margin-top:2px;">🕒 Ca: ${nv.ca}</div>
-    <div style="display:flex; gap:6px;">${vungNutBam}</div>
-</div>
-
-            <!-- Cột 3: Hiệu suất (20%) -->
-            <div style="width:20%; padding:0 15px;">
-                <div style="display:flex; justify-content:space-between; font-size:10px; margin-bottom:6px; color:#94a3b8;">
-                    <span>Hiệu suất</span><b style="color:#fff;">${nv.danhGia}%</b>
-                </div>
-                <div style="width:100%; height:6px; background:#0f172a; border-radius:10px; overflow:hidden;">
-                    <div style="width:${nv.danhGia}%; height:100%; background:linear-gradient(90deg, ${color}, #fff);"></div>
-                </div>
-            </div>
-
-            <!-- Cột 4: Thao tác (120px) -->
-            <div style="width:120px; display:flex; justify-content: flex-start; align-items: center; gap: 8px; padding-left: 5px; flex-shrink: 0;">
-               <button onclick="resetChamCongThuCong('${nv.username}', '${nv.ten}')" style="background:#161e2e; border:1px solid #334155; color:#94a3b8; padding:7px; border-radius:8px; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
-                <button onclick="chuanBiSua(${originalIndex})" style="background:#161e2e; border:1px solid #334155; color:#94a3b8; padding:7px; border-radius:8px; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                <button onclick="xoaNhanSu('${nv.ten}')" style="background:#161e2e; border:1px solid #334155; color:#ef4444; padding:7px; border-radius:8px; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-            </div>
-        </div>
-        `;
-    }).join('');
-
-    // --- BƯỚC C: VẼ CỤM NÚT PHÂN TRANG Ở DƯỚI CÙNG ---
-    if (paginationContainer) {
-        let pHTML = "";
-        // Nút lùi
-        pHTML += `<button onclick="doiTrang(${trangHienTai - 1})" ${trangHienTai === 1 ? 'disabled' : ''} style="padding:6px 10px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;"> < </button>`;
-        
-        // Các con số
-        for (let i = 1; i <= tongSoTrang; i++) {
-            const active = i === trangHienTai;
-            pHTML += `<button onclick="doiTrang(${i})" style="width:30px; height:30px; margin:0 3px; border-radius:6px; border:none; background:${active ? '#10b981' : '#161e2e'}; color:${active ? '#fff' : '#94a3b8'}; cursor:pointer; font-weight:bold;">${i}</button>`;
-        }
-
-        // Nút tiến
-        pHTML += `<button onclick="doiTrang(${trangHienTai + 1})" ${trangHienTai === tongSoTrang ? 'disabled' : ''} style="padding:6px 10px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;"> > </button>`;
-        
-        paginationContainer.innerHTML = pHTML;
+    0% {
+        transform: translateY(0px) scale(1);
     }
 
-    capNhatThongKe(mangDuLieu); // Thống kê vẫn dựa trên toàn bộ mảng
+    50% {
+        transform: translateY(-3px) scale(1.04);
+    }
+
+    100% {
+        transform: translateY(0px) scale(1);
+    }
 }
 
 
-// 2. Thêm hàm đổi trang này vào Script
+        @keyframes birthdayGlow {
+            0% {
+                box-shadow:
+                    0 0 0px rgba(251,191,36,0),
+                    0 0 0px rgba(236,72,153,0);
+                transform: translateY(0px);
+            }
+
+            50% {
+                box-shadow:
+                    0 0 20px rgba(251,191,36,0.35),
+                    0 0 45px rgba(236,72,153,0.25);
+                transform: translateY(-2px);
+            }
+
+            100% {
+                box-shadow:
+                    0 0 0px rgba(251,191,36,0),
+                    0 0 0px rgba(236,72,153,0);
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes birthdayBorder {
+
+            0% {
+                border-color:#f59e0b;
+            }
+
+            50% {
+                border-color:#ec4899;
+            }
+
+            100% {
+                border-color:#f59e0b;
+            }
+        }
+
+        @keyframes birthdayIcon {
+
+            0% {
+                transform: rotate(-10deg) scale(1);
+            }
+
+            50% {
+                transform: rotate(10deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(-10deg) scale(1);
+            }
+        }
+
+        .birthday-card {
+            animation:
+                birthdayGlow 2.5s infinite ease-in-out,
+                birthdayBorder 2s infinite linear;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .birthday-card::before {
+            content:'';
+            position:absolute;
+            top:0;
+            left:-150%;
+            width:120%;
+            height:100%;
+            background:linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,0.08),
+                transparent
+            );
+            transform: skewX(-25deg);
+            animation: shineBirthday 3.5s infinite;
+        }
+
+        @keyframes shineBirthday {
+
+            0% {
+                left:-150%;
+            }
+
+            100% {
+                left:150%;
+            }
+        }
+
+        .birthday-badge {
+            animation: birthdayIcon 1.2s infinite ease-in-out;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        `;
+
+        document.head.appendChild(style);
+    }
+
+    // --- BƯỚC 0: LỌC DỮ LIỆU AN TOÀN ---
+    const duLieuHopLe = (mangDuLieu || []).filter(nv =>
+        nv &&
+        nv.id &&
+        nv.ten &&
+        nv.username
+    );
+
+    const homNay = new Date();
+
+    const ngayHomNay = homNay.toLocaleDateString('sv-SE');
+
+    // Format MM-DD
+    const mmddHomNay =
+        `${String(homNay.getMonth() + 1).padStart(2, '0')}-${String(homNay.getDate()).padStart(2, '0')}`;
+
+    const roleConfig = {
+        "Đại sứ Hương Vị": "#fb7185",
+        "Đại sứ Đón Tiếp": "#34d399",
+        "Đại sứ Ngoại Giao": "#60a5fa",
+        "Đại sứ Minh Bạch": "#a855f7",
+        "Đại sứ Sạch Sẽ": "#22d3ee"
+    };
+
+    // --- BƯỚC A: PHÂN TRANG ---
+    const tongSoNV = duLieuHopLe.length;
+    const tongSoTrang = Math.ceil(tongSoNV / soNhanVienMoiTrang);
+
+    if (trangHienTai > tongSoTrang && tongSoTrang > 0) {
+        trangHienTai = tongSoTrang;
+    }
+
+    const batDau = (trangHienTai - 1) * soNhanVienMoiTrang;
+    const ketThuc = batDau + soNhanVienMoiTrang;
+
+    const duLieuTrangNay = duLieuHopLe.slice(batDau, ketThuc);
+
+    // --- BƯỚC B: VẼ DANH SÁCH ---
+    container.innerHTML = duLieuTrangNay.map((nv) => {
+
+        const color = roleConfig[nv.vaiTro] || "#94a3b8";
+
+        const statusColor = nv.isOnline
+            ? "#10b981"
+            : "#64748b";
+
+        // =========================
+        // CHECK SINH NHẬT
+        // =========================
+        let laSinhNhat = false;
+
+        if (nv.ngaySinh) {
+
+            const dateString = String(nv.ngaySinh);
+
+            // Hỗ trợ:
+            // DD/MM/YYYY
+            // YYYY-MM-DD
+            // DD-MM-YYYY
+
+            let mmddNhanVien = "";
+
+            if (dateString.includes('/')) {
+
+                const arr = dateString.split('/');
+
+                if (arr.length >= 2) {
+                    mmddNhanVien =
+                        `${arr[1].padStart(2, '0')}-${arr[0].padStart(2, '0')}`;
+                }
+
+            } else if (dateString.includes('-')) {
+
+                const arr = dateString.split('-');
+
+                if (arr[0].length === 4) {
+
+                    // YYYY-MM-DD
+                    mmddNhanVien =
+                        `${arr[1].padStart(2, '0')}-${arr[2].padStart(2, '0')}`;
+
+                } else {
+
+                    // DD-MM-YYYY
+                    mmddNhanVien =
+                        `${arr[1].padStart(2, '0')}-${arr[0].padStart(2, '0')}`;
+                }
+            }
+
+            laSinhNhat = mmddNhanVien === mmddHomNay;
+        }
+
+        // 🔥 Tìm index bằng ID thay vì username
+        const originalIndex = DANH_SACH_NV.findIndex(item =>
+            item && item.id === nv.id
+        );
+
+        const laNgayMoi = nv.lastCheckInDate !== ngayHomNay;
+
+        const daVaoCa =
+            !laNgayMoi &&
+            nv.daVaoCa === true;
+
+        const daTanCa =
+            !laNgayMoi &&
+            nv.daTanCa === true;
+
+        // --- BUTTON CHẤM CÔNG ---
+        let vungNutBam = "";
+
+        if (daTanCa) {
+
+            vungNutBam = `
+                <div style="
+                    color:#94a3b8;
+                    font-size:9px;
+                    font-weight:bold;
+                    text-align:center;
+                    width:100%;
+                    border:1px dashed #334155;
+                    padding:5px;
+                    border-radius:6px;
+                ">
+                    ✨ HOÀN THÀNH
+                </div>
+            `;
+
+        } else if (daVaoCa) {
+
+            vungNutBam = `
+                <button
+                    onclick="chamCong('${nv.id}', 'ra')"
+                    style="
+                        width:100%;
+                        background:#ef4444;
+                        color:#fff;
+                        border:none;
+                        padding:6px;
+                        border-radius:6px;
+                        font-size:9px;
+                        cursor:pointer;
+                        font-weight:bold;
+                    "
+                >
+                    TAN CA
+                </button>
+            `;
+
+        } else {
+
+            vungNutBam = `
+                <button
+                    onclick="chamCong('${nv.id}', 'vao')"
+                    style="
+                        width:100%;
+                        background:#10b981;
+                        color:#fff;
+                        border:none;
+                        padding:6px;
+                        border-radius:6px;
+                        font-size:9px;
+                        cursor:pointer;
+                        font-weight:bold;
+                    "
+                >
+                    VÀO CA
+                </button>
+            `;
+        }
+
+        return `
+        <div class="${laSinhNhat ? 'birthday-card' : ''}" style="
+            display:flex;
+            align-items:center;
+            padding:15px;
+            background:${laSinhNhat
+                ? 'linear-gradient(135deg,#1e293b,#312e81,#3b0764)'
+                : '#1e293b'};
+            border:1px solid ${laSinhNhat ? '#f59e0b' : '#334155'};
+            border-radius:16px;
+            margin-bottom:12px;
+            transition:0.3s;
+            box-shadow:0 4px 6px -1px rgba(0,0,0,0.2);
+        ">
+
+            <!-- PROFILE -->
+            <div style="
+                width:40%;
+                display:flex;
+                align-items:flex-start;
+                gap:15px;
+            ">
+
+                <div
+                    onclick="document.getElementById('file-input-${originalIndex}').click()"
+                    style="
+                        position:relative;
+                        width:52px;
+                        height:52px;
+                        cursor:pointer;
+                        flex-shrink:0;
+                    "
+                >
+
+                    <img
+                        src="${nv.avatarUrl || 'https://placeholder.com'}"
+                        style="
+                            width:100%;
+                            height:100%;
+                            border-radius:12px;
+                            object-fit:cover;
+                            border:2px solid ${laSinhNhat
+                                ? '#f59e0b'
+                                : (nv.isOnline ? '#10b981' : '#334155')};
+                        "
+                    >
+
+                    <span style="
+                        position:absolute;
+                        bottom:-2px;
+                        right:-2px;
+                        width:10px;
+                        height:10px;
+                        background:${statusColor};
+                        border:2px solid #1e293b;
+                        border-radius:50%;
+                    "></span>
+
+                    <input
+                        type="file"
+                        id="file-input-${originalIndex}"
+                        style="display:none"
+                        accept="image/*"
+                        onchange="uploadAvatarFirebase(event, ${originalIndex})"
+                    >
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:4px; min-width:0; flex:1;">
+
+                    <!-- TÊN -->
+                    <div style="
+                        font-weight:bold;
+                        color:#fff;
+                        font-size:14px;
+                        display:flex;
+                        align-items:center;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        ${nv.ten}
+
+                        ${laSinhNhat ? `
+                            <span class="birthday-badge" style="
+                                background:rgba(251,191,36,0.18);
+                                color:#fbbf24;
+                                border:1px solid rgba(251,191,36,0.3);
+                                padding:4px 8px;
+                                border-radius:999px;
+                                font-size:10px;
+                                font-weight:900;
+                            ">
+                                🎉 HAPPY BIRTHDAY
+                            </span>
+                        ` : ''}
+
+                    </div>
+
+
+${laSinhNhat ? `
+
+<div style="
+    margin-top:8px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+">
+
+    <!-- BADGE -->
+    <div style="
+        background:linear-gradient(135deg,#f59e0b,#ec4899);
+        color:#fff;
+        padding:5px 10px;
+        border-radius:999px;
+        font-size:10px;
+        font-weight:900;
+        letter-spacing:0.5px;
+        box-shadow:0 0 15px rgba(236,72,153,0.35);
+    ">
+        🎂 HÔM NAY LÀ SINH NHẬT
+    </div>
+
+    <!-- HỘP QUÀ -->
+    <div
+        onclick="
+            this.classList.toggle('opened-gift');
+
+            if(!this.dataset.opened){
+
+                this.dataset.opened='true';
+
+                alert(
+                    '🎉 Chúc mừng sinh nhật ${nv.ten}!\\n\\n Sếp vừa gửi một món quà đặc biệt vào tài khoản của bạn đấy! 🧧'
+                );
+
+                this.innerHTML='🎉 ĐÃ MỞ QUÀ';
+            }
+        "
+        style="
+            background:linear-gradient(135deg,#7c3aed,#ec4899);
+            color:#fff;
+            padding:6px 14px;
+            border-radius:12px;
+            font-size:11px;
+            font-weight:bold;
+            cursor:pointer;
+            user-select:none;
+            border:1px solid rgba(255,255,255,0.15);
+            box-shadow:
+                0 0 12px rgba(236,72,153,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+
+            animation:
+                birthdayGiftFloat 1.8s ease-in-out infinite;
+        "
+    >
+        🎁 MỞ QUÀ SINH NHẬT
+    </div>
+
+</div>
+
+` : ''}
+
+
+                    <!-- SDT + USERNAME -->
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                        font-size:11px;
+                        color:#94a3b8;
+                        flex-wrap:wrap;
+                    ">
+                        <span>📞 ${nv.sdt || '---'}</span>
+
+                        <span style="color:#3b82f6;">
+                            🔑 ${nv.username || '---'}
+                        </span>
+                    </div>
+
+                    <!-- NGÀY SINH + CCCD -->
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                        font-size:10px;
+                        color:#94a3b8;
+                        flex-wrap:wrap;
+                    ">
+
+                        <span>
+                            🎂 ${nv.ngaySinh || '---'}
+                        </span>
+
+                        <span style="color:#fbbf24;">
+                            🪪 ${nv.cccd || '---'}
+                        </span>
+
+                    </div>
+
+                    <!-- ĐỊA CHỈ -->
+                    <div style="
+                        font-size:10px;
+                        color:#64748b;
+                        display:-webkit-box;
+                        -webkit-line-clamp:1;
+                        -webkit-box-orient:vertical;
+                        overflow:hidden;
+                    ">
+                        🏠 ${nv.diachi || 'Chưa có địa chỉ'}
+                    </div>
+
+                </div>
+            </div>
+
+           <!-- VAI TRÒ -->
+            <div style="
+                width:25%;
+                display:flex;
+                flex-direction:column;
+                gap:6px;
+            ">
+
+                <div>
+
+                    <span style="
+                        background:${color}15;
+                        color:${color};
+                        padding:3px 10px;
+                        border-radius:6px;
+                        font-size:11px;
+                        font-weight:bold;
+                        border:1px solid ${color}33;
+                    ">
+                        ${nv.vaiTro}
+                    </span>
+
+                    <div style="
+                        font-size:12px;
+                        color:#fff;
+                        font-weight:bold;
+                        margin-top:5px;
+                    ">
+                        📍 ${nv.viTri || '---'}
+                    </div>
+
+                    <div style="
+                        font-size:11px;
+                        color:#fbbf24;
+                        font-weight:bold;
+                        margin-top:2px;
+                    ">
+                        💰 Lương:
+                        ${
+                            (() => {
+
+                                let val = nv.luongCoBan || nv.luong || 0;
+
+                                let soThuan =
+                                    typeof val === 'string'
+                                        ? val.replace(/,/g, "")
+                                        : val;
+
+                                return (Number(soThuan) || 0)
+                                    .toLocaleString('vi-VN');
+
+                            })()
+                        }đ
+                    </div>
+
+                </div>
+
+                <div style="
+                    font-size:10px;
+                    color:#64748b;
+                ">
+                    🕒 Ca: ${nv.ca || '---'}
+                </div>
+
+                <div style="display:flex; gap:6px;">
+                    ${vungNutBam}
+                </div>
+
+            </div>
+
+            <!-- HIỆU SUẤT -->
+            <div style="
+                width:20%;
+                padding:0 15px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    font-size:10px;
+                    margin-bottom:6px;
+                    color:#94a3b8;
+                ">
+                    <span>Hiệu suất</span>
+                    <b style="color:#fff;">
+                        ${nv.danhGia || 0}%
+                    </b>
+                </div>
+
+                <div style="
+                    width:100%;
+                    height:6px;
+                    background:#0f172a;
+                    border-radius:10px;
+                    overflow:hidden;
+                ">
+
+                    <div style="
+                        width:${nv.danhGia || 0}%;
+                        height:100%;
+                        background:linear-gradient(90deg, ${color}, #fff);
+                    "></div>
+
+                </div>
+
+            </div>
+
+            <!-- THAO TÁC -->
+            <div style="
+                width:120px;
+                display:flex;
+                align-items:center;
+                gap:8px;
+                padding-left:5px;
+                flex-shrink:0;
+            ">
+
+                <button
+                    onclick="resetChamCongThuCong('${nv.id}')"
+                    style="
+                        background:#161e2e;
+                        border:1px solid #334155;
+                        color:#94a3b8;
+                        padding:6px;
+                        border-radius:8px;
+                        cursor:pointer;
+                    "
+                    title="Reset ca"
+                >
+                    🔄
+                </button>
+
+                <button
+                    onclick="chuanBiSuaNhanSu('${nv.id}')"
+                    style="
+                        background:#161e2e;
+                        border:1px solid #334155;
+                        color:#94a3b8;
+                        padding:7px;
+                        border-radius:8px;
+                        cursor:pointer;
+                    "
+                >
+                    ✏️
+                </button>
+
+                <button
+                    onclick="xoaNhanSu('${nv.id}')"
+                    style="
+                        background:#161e2e;
+                        border:1px solid #334155;
+                        color:#ef4444;
+                        padding:7px;
+                        border-radius:8px;
+                        cursor:pointer;
+                    "
+                >
+                    🗑️
+                </button>
+
+            </div>
+
+        </div>
+        `;
+
+    }).join('');
+
+    // --- BƯỚC C: PHÂN TRANG ---
+    if (paginationContainer) {
+
+        let pHTML = "";
+
+        pHTML += `
+            <button
+                onclick="doiTrang(${trangHienTai - 1})"
+                ${trangHienTai === 1 ? 'disabled' : ''}
+                style="
+                    padding:6px 10px;
+                    border-radius:6px;
+                    border:1px solid #334155;
+                    background:#0f172a;
+                    color:#94a3b8;
+                    cursor:pointer;
+                "
+            >
+                <
+            </button>
+        `;
+
+        for (let i = 1; i <= tongSoTrang; i++) {
+
+            const active = i === trangHienTai;
+
+            pHTML += `
+                <button
+                    onclick="doiTrang(${i})"
+                    style="
+                        width:30px;
+                        height:30px;
+                        margin:0 3px;
+                        border-radius:6px;
+                        border:none;
+                        background:${active ? '#10b981' : '#161e2e'};
+                        color:${active ? '#fff' : '#94a3b8'};
+                        cursor:pointer;
+                        font-weight:bold;
+                    "
+                >
+                    ${i}
+                </button>
+            `;
+        }
+
+        pHTML += `
+            <button
+                onclick="doiTrang(${trangHienTai + 1})"
+                ${trangHienTai === tongSoTrang ? 'disabled' : ''}
+                style="
+                    padding:6px 10px;
+                    border-radius:6px;
+                    border:1px solid #334155;
+                    background:#0f172a;
+                    color:#94a3b8;
+                    cursor:pointer;
+                "
+            >
+                >
+            </button>
+        `;
+
+        paginationContainer.innerHTML = pHTML;
+    }
+
+    // --- THỐNG KÊ ---
+    capNhatThongKe(duLieuHopLe);
+}
+
+
+
+/*101.ĐỔI TRANG NV*/
 function doiTrang(so) {
+
+    // 🔥 Chặn vượt giới hạn trang
+    const tongSoTrang = Math.ceil(
+        (DANH_SACH_NV || []).length / soNhanVienMoiTrang
+    );
+
+    if (so < 1) so = 1;
+
+    if (so > tongSoTrang) so = tongSoTrang;
+
     trangHienTai = so;
+
     renderDanhSach(DANH_SACH_NV);
 }
 
 
-/* HÀM RESET THỦ CÔNG DÀNH CHO ADMIN */
-function resetChamCongThuCong(username, tenHienThi) {
-    if (confirm(`🔄 Reset trạng thái ca làm cho ${tenHienThi}?\nNhân viên sẽ có thể "Vào ca" lại ngay lập tức.`)) {
-        // Dùng trực tiếp username làm ID vì nó là key trên Firebase
-        firebase.database().ref('NhanSu/' + username).update({
-            daVaoCa: false,
-            daTanCa: false,
-            isOnline: false,
-            lastCheckInDate: "reseted"
-        }).then(() => {
-            alert(`✅ Đã reset trạng thái cho ${tenHienThi}`);
-        }).catch(err => alert("❌ Lỗi: " + err.message));
+/*101.RESET CA THỦ CÔNG CHO ADMIN NHÂN VIÊN*/
+function resetChamCongThuCong(idNhanVien) {
+
+    // 🔥 Kiểm tra ID
+    if (!idNhanVien || idNhanVien === "undefined") {
+
+        alert("❌ Lỗi: Không tìm thấy ID nhân sự!");
+
+        return;
     }
+
+    // 🔥 Tìm nhân viên theo ID
+    const nv = DANH_SACH_NV.find(item =>
+        item &&
+        item.id === idNhanVien
+    );
+
+    if (!nv) {
+
+        alert("❌ Không tìm thấy nhân viên!");
+
+        return;
+    }
+
+    const tenNhanVien = nv.ten || "Không rõ";
+
+    // 🔥 Xác nhận reset
+    if (
+        !confirm(
+            `🔄 Reset trạng thái ca làm cho [ ${tenNhanVien} ]?\nNhân viên sẽ có thể "Vào ca" lại ngay lập tức.`
+        )
+    ) {
+        return;
+    }
+
+    // 🔥 Update Firebase theo ID
+    db.ref('NhanSu/' + idNhanVien).update({
+
+        daVaoCa: false,
+        daTanCa: false,
+        isOnline: false,
+        lastCheckInDate: "reseted"
+
+    })
+    .then(() => {
+
+        alert(`✅ Đã reset trạng thái thành công cho ${tenNhanVien}`);
+
+        // 🔥 Reload nếu có
+        if (typeof taiLaiDuLieu === "function") {
+            taiLaiDuLieu();
+        }
+
+    })
+    .catch(err => {
+
+        console.error("Lỗi khi reset ca:", err);
+
+        alert("❌ Lỗi: " + err.message);
+
+    });
 }
-/*102. UPLOAD AVATA*/
+
+// 🔥 Global
+window.resetChamCongThuCong = resetChamCongThuCong;
+
+
+/*102. UPLOAD AVATAR*/
 function uploadAvatarFirebase(event, index) {
-    const file = event.target.files[0]; // Lấy đúng 1 file ảnh
+
+    // Lấy file
+    const file = event.target.files[0];
+
     if (!file) return;
 
-    // 1. Kiểm tra dung lượng (Rất quan trọng vì lưu vào DB)
-    if (file.size > 500 * 1024) { // Giới hạn 500KB để không làm chậm App
+    // Giới hạn 500KB
+    if (file.size > 500 * 1024) {
+
         alert("⚠️ Ảnh quá nặng! Vui lòng chọn ảnh dưới 500KB hoặc ảnh chụp màn hình.");
+
+        return;
+    }
+
+    // Kiểm tra index an toàn
+    const nv = (window.DANH_SACH_NV || [])[index];
+
+    if (!nv) {
+        alert("❌ Không tìm thấy nhân viên!");
+        return;
+    }
+
+    const idNhanVien = nv.id;
+
+    if (!idNhanVien) {
+        alert("❌ Nhân viên chưa có ID!");
         return;
     }
 
     const reader = new FileReader();
-    
-    // 2. Khi trình duyệt đọc xong ảnh
-    reader.onloadend = async function() {
-        const base64String = reader.result; // Đây là cái ảnh đã biến thành chữ
-        const nv = DANH_SACH_NV[index];
-        const idNhanVien = nv.ten.replace(/\s+/g, '_');
+
+    // Sau khi đọc ảnh xong
+    reader.onloadend = async function () {
 
         try {
-            // 3. Lưu trực tiếp vào Realtime Database (nhánh NhanSu)
-            await firebase.database().ref('NhanSu/' + idNhanVien).update({
-                avatarUrl: base64String
-            });
 
-            // 4. Cập nhật dữ liệu tại chỗ để hiện ảnh ngay
+            const base64String = reader.result;
+
+            // Lưu Firebase
+            await firebase.database()
+                .ref('NhanSu/' + idNhanVien)
+                .update({
+                    avatarUrl: base64String
+                });
+
+            // Update local
             nv.avatarUrl = base64String;
+
             alert("✅ Đã cập nhật ảnh nhân viên thành công!");
-            
-            // Vẽ lại danh sách
-            if (typeof renderDanhSach === 'function') renderDanhSach(DANH_SACH_NV);
-            
+
+            // Render lại
+            if (typeof renderDanhSach === "function") {
+                renderDanhSach(window.DANH_SACH_NV);
+            }
+
         } catch (error) {
+
             console.error("Lỗi lưu ảnh:", error);
+
             alert("❌ Không thể lưu ảnh vào Database!");
         }
     };
@@ -7375,275 +8959,865 @@ function uploadAvatarFirebase(event, index) {
 
 
 /*103. VẼ DANH SÁCH NS*/
-// Sửa lại hàm veDanhSachNhanSu gốc để gọi hàm render chung này
+// Hàm gọi render chung
 function veDanhSachNhanSu() {
-    renderDanhSach(DANH_SACH_NV);
+
+    if (!Array.isArray(window.DANH_SACH_NV)) {
+        window.DANH_SACH_NV = [];
+    }
+
+    renderDanhSach(window.DANH_SACH_NV);
 }
 
 
-function chamCong(ten, loai) {
-    const idNV = ten.replace(/\s+/g, '_');
-    const bayGio = new Date();
-    const gioHienTai = bayGio.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    const ngayHienTai = bayGio.toLocaleDateString('sv-SE'); // Định dạng YYYY-MM-DD (Ví dụ: 2023-10-25)
+/*104.CHẤM CÔNG NV - BẢN SUPPORT NHIỀU CA TRONG 1 NGÀY*/
+function chamCong(idNhanVien, hanhDong) {
 
-    const pathChamCong = `ChamCong/${ngayHienTai}/${idNV}`;
-    const pathNhanSu = `NhanSu/${idNV}`;
+    // =========================
+    // KIỂM TRA ID
+    // =========================
+    if (!idNhanVien) {
+        alert("❌ Lỗi: Không tìm thấy ID nhân viên!");
+        return;
+    }
 
-    if (loai === 'vao') {
-        // 1. GHI NHẬN LỊCH SỬ VÀO CA (Nhánh ChamCong)
-        const dataVao = {
-            ten: ten,
-            gioVao: gioHienTai,
-            trangThai: "Đang làm việc"
-        };
+    // =========================
+    // TÌM NHÂN VIÊN
+    // =========================
+    const nv = (window.DANH_SACH_NV || []).find(
+        item => item.id === idNhanVien
+    );
 
-        firebase.database().ref(pathChamCong).set(dataVao).then(() => {
-            // 2. CẬP NHẬT TRẠNG THÁI HỒ SƠ (Nhánh NhanSu)
-            return firebase.database().ref(pathNhanSu).update({ 
-                daVaoCa: true, 
+    if (!nv) {
+        alert("❌ Không tìm thấy nhân viên!");
+        return;
+    }
+
+    const tenNhanVien = nv.ten || "Nhân viên";
+
+    const now = new Date();
+
+    // YYYY-MM-DD
+    const ngayHomNay = now.toLocaleDateString('sv-SE');
+
+    // HH:mm
+    const gioHienTai =
+        `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // =========================
+    // VÀO CA
+    // =========================
+    if (hanhDong === 'vao') {
+
+        if (!confirm(`Bạn xác nhận VÀO CA lúc ${gioHienTai} cho [ ${tenNhanVien} ]?`)) {
+            return;
+        }
+
+        firebase.database()
+            .ref('NhanSu/' + idNhanVien)
+            .update({
+                daVaoCa: true,
                 daTanCa: false,
                 isOnline: true,
-                lastCheckInDate: ngayHienTai // <--- QUAN TRỌNG: Lưu ngày để tự động Reset
-            });
-        }).then(() => {
-            alert(`✅ Chào ${ten}! Hệ thống ghi nhận VÀO CA lúc: ${gioHienTai}`);
-        });
+                lastCheckInDate: ngayHomNay
+            })
 
-    } else if (loai === 'ra') {
-        // 1. GHI NHẬN LỊCH SỬ TAN CA (Nhánh ChamCong)
-        firebase.database().ref(pathChamCong).update({
-            gioRa: gioHienTai,
-            trangThai: "Đã hoàn thành"
-        }).then(() => {
-            // 2. CẬP NHẬT TRẠNG THÁI HỒ SƠ (Nhánh NhanSu)
-            return firebase.database().ref(pathNhanSu).update({ 
-                daVaoCa: true, 
-                daTanCa: true,
-                isOnline: false 
-                // Không xóa lastCheckInDate ở đây để giữ trạng thái "Đã tan ca" cho đến hết ngày
+            .then(() => {
+
+                // ====================================
+                // TẠO 1 CA MỚI (KHÔNG GHI ĐÈ)
+                // ====================================
+
+                const caMoiRef = firebase.database()
+                    .ref(`ChamCong/${ngayHomNay}/${idNhanVien}`)
+                    .push();
+
+                return caMoiRef.set({
+                    ten: tenNhanVien,
+                    gioVao: gioHienTai,
+                    gioRa: "",
+                    timestamp: Date.now()
+                });
+            })
+
+            .then(() => {
+
+                // =========================
+                // UPDATE LOCAL
+                // =========================
+                nv.daVaoCa = true;
+                nv.daTanCa = false;
+                nv.isOnline = true;
+                nv.lastCheckInDate = ngayHomNay;
+
+                alert(`✅ [ ${tenNhanVien} ] đã VÀO CA thành công!`);
+
+                if (typeof renderDanhSach === "function") {
+                    renderDanhSach(window.DANH_SACH_NV);
+                }
+            })
+
+            .catch(err => {
+                console.error(err);
+                alert("❌ Lỗi: " + err.message);
             });
-        }).then(() => {
-            alert(`🏁 Tạm biệt ${ten}! Hệ thống ghi nhận TAN CA lúc: ${gioHienTai}`);
-        });
+    }
+
+    // =========================
+    // TAN CA
+    // =========================
+    else if (hanhDong === 'ra') {
+
+        if (!confirm(`Bạn xác nhận TAN CA lúc ${gioHienTai} cho [ ${tenNhanVien} ]?`)) {
+            return;
+        }
+
+        firebase.database()
+            .ref('NhanSu/' + idNhanVien)
+            .update({
+                daTanCa: true,
+                isOnline: false
+            })
+
+            .then(() => {
+
+                // ====================================
+                // TÌM CA CHƯA TAN
+                // ====================================
+
+                return firebase.database()
+                    .ref(`ChamCong/${ngayHomNay}/${idNhanVien}`)
+                    .once("value");
+            })
+
+            .then(snapshot => {
+
+                const data = snapshot.val();
+
+                if (!data) {
+                    throw new Error("Không tìm thấy lịch sử ca làm!");
+                }
+
+                // ====================================
+                // TÌM CA GẦN NHẤT CHƯA CÓ GIỜ RA
+                // ====================================
+
+                const entries = Object.entries(data);
+
+                let caDangLam = null;
+
+                for (let i = entries.length - 1; i >= 0; i--) {
+
+                    const [key, value] = entries[i];
+
+                    if (!value.gioRa || value.gioRa === "") {
+                        caDangLam = {
+                            key,
+                            ...value
+                        };
+                        break;
+                    }
+                }
+
+                if (!caDangLam) {
+                    throw new Error("Không tìm thấy ca đang làm!");
+                }
+
+                // ====================================
+                // UPDATE GIỜ RA
+                // ====================================
+
+                return firebase.database()
+                    .ref(`ChamCong/${ngayHomNay}/${idNhanVien}/${caDangLam.key}`)
+                    .update({
+                        gioRa: gioHienTai
+                    });
+            })
+
+            .then(() => {
+
+                // =========================
+                // UPDATE LOCAL
+                // =========================
+                nv.daTanCa = true;
+                nv.isOnline = false;
+
+                alert(`✅ [ ${tenNhanVien} ] đã TAN CA thành công!`);
+
+                if (typeof renderDanhSach === "function") {
+                    renderDanhSach(window.DANH_SACH_NV);
+                }
+            })
+
+            .catch(err => {
+                console.error(err);
+                alert("❌ Lỗi: " + err.message);
+            });
     }
 }
 
+window.chamCong = chamCong;
 
 
-/* HÀM HIỆN LỊCH SỬ CHẤM CÔNG - PHIÊN BẢN FULL THÔNG TIN */
+
+/*105.HÀM HIỆN LỊCH SỬ CHẤM CÔNG*/
 function hienLichSuChamCong() {
-    const body = document.getElementById('nhan-su-list-body');
-    const headerContainer = document.getElementById('search-nhan-su').parentElement.nextElementSibling;
-    
-    // 1. ĐIỀU KHIỂN NÚT BẤM
-    document.getElementById('btn-back-to-list').style.display = 'block';
-    document.getElementById('btn-show-history').style.display = 'none';
-    document.getElementById('search-nhan-su').style.display = 'none';
 
-    // 2. THAY ĐỔI TIÊU ĐỀ CỘT
-    headerContainer.innerHTML = `
-        <div style="width:45%;">Đại sứ & Thông tin hồ sơ</div>
-        <div style="width:15%;">Ngày làm</div>
-        <div style="width:15%;">Vào ca</div>
-        <div style="width:15%;">Tan ca</div>
-        <div style="width:10%; text-align:right;">Trạng thái</div>
+    const body = document.getElementById('nhan-su-list-body');
+
+    const searchInput = document.getElementById('search-nhan-su');
+
+    if (!body || !searchInput) {
+        console.error("Không tìm thấy element lịch sử chấm công!");
+        return;
+    }
+
+    const headerContainer = searchInput.parentElement?.nextElementSibling;
+
+    // Hiện / ẩn nút
+    const btnBack = document.getElementById('btn-back-to-list');
+    const btnHistory = document.getElementById('btn-show-history');
+
+    if (btnBack) btnBack.style.display = 'block';
+    if (btnHistory) btnHistory.style.display = 'none';
+
+    searchInput.style.display = 'none';
+
+    // Header
+    if (headerContainer) {
+        headerContainer.innerHTML = `
+            <div style="width:38%;">Đại sứ & Thông tin hồ sơ</div>
+            <div style="width:14%;">Ngày làm</div>
+            <div style="width:13%;">Vào ca</div>
+            <div style="width:13%;">Tan ca</div>
+            <div style="width:12%; text-align:center;">Tổng giờ</div>
+            <div style="width:10%; text-align:right;">Trạng thái</div>
+        `;
+    }
+
+    body.innerHTML = `
+        <div style="text-align:center; padding:30px; color:#94a3b8;">
+            🔍 Đang trích xuất dữ liệu lịch sử...
+        </div>
     `;
 
-    body.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8;">🔍 Đang trích xuất dữ liệu lịch sử...</div>`;
+    firebase.database().ref('ChamCong').once('value')
+    .then((snapshot) => {
 
-    // 3. LẤY DỮ LIỆU TỪ FIREBASE
-    firebase.database().ref('ChamCong').once('value', (snapshot) => {
         const data = snapshot.val();
+
         if (!data) {
-            body.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Chưa có lịch sử chấm công nào được ghi nhận.</div>`;
+            body.innerHTML = `
+                <div style="text-align:center; padding:20px; color:#ef4444;">
+                    Chưa có lịch sử chấm công nào được ghi nhận.
+                </div>
+            `;
             return;
         }
 
         let html = "";
-        // Duyệt ngược thời gian (Ngày mới nhất hiện lên đầu)
+
         const sortedDates = Object.keys(data).sort().reverse();
 
         sortedDates.forEach(ngay => {
-            Object.values(data[ngay]).forEach(log => {
-                // TÌM THÔNG TIN CHI TIẾT TỪ DANH SÁCH NHÂN VIÊN
-                const infoGoc = DANH_SACH_NV.find(nv => nv.ten === log.ten) || {};
 
-                html += `
-                <div style="display:flex; align-items:center; padding:15px; background:#1e293b; border:1px solid #334155; border-radius:16px; margin-bottom:10px; transition:0.2s;">
-                    
-                    <!-- Cột 1: Profile đầy đủ -->
-                    <div style="width:45%; display:flex; align-items:center; gap:12px;">
-                        <img src="${infoGoc.avatarUrl || 'https://placeholder.com'}" 
-                             style="width:45px; height:45px; border-radius:10px; object-fit:cover; border:1px solid #334155;">
-                        <div style="display:flex; flex-direction:column; gap:2px;">
-                            <div style="font-weight:bold; color:#fff; font-size:14px;">${log.ten}</div>
-                            <div style="font-size:10px; color:#94a3b8; display:flex; gap:10px;">
-                                <span>📞 ${infoGoc.sdt || '---'}</span>
-                                <span style="color:#3b82f6;">🔑 ID: ${infoGoc.username || '---'}</span>
+            const nhanVienTrongNgay = data[ngay] || {};
+
+            Object.keys(nhanVienTrongNgay).forEach(idNhanVien => {
+
+                const sessions = nhanVienTrongNgay[idNhanVien] || {};
+
+                Object.values(sessions).forEach(log => {
+
+                    if (!log || !log.ten) return;
+
+                    // Đối chiếu nhân sự gốc
+                    const infoGoc = (DANH_SACH_NV || []).find(nv =>
+                        nv &&
+                        nv.ten &&
+                        (
+                            String(nv.ten).trim().normalize("NFC") ===
+                            String(log.ten).trim().normalize("NFC")
+
+                            ||
+
+                            String(nv.ten)
+                                .trim()
+                                .normalize("NFC")
+                                .replace(/\s+/g, '_')
+
+                            ===
+
+                            String(log.ten)
+                                .trim()
+                                .normalize("NFC")
+                                .replace(/\s+/g, '_')
+                        )
+                    ) || {};
+
+                    // =========================
+                    // TÍNH TỔNG GIỜ
+                    // =========================
+                    let tongGioHienThi = "---";
+
+                    if (log.gioVao && log.gioRa) {
+
+                        const [hVao, mVao] = log.gioVao.split(':').map(Number);
+                        const [hRa, mRa] = log.gioRa.split(':').map(Number);
+
+                        let phutVao = hVao * 60 + mVao;
+                        let phutRa = hRa * 60 + mRa;
+
+                        // Ca xuyên đêm
+                        if (phutRa < phutVao) {
+                            phutRa += 24 * 60;
+                        }
+
+                        const tongPhut = phutRa - phutVao;
+
+                        const soGio = Math.floor(tongPhut / 60);
+                        const soPhut = tongPhut % 60;
+
+                        tongGioHienThi =
+                            soPhut > 0
+                            ? `${soGio}h ${soPhut}m`
+                            : `${soGio}h`;
+                    }
+
+                    html += `
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        padding:15px;
+                        background:#1e293b;
+                        border:1px solid #334155;
+                        border-radius:16px;
+                        margin-bottom:10px;
+                        transition:0.2s;
+                    ">
+
+                        <!-- CỘT PROFILE -->
+                        <div style="
+                            width:38%;
+                            display:flex;
+                            align-items:center;
+                            gap:12px;
+                        ">
+
+                            <img
+                                src="${infoGoc.avatarUrl || 'https://via.placeholder.com/45'}"
+                                style="
+                                    width:45px;
+                                    height:45px;
+                                    border-radius:10px;
+                                    object-fit:cover;
+                                    border:1px solid #334155;
+                                "
+                            >
+
+                            <div style="
+                                display:flex;
+                                flex-direction:column;
+                                gap:2px;
+                            ">
+                                <div style="
+                                    font-weight:bold;
+                                    color:#fff;
+                                    font-size:14px;
+                                ">
+                                    ${log.ten}
+                                </div>
+
+                                <div style="
+                                    font-size:10px;
+                                    color:#94a3b8;
+                                    display:flex;
+                                    gap:10px;
+                                ">
+                                    <span>📞 ${infoGoc.sdt || '---'}</span>
+
+                                    <span style="color:#3b82f6;">
+                                        🔑 ID: ${infoGoc.username || '---'}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Cột 2: Ngày làm -->
-                    <div style="width:15%; color:#94a3b8; font-size:12px; font-weight:500;">
-                        📅 ${ngay}
-                    </div>
+                        <!-- NGÀY -->
+                        <div style="
+                            width:14%;
+                            color:#94a3b8;
+                            font-size:12px;
+                            font-weight:500;
+                        ">
+                            📅 ${ngay}
+                        </div>
 
-                    <!-- Cột 3: Giờ vào (Màu xanh) -->
-                    <div style="width:15%; color:#10b981; font-family: 'Courier New', monospace; font-weight:bold; font-size:15px;">
-                        ${log.gioVao || '--:--'}
-                    </div>
+                        <!-- GIỜ VÀO -->
+                        <div style="
+                            width:13%;
+                            color:#10b981;
+                            font-family:'Courier New', monospace;
+                            font-weight:bold;
+                            font-size:14px;
+                        ">
+                            ${log.gioVao || '--:--'}
+                        </div>
 
-                    <!-- Cột 4: Giờ ra (Màu đỏ) -->
-                    <div style="width:15%; color:#ef4444; font-family: 'Courier New', monospace; font-weight:bold; font-size:15px;">
-                        ${log.gioRa || '--:--'}
-                    </div>
+                        <!-- GIỜ RA -->
+                        <div style="
+                            width:13%;
+                            color:#ef4444;
+                            font-family:'Courier New', monospace;
+                            font-weight:bold;
+                            font-size:14px;
+                        ">
+                            ${log.gioRa || '--:--'}
+                        </div>
 
-                    <!-- Cột 5: Badge Trạng thái -->
-                    <div style="width:10%; text-align:right;">
-                        <span style="font-size:9px; padding:4px 8px; border-radius:6px; font-weight:900; text-transform:uppercase;
-                                     background:${log.gioRa ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; 
-                                     color:${log.gioRa ? '#10b981' : '#f59e0b'}; border: 1px solid ${log.gioRa ? '#10b98133' : '#f59e0b33'};">
-                            ${log.gioRa ? 'Xong' : 'Đang làm'}
-                        </span>
+                        <!-- TỔNG GIỜ -->
+                        <div style="
+                            width:12%;
+                            text-align:center;
+                            color:#3b82f6;
+                            font-family:'Courier New', monospace;
+                            font-weight:bold;
+                            font-size:14px;
+                        ">
+                            ${tongGioHienThi}
+                        </div>
+
+                        <!-- STATUS -->
+                        <div style="
+                            width:10%;
+                            text-align:right;
+                        ">
+
+                            <span style="
+                                font-size:9px;
+                                padding:4px 8px;
+                                border-radius:6px;
+                                font-weight:900;
+                                text-transform:uppercase;
+
+                                background:${log.gioRa
+                                    ? 'rgba(16, 185, 129, 0.1)'
+                                    : 'rgba(245, 158, 11, 0.1)'};
+
+                                color:${log.gioRa
+                                    ? '#10b981'
+                                    : '#f59e0b'};
+
+                                border:1px solid ${log.gioRa
+                                    ? '#10b98133'
+                                    : '#f59e0b33'};
+                            ">
+                                ${log.gioRa ? 'Xong' : 'Đang làm'}
+                            </span>
+
+                        </div>
+
                     </div>
-                </div>`;
+                    `;
+                });
             });
         });
-        body.innerHTML = html;
+
+        body.innerHTML = html || `
+            <div style="text-align:center; padding:20px; color:#94a3b8;">
+                Không có dữ liệu chấm công.
+            </div>
+        `;
+    })
+    .catch(err => {
+
+        console.error("Lỗi tải lịch sử:", err);
+
+        body.innerHTML = `
+            <div style="text-align:center; padding:20px; color:#ef4444;">
+                ❌ Lỗi tải lịch sử chấm công!
+            </div>
+        `;
     });
 }
 
+window.hienLichSuChamCong = hienLichSuChamCong;
 
-/* HÀM QUAY LẠI DANH SÁCH NHÂN SỰ */
+/*106.HÀM QUAY LẠI DANH SÁCH NHÂN SỰ */
 function quayLaiDanhSach() {
-    // 1. Hiện lại tiêu đề cột chuẩn của nhân sự
-    const headerContainer = document.getElementById('search-nhan-su').parentElement.nextElementSibling;
-    headerContainer.innerHTML = `
-        <div style="flex:1;">Hồ sơ đại sứ</div>
-        <div style="width:200px;">Vai trò & Ca làm</div>
-        <div style="width:150px;">Hiệu suất</div>
-        <div style="width:120px; text-align:left; padding-left: 5px;">Thao tác</div>
-    `;
 
-    // 2. Điều khiển ẩn/hiện nút
-    document.getElementById('btn-back-to-list').style.display = 'none';
-    document.getElementById('btn-show-history').style.display = 'block';
-    document.getElementById('search-nhan-su').style.display = 'block';
+    const searchInput = document.getElementById('search-nhan-su');
 
-    // 3. Vẽ lại danh sách nhân sự
-    renderDanhSach(DANH_SACH_NV);
+    if (!searchInput) {
+        console.error("Không tìm thấy ô tìm kiếm nhân sự!");
+        return;
+    }
+
+    // 1. Header chuẩn
+    const headerContainer = searchInput.parentElement?.nextElementSibling;
+
+    if (headerContainer) {
+        headerContainer.innerHTML = `
+            <div style="flex:1;">Hồ sơ đại sứ</div>
+            <div style="width:200px;">Vai trò & Ca làm</div>
+            <div style="width:150px;">Hiệu suất</div>
+            <div style="width:120px; text-align:left; padding-left: 5px;">Thao tác</div>
+        `;
+    }
+
+    // 2. Điều khiển nút
+    const btnBack = document.getElementById('btn-back-to-list');
+    const btnHistory = document.getElementById('btn-show-history');
+
+    if (btnBack) btnBack.style.display = 'none';
+    if (btnHistory) btnHistory.style.display = 'block';
+
+    searchInput.style.display = 'block';
+
+    // 3. Render lại danh sách
+    if (typeof renderDanhSach === "function") {
+        renderDanhSach(DANH_SACH_NV || []);
+    }
 }
 
-let trangHienTai = 1;
-const soNhanVienMoiTrang = 5; // Bạn có thể chỉnh con số này (ví dụ: 5 người/trang)
+window.quayLaiDanhSach = quayLaiDanhSach;
 
-// 3. Hàm xử lý khi đổi Vai trò
+
+
+// ===============================
+// PHÂN TRANG
+// ===============================
+let trangHienTai = 1;
+
+const soNhanVienMoiTrang = 5;
+// Có thể đổi thành:
+// 8
+// 10
+// 15
+
+
+
+// ===============================
+// MIGRATE NHÂN VIÊN ID
+// ===============================
+function migrateNhanVienID() {
+
+    firebase.database().ref("NhanSu").once("value")
+    .then(snap => {
+
+        const data = snap.val();
+
+        if (!data) {
+            console.warn("Không có dữ liệu nhân sự!");
+            return;
+        }
+
+        const updates = {};
+
+        Object.entries(data).forEach(([key, nv]) => {
+
+            // Nếu đã có id thì giữ nguyên
+            const newId =
+                nv.id ||
+                ("nv_" + Date.now() + "_" + Math.floor(Math.random() * 9999));
+
+            updates[newId] = {
+                ...nv,
+                id: newId
+            };
+        });
+
+        // Ghi đè toàn bộ
+        return firebase.database().ref("NhanSu").set(updates);
+
+    })
+    .then(() => {
+
+        console.log("✅ DONE MIGRATE NHÂN VIÊN ID");
+
+    })
+    .catch(err => {
+
+        console.error("❌ Lỗi migrate:", err);
+
+    });
+}
+
+window.migrateNhanVienID = migrateNhanVienID;
+
+/*107.XỬ LÝ KHI ĐỔI VAI TRÒ NHÂN VIÊN*/
 function capNhatViTriTuDong() {
+
     const elVaiTro = document.getElementById('ins-vaitro');
     const elViTri = document.getElementById('ins-vitri');
     const elLuong = document.getElementById('ins-luong');
 
-    // Kiểm tra xem các thẻ có tồn tại không trước khi chạy
-    if (!elVaiTro || !elViTri || !elLuong) return;
+    // Kiểm tra tồn tại
+    if (!elVaiTro || !elViTri || !elLuong) {
+        console.warn("Thiếu element vị trí / vai trò / lương");
+        return;
+    }
 
-    const vaiTro = elVaiTro.value;
+    const vaiTro = String(elVaiTro.value || "").trim();
+
+    // MAP VỊ TRÍ
     const mapViTri = {
-        "Đại sứ Hương Vị": ["Bếp trưởng", "Bếp phó"],
-        "Đại sứ Ngoại Giao": ["Phục vụ 1", "Phục vụ 2"],
-        "Đại sứ Minh Bạch": ["Thu ngân"],
-        "Đại sứ Đón Tiếp": ["Bảo an"],
-        "Đại sứ Sạch Sẽ": ["Vệ sinh"]
+
+        "Đại sứ Hương Vị": [
+            "Bếp trưởng",
+            "Bếp phó"
+        ],
+
+        "Đại sứ Ngoại Giao": [
+            "Phục vụ 1",
+            "Phục vụ 2"
+        ],
+
+        "Đại sứ Minh Bạch": [
+            "Thu ngân"
+        ],
+
+        "Đại sứ Đón Tiếp": [
+            "Bảo an"
+        ],
+
+        "Đại sứ Sạch Sẽ": [
+            "Vệ sinh"
+        ]
     };
 
+    // Danh sách vị trí
     const dsViTri = mapViTri[vaiTro] || [];
-    
-    // Cập nhật Option
-    elViTri.innerHTML = dsViTri.map(vt => `<option value="${vt.trim()}">${vt.trim()}</option>`).join('');
 
-    // Tự động gọi hàm cập nhật lương luôn, không cần đợi listener
-    capNhatLuongHienTai(); 
+    // Render option
+    elViTri.innerHTML = dsViTri.map(vt => `
+        <option value="${vt.trim()}">
+            ${vt.trim()}
+        </option>
+    `).join('');
+
+    // Nếu không có option thì clear lương
+    if (dsViTri.length === 0) {
+        elLuong.value = "";
+        return;
+    }
+
+    // Tự cập nhật lương
+    if (typeof capNhatLuongHienTai === "function") {
+        capNhatLuongHienTai();
+    }
 }
 
 
+
+/*108.CẬP NHẬT LƯƠNG NHÂN VIÊN*/
 function capNhatLuongHienTai() {
+
     const elViTri = document.getElementById('ins-vitri');
     const elLuong = document.getElementById('ins-luong');
-    if (!elViTri || !elLuong) return;
 
-    const vitri = elViTri.value.trim();
-    const soTien = BANG_LUONG[vitri] || 0;
-    elLuong.value = dinhDangTien(soTien);
+    if (!elViTri || !elLuong) {
+        console.warn("Thiếu element vị trí hoặc lương");
+        return;
+    }
+
+    const vitri = String(elViTri.value || "").trim();
+
+    // FIX:
+    // tránh crash nếu chưa khai báo BANG_LUONG
+    const bangLuongSafe =
+        typeof BANG_LUONG !== 'undefined'
+        ? BANG_LUONG
+        : {};
+
+    const soTien = Number(bangLuongSafe[vitri]) || 0;
+
+    // FIX:
+    // tránh lỗi nếu thiếu hàm dinhDangTien
+    if (typeof dinhDangTien === "function") {
+
+        elLuong.value = dinhDangTien(soTien);
+
+    } else {
+
+        elLuong.value = soTien.toLocaleString('vi-VN');
+
+    }
 }
-/* HÀM VẼ PHÂN TRANG */
+
+
+
+// ===============================
+// AUTO LISTENER
+// ===============================
+
+// Đổi vai trò => đổi vị trí
+document.getElementById('ins-vaitro')?.addEventListener(
+    'change',
+    capNhatViTriTuDong
+);
+
+// Đổi vị trí => đổi lương
+document.getElementById('ins-vitri')?.addEventListener(
+    'change',
+    capNhatLuongHienTai
+);
+
+
+
+/*109.HÀM VẼ PHÂN TRANG NV*/
 function veNutPhanTrang(tongSoNV) {
-    const tongSoTrang = Math.ceil(tongSoNV / soNhanVienMoiTrang);
+
     const container = document.getElementById('pagination-controls');
     if (!container) return;
 
+    const tongSoTrang = Math.ceil(tongSoNV / soNhanVienMoiTrang);
+
+    // Nếu không có dữ liệu
+    if (tongSoTrang <= 1) {
+        container.innerHTML = "";
+        return;
+    }
+
     let html = "";
-    
-    // Nút Quay lại (<)
-    html += `<button onclick="doiTrang(${trangHienTai - 1})" ${trangHienTai === 1 ? 'disabled' : ''} style="width:32px; height:32px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;"><</button>`;
+
+    // Nút lùi
+    html += `
+    <button 
+        onclick="doiTrang(${trangHienTai - 1})"
+        ${trangHienTai === 1 ? 'disabled' : ''}
+        style="
+            width:32px;
+            height:32px;
+            border-radius:8px;
+            border:1px solid #334155;
+            background:#0f172a;
+            color:#94a3b8;
+            cursor:pointer;
+        ">
+        <
+    </button>`;
 
     // Các số trang
     for (let i = 1; i <= tongSoTrang; i++) {
+
         const isActive = i === trangHienTai;
+
         html += `
-        <button onclick="doiTrang(${i})" 
-            style="width:32px; height:32px; border-radius:8px; border:none; 
-            background:${isActive ? '#10b981' : '#0f172a'}; 
-            color:${isActive ? '#fff' : '#94a3b8'}; 
-            font-weight:bold; cursor:pointer; transition:0.2s;">
+        <button 
+            onclick="doiTrang(${i})"
+            style="
+                width:32px;
+                height:32px;
+                border-radius:8px;
+                border:none;
+                background:${isActive ? '#10b981' : '#0f172a'};
+                color:${isActive ? '#fff' : '#94a3b8'};
+                font-weight:bold;
+                cursor:pointer;
+                transition:0.2s;
+            ">
             ${i}
         </button>`;
     }
 
-    // Nút Tiếp theo (>)
-    html += `<button onclick="doiTrang(${trangHienTai + 1})" ${trangHienTai === tongSoTrang ? 'disabled' : ''} style="width:32px; height:32px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#94a3b8; cursor:pointer;">></button>`;
+    // Nút tiến
+    html += `
+    <button 
+        onclick="doiTrang(${trangHienTai + 1})"
+        ${trangHienTai === tongSoTrang ? 'disabled' : ''}
+        style="
+            width:32px;
+            height:32px;
+            border-radius:8px;
+            border:1px solid #334155;
+            background:#0f172a;
+            color:#94a3b8;
+            cursor:pointer;
+        ">
+        >
+    </button>`;
 
     container.innerHTML = html;
 }
 
-/* HÀM ĐỔI TRANG */
+
+/*110.HÀM ĐỔI TRANG*/
 function doiTrang(trangMoi) {
+
+    const tongSoTrang = Math.ceil(DANH_SACH_NV.length / soNhanVienMoiTrang);
+
+    // Chặn lỗi âm trang
+    if (trangMoi < 1) {
+        trangMoi = 1;
+    }
+
+    // Chặn vượt trang
+    if (trangMoi > tongSoTrang) {
+        trangMoi = tongSoTrang;
+    }
+
     trangHienTai = trangMoi;
-    renderDanhSach(DANH_SACH_NV); // Vẽ lại danh sách theo trang mới
+
+    // Render lại
+    renderDanhSach(DANH_SACH_NV);
 }
 
 
 
-
+/*111.CẬP NHẬT LƯƠNG THEO VỊ TRÍ*/
 function capNhatLuongTheoViTri() {
-    const vitriDaChon = document.getElementById("ins-vitri").value;
+
+    const elViTri = document.getElementById("ins-vitri");
     const oLuong = document.getElementById("ins-luong");
-    
-    if (BANG_LUONG[vitriDaChon]) {
-        // Thay vì điền số trực tiếp, ta điền chuỗi đã định dạng
+
+    if (!elViTri || !oLuong) return;
+
+    const vitriDaChon = elViTri.value;
+
+    if (BANG_LUONG && BANG_LUONG[vitriDaChon]) {
+
+        // Format tiền
         oLuong.value = dinhDangTien(BANG_LUONG[vitriDaChon]);
+
     } else {
+
         oLuong.value = "";
+
     }
 }
 
-// Hàm này giúp: hễ gõ đến đâu, dấu phẩy tự thêm đến đó
+
+/*112.NHẢY DẤU PHẨY KHI GÕ TIỀN LƯƠNG*/
 function dinhDangTien(giaTri) {
-    if (!giaTri) return "";
-    // Bước 1: Xóa mọi thứ không phải là số (xóa cả dấu phẩy cũ)
+
+    if (giaTri === null || giaTri === undefined) {
+        return "";
+    }
+
+    // Xóa ký tự không phải số
     let soThuan = giaTri.toString().replace(/\D/g, "");
-    // Bước 2: Thêm lại dấu phẩy sau mỗi 3 chữ số
+
+    // Nếu rỗng
+    if (!soThuan) {
+        return "";
+    }
+
+    // Thêm dấu phẩy
     return soThuan.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-// Hàm này dùng để lấy số "sạch" trước khi bạn lưu vào Firebase (ví dụ: 12,000,000 -> 12000000)
+
+/*113.LẤY SỐ LƯƠNG SẠCH TRƯỚC KHI LƯU VÀO FIREBASE*/
 function laySoThuanTuy(chuoi) {
+
+    if (!chuoi) return "0";
+
     return chuoi.toString().replace(/,/g, "");
 }
 
 
-
-/* 1. Hàm mở Cài đặt */
+/* 114. Hàm mở Cài đặt */
 function moCaiDat() {
     // Ẩn các modal khác
     const dsModal = ['modal-quan-ly-nhan-su', 'modal-hoivien-container', 'modal-baocao-container'];
@@ -7655,7 +9829,7 @@ function moCaiDat() {
 /* 2. Cập nhật danh sách Esc */
 // Thêm 'modal-cai-dat' vào mảng dsTab trong hàm window.addEventListener('keydown', ...) của bạn
 
-/* 3. Logic Đổi ngôn ngữ (Cơ bản) */
+/*115.Logic Đổi ngôn ngữ (Cơ bản) */
 function doiNgonNgu(lang) {
     const dictionary = [
         ["PHỞ TÚY 11H", "PHO TUY 11H"],
@@ -7701,6 +9875,8 @@ function doiNgonNgu(lang) {
         ["đang ăn", "eating"],          // Thêm dấu phẩy ở đây
         ["chờ dọn", "Clearing"]
     ];
+
+/*116.TRAVERSE NGÔN NGỮ*/
     function traverse(node) {
         if (node.nodeType === Node.TEXT_NODE) {
             let text = node.textContent;
@@ -7744,7 +9920,7 @@ function doiNgonNgu(lang) {
 
 
 
-/* HÀM ĐIỀU PHỐI MỞ CHỨC NĂNG CHÍNH XÁC */
+/*117.HÀM ĐIỀU PHỐI MỞ CHỨC NĂNG CHÍNH XÁC */
 function moChucNangTuSidebar(type) {
     console.log("--- Chuyển mục: " + type + " ---");
 
@@ -7754,7 +9930,7 @@ function moChucNangTuSidebar(type) {
     const dsModal = [
         'modal-quan-ly-nhan-su', 
         'modal-qr-list', 
-        'modal-baocao-container', 
+        'modal-bao-cao-tong', 
         'modal-hoivien',
         'modal-kho-hang',
         'modal-thu-chi', // <-- Thêm ID modal thu chi vào đây
@@ -7800,7 +9976,7 @@ function moChucNangTuSidebar(type) {
     }
 }
 
-/* TÍNH NĂNG NHẤN ESC THÔNG MINH */
+/*118.TÍNH NĂNG NHẤN ESC THÔNG MINH */
 window.addEventListener('keydown', function(event) {
     if (event.key === "Escape" || event.keyCode === 27) {
         
@@ -7823,7 +9999,8 @@ window.addEventListener('keydown', function(event) {
             'modal-baocao-chitiet',    
             'modal-lich-su-khach', 
             'modal-qr-list',
-            'modal-kho-hang'
+            'modal-kho-hang',
+             'modal-bep'
         ];
 
         dsTab.forEach(id => {
@@ -7851,7 +10028,7 @@ window.addEventListener('keydown', function(event) {
 
 
 
-// Hàm tự động thêm dấu phẩy khi gõ
+/*119. TỰ ĐỘNG THÊM DẤU , KHI GÕ */
 function formatCurrencyInput(input) {
     // 1. Xóa tất cả ký tự không phải số
     let value = input.value.replace(/\D/g, "");
@@ -7864,7 +10041,7 @@ function formatCurrencyInput(input) {
     }
 }
 
-// CẬP NHẬT LẠI HÀM LƯU (themThuChi)
+/*120.CẬP NHẬT LẠI HÀM LƯU (themThuChi)*/
 async function themThuChi() {
     const loai = document.getElementById('loai-tc').value;
     const tienRaw = document.getElementById('tien-tc').value.replace(/,/g, "");
@@ -7912,8 +10089,8 @@ async function themThuChi() {
     }
 }
 
+/* 121. Lắng nghe và Render Thu Chi */
 
-// 2. Lắng nghe và Render Thu Chi
 let chartInstances = {};
 
 function listenThuChi() {
@@ -8146,7 +10323,9 @@ let thoiGianRaw = val.thoi_gian || "";
     });
 }
 
-// Hàm vẽ biểu đồ phụ trợ
+
+
+/* 122. VẼ BIỂU ĐỒ THU CHI PHỤ TRỢ */
 function renderSparkline(id, color, points) {
     const canvas = document.getElementById(id);
     if (!canvas) return;
@@ -8218,7 +10397,7 @@ function renderSparkline(id, color, points) {
     });
 }
 
-// 3. Tích hợp vào luồng dữ liệu Firebase
+/* 123.TÍCH HỢP THU CHI DATA VÀO FIREBASE */
 function updateChartsAndPercents(dataThu, dataChi) {
     // Vẽ biểu đồ thu (lấy 10 giao dịch cuối)
     renderSparkline('chart-thu', '#10b981', dataThu.slice(-10));
@@ -8231,6 +10410,7 @@ function updateChartsAndPercents(dataThu, dataChi) {
     renderSparkline('chart-ln', '#3b82f6', dataLN);
 }
 
+/* 124.XÓA THU CHI */
 function xoaThuChi(key) {
     if(confirm("Xóa giao dịch này?")) db.ref("thu_chi/"+key).remove();
 }
@@ -8238,7 +10418,7 @@ function xoaThuChi(key) {
 // Chạy khởi tạo
 listenThuChi();
 
-// 1. XÓA GIAO DỊCH
+/* 124.XÓA THU CHI */
 async function xoaTC(key) {
     if (confirm("Bạn có chắc chắn muốn xóa giao dịch này không?")) {
         try {
@@ -8250,7 +10430,7 @@ async function xoaTC(key) {
     }
 }
 
-// 2. XEM CHI TIẾT (Dùng alert để nhanh hoặc console, bạn có thể tạo modal riêng nếu muốn)
+/* 124.XEM CHI TIẾT THU CHI */
 function xemChiTietTC(key) {
     db.ref("thu_chi/" + key).once("value", s => {
         const v = s.val();
@@ -8316,7 +10496,7 @@ function xemChiTietTC(key) {
 }
 
 
-// 3. SỬA GIAO DỊCH
+/* 125.SỬA THU CHI*/
 async function suaTC(key) {
     db.ref("thu_chi/" + key).once("value", s => {
         const v = s.val();
@@ -8363,6 +10543,7 @@ async function suaTC(key) {
     });
 }
 
+/* 126.ẨN HOẶC HIỆN KHUNG CHỌN NGÀY TÙY CHỈNH*/
 function toggleCustomDate() {
     const val = document.getElementById('filter-time-tc').value;
     document.getElementById('custom-date-group').style.display = (val === 'custom') ? 'flex' : 'none';
@@ -8370,8 +10551,7 @@ function toggleCustomDate() {
 
 
 
-
-
+/* 127.CẬP NHẬT ĐIỂM TÍCH LŨY Ở NGOÀI ORDER CHO HỘI VIÊN*/
 // HÀM LẮNG NGHE ĐIỂM SỐ REAL-TIME CHO PROFILE CARD [INDEX]
 function kichHoatLangNgheDiemKhach(customerId) {
     if (!customerId) return;
@@ -8522,7 +10702,7 @@ function kichHoatLangNgheDiemKhach(customerId) {
 
 
 
-
+<!-- Modal BÁO CÁO TỔNG-->
 <div id="modal-bao-cao-tong" style="display:none; position:fixed; top:0; bottom:10px; left:300px; right:0; background:rgba(15, 23, 42, 0.7); z-index:10000; padding: 20px; backdrop-filter: blur(8px); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
     
     <!-- Khung nội dung chính -->
@@ -8533,6 +10713,10 @@ function kichHoatLangNgheDiemKhach(customerId) {
             <h2 style="margin:0; font-size:18px; color:#1e293b; display:flex; align-items:center; gap:8px;">
                 <i class="fas fa-chart-bar" style="color:#3b82f6;"></i> PHÂN TÍCH DOANH THU HỆ THỐNG
             </h2>
+<!-- Nút mở bảng thời gian trung bình -->
+<button onclick="moModalTimeAverage()" style="background: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
+    <i class="far fa-clock"></i> Time Average Table
+</button>
             <button onclick="document.getElementById('modal-bao-cao-tong').style.display='none'" style="background:none; border:none; font-size:24px; color:#94a3b8; cursor:pointer;">&times;</button>
         </div>
 
@@ -10219,7 +12403,44 @@ div[style*="display:flex; align-items:center"]:has(#hv-search-input):focus-withi
 </div>
 
 
+<!-- MODAL THỜI GIAN ĂN TRUNG BÌNH (CHIA 2 BÊN) -->
+<div id="modal-time-average" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.5); z-index:100001; align-items:center; justify-content:center; backdrop-filter: blur(4px);">
+    <div style="background:white; width:95%; max-width:900px; border-radius:24px; overflow:hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); animation: modalZoom 0.2s ease-out;">
+        
+        <!-- Header -->
+        <div style="padding: 20px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #fff;">
+            <h3 style="margin:0; font-size:18px; color:#1e293b; display:flex; align-items:center; gap:10px;">
+                <span style="background:#fef2f2; padding:8px; border-radius:10px;">🕒</span> THỜI GIAN ĂN TRUNG BÌNH
+            </h3>
+            <button onclick="dongModalTimeAverage()" style="border:none; background:#f1f5f9; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:20px; color:#64748b; display:flex; align-items:center; justify-content:center;">&times;</button>
+        </div>
 
+        <!-- Nội dung chia 2 cột -->
+        <div style="display: flex; padding: 25px; gap: 30px; max-height: 75vh; overflow-y: auto;">
+            
+            <!-- CỘT TRÁI: BẢNG SỐ LIỆU -->
+            <div style="flex: 1; border: 1px solid #f1f5f9; border-radius: 16px; padding: 15px; background: #fafafa;">
+                <div id="eating-stats-table">
+                    <p style="text-align:center; color:#94a3b8; padding:20px;">Đang tải dữ liệu...</p>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: BIỂU ĐỒ -->
+            <div style="flex: 1.5; min-height: 350px; display: flex; flex-direction: column;">
+                <div style="font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 15px; text-transform: uppercase;">Biểu đồ phân tích (phút)</div>
+                <div style="flex: 1; position: relative;">
+                    <canvas id="eatingChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="padding: 15px 30px; background: #f8fafc; text-align: right; border-top: 1px solid #f1f5f9;">
+            <button onclick="dongModalTimeAverage()" style="background:#1e293b; color:white; border:none; padding:10px 25px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer;">Đóng báo cáo</button>
+        </div>
+    </div>
+</div>
 
 
 </body>
