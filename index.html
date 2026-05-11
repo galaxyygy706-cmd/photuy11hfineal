@@ -6,6 +6,163 @@
     <title>Phở Túy POS PRO - Full Features</title>
 
     <style>
+
+
+
+/*hiệu ứng cho doanh thu theo bàn*/
+/* Hiệu ứng mở Modal mượt mà */
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hiệu ứng nhấp nháy nhẹ cho số liệu quan trọng */
+@keyframes pulseGreen {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+}
+
+/* Hiệu ứng đổ bóng nổi khối khi di chuột */
+.revenue-card-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+.revenue-card-item:hover {
+    transform: translateX(10px) scale(1.02);
+    background: #ffffff !important;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+    border-left-width: 8px !important;
+}
+
+/* Hiệu ứng cho nút đóng */
+.btn-close-modal:hover {
+    transform: rotate(90deg);
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+}
+
+/* Hiệu ứng cho các ô Input/Select */
+.filter-control:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+/* Hiệu ứng chữ đổi màu (Gradient Animation) cho Top 1 */
+@keyframes goldGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.top-rank-text {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #d97706, #f59e0b);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: goldGradient 3s linear infinite;
+    font-weight: 900 !important;
+}
+/* Hiệu ứng Bạc sáng cho Top 2 */
+.top2-silver-effect {
+    background: linear-gradient(90deg, #475569, #94a3b8, #cbd5e1, #475569);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: goldGradient 4s linear infinite;
+    font-weight: 900 !important; /* Tăng độ dày chữ để dễ đọc hơn */
+    text-shadow: 0px 0px 1px rgba(0,0,0,0.1); /* Thêm bóng cực nhẹ để tách nền */
+}
+/* Hiệu ứng Đồng trầm cho Top 3 */
+.top3-bronze-effect {
+    background: linear-gradient(90deg, #cd7f32, #edbb99, #a0522d);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800 !important;
+}
+
+/* Viền phát sáng cho Top 1 - Vua */
+.card-glow-vua {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+    animation: glowVua 2s infinite alternate;
+}
+@keyframes glowVua {
+    from { box-shadow: 0 0 5px rgba(245, 158, 11, 0.3); }
+    to { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+}
+
+/* Viền phát sáng cho Top 2 - Nữ hoàng */
+.card-glow-queen {
+    box-shadow: 0 0 15px rgba(148, 163, 184, 0.4);
+    animation: glowQueen 2s infinite alternate;
+}
+@keyframes glowQueen {
+    from { box-shadow: 0 0 5px rgba(148, 163, 184, 0.3); }
+    to { box-shadow: 0 0 20px rgba(148, 163, 184, 0.6); }
+}
+
+/* Viền phát sáng cho Top 3 - Hoàng tử */
+.card-glow-prince {
+    box-shadow: 0 0 15px rgba(217, 119, 6, 0.4);
+    animation: glowPrince 2s infinite alternate;
+}
+@keyframes glowPrince {
+    from { box-shadow: 0 0 5px rgba(217, 119, 6, 0.3); }
+    to { box-shadow: 0 0 20px rgba(217, 119, 6, 0.6); }
+}
+
+.rank-card {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 20px; border-radius: 18px; margin-bottom: 12px;
+    background: #fff; border: 1px solid #f1f5f9; transition: 0.3s;
+}
+
+/* Thẻ Top 1 - Gold */
+.rank-1 { border: 2px solid #fbbf24; background: #fffdf5; box-shadow: 0 10px 20px rgba(251, 191, 36, 0.1); }
+/* Thẻ Top 2 - Silver/Blue */
+.rank-2 { border: 2px solid #60a5fa; background: #f8faff; }
+/* Thẻ Top 3 - Bronze/Orange */
+.rank-3 { border: 2px solid #fb923c; background: #fffaf5; }
+
+/* Badge Rank */
+.rank-badge {
+    width: 50px; height: 50px; border-radius: 50%; 
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800; position: relative; flex-shrink: 0;
+}
+.badge-1 { background: #fbbf24; color: #fff; box-shadow: 0 4px 10px rgba(251, 191, 36, 0.4); }
+.badge-2 { background: #60a5fa; color: #fff; box-shadow: 0 4px 10px rgba(96, 165, 250, 0.4); }
+.badge-3 { background: #fb923c; color: #fff; box-shadow: 0 4px 10px rgba(251, 146, 60, 0.4); }
+
+/* Thanh tiến độ */
+.progress-bar-bg { width: 100%; height: 6px; background: #e2e8f0; border-radius: 10px; margin-top: 8px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 10px; transition: 1s ease-out; }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@keyframes shineBar {
+
+    0% {
+        transform:translateX(-120%);
+    }
+
+    100% {
+        transform:translateX(250%);
+    }
+
+}
 .member-row {
     display: grid;
     /* Chia tỉ lệ: Tên(2.5) - Liên hệ(2) - Tích lũy(2) - Thống kê(2) - Nút(1.5) */
@@ -1456,10 +1613,13 @@ body {
     <div style="flex-shrink: 0; padding: 15px 15px 0 15px; background: #fff;">
         <!-- 1. Tiêu đề & Đồng hồ -->
         <div id="menu-trigger" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:2px double #d32f2f;padding-bottom:8px;gap:10px; cursor:pointer;">
-            <div style="display:flex;flex-direction:column;">
-                <h2 style="margin:0;font-size:20px;">THỰC ĐƠN PHỞ TÚY 11h</h2>
-                <marquee style="font-size:11px;color:#666;">Số 11 Bà Triệu, P.Hải Dương, TP. Hải Phòng, Hotline 038.888.8888</marquee>
-            </div>
+           <div style="display:flex; flex-direction:column; cursor:pointer; user-select:none;" 
+     ondblclick="moChucNhanhBaoCaoTuBep()" 
+     title="Nhấn đúp để xem báo cáo nhanh">
+     
+    <h2 style="margin:0; font-size:20px;">THỰC ĐƠN PHỞ TÚY 11h</h2>
+    <marquee style="font-size:11px; color:#666;">Số 11 Bà Triệu, P.Hải Dương, TP. Hải Phòng, Hotline 038.888.8888</marquee>
+</div>
             
             <div style="text-align:right; display: flex; flex-direction: column; align-items: flex-end;">
                 <div id="clock-date" style="font-size: 11px; color: #666; margin-bottom: 2px; font-weight: 500;"></div>
@@ -1524,7 +1684,14 @@ body {
      style="cursor:pointer; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; border-bottom: 1px solid #eee;">
     
     <!-- Tiêu đề bên trái -->
-    <h3 style="margin:0; font-size: 16px; white-space: nowrap;">📋 CHI TIẾT ĐƠN</h3>
+  <h3 ondblclick="moChucNangTuSidebar('hoivien')" 
+    style="margin:0; font-size: 16px; white-space: nowrap; cursor: pointer; user-select: none; transition: 0.2s;" 
+    onmouseover="this.style.color='#2563eb'; this.style.textDecoration='underline';" 
+    onmouseout="this.style.color='inherit'; this.style.textDecoration='none';"
+    title="Nhấn đúp (2 lần) để mở nhanh Hội viên">
+    📋 CHI TIẾT ĐƠN
+</h3>
+
     
     <!-- Nút Chọn bàn bên phải -->
     <span id="table-header" 
@@ -1552,25 +1719,52 @@ body {
         <!-- Món ăn render ở đây -->
     </div>
 
- <!-- Chi tiết tính toán -->
-    <div style="padding: 10px 0; border-top: 1px solid #eee; font-size: 13px; color: #666; line-height: 1.6;">
-        <div style="display: flex; justify-content: space-between;"><span>Tiền món:</span> <span id="sub-total">0đ</span></div>
-        <div style="display: flex; justify-content: space-between;"><span>Giảm giá (Không):</span> <span id="discount-val">-0đ</span></div>
-        <div style="display: flex; justify-content: space-between; color: #2e7d32; font-weight: 500;"><span>Thuế GTGT (2%):</span> <span id="tax-val">0đ</span></div>
+ <!-- KHU VỰC THANH TOÁN (FOOTER) -->
+<div style="background: #fff; padding: 15px; border-radius: 15px 15px 0 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); font-family: sans-serif;">
+    
+    <!-- 1. Hàng thông tin chính: Chia làm 3 phần -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        
+        <!-- Cột 1: Chi tiết tiền -->
+        <div style="flex: 1.2; font-size: 13px; color: #666; line-height: 1.8; border-right: 1px solid #eee; padding-right: 15px;">
+            <div style="display: flex; justify-content: space-between;">
+                <span>Tiền món:</span> 
+                <span id="sub-total" style="font-weight: bold; color: #333;">0đ</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>Giảm giá:</span> 
+                <span id="discount-val" style="font-weight: bold; color: #333;">-0đ</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; color: #2e7d32;">
+                <span style="font-weight: 500;">Thuế GTGT (2%):</span> 
+                <span id="tax-val" style="font-weight: bold;">0đ</span>
+            </div>
+        </div>
+
+        <!-- Cột 2: Tổng số tiền (Nhấn mạnh) -->
+        <div style="flex: 1; text-align: center; padding: 0 10px;">
+            <div style="font-size: 13px; font-weight: bold; color: #444; margin-bottom: 2px; letter-spacing: 0.5px;">TỔNG CỘNG</div>
+            <div id="total-price" style="font-size: 24px; font-weight: 900; color: #5c6bc0;">0đ</div>
+        </div>
+
+       <!-- Cột 3: Căn giữa mã QR -->
+<div id="qr-payment-zone" 
+     onclick="phongToQR()" 
+     style="cursor:pointer; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: none;">
+    
+    <img id="qr-image" 
+         src="https://vietqr.io" 
+         style="width: 85px; height: 85px; display: block; object-fit: contain;">
+    
+    <!-- Thêm dòng chữ nhỏ bên dưới nếu muốn, hoặc xóa hẳn thẻ span này nếu chỉ muốn hiện mã -->
+    <span style="font-size: 8px; color: #777; font-weight: bold; margin-top: 5px;">QUÉT MÃ THANH TOÁN</span>
+</div>
+
     </div>
 
- <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-    <div style="text-align:left;">
-        <div style="font-size:14px; font-weight:bold; color:#333;">TỔNG CỘNG:</div>
-        <div id="total-price" style="font-size:24px; font-weight:900; color:#d32f2f;">0</div>
-    </div>
-    
-    <!-- KHU VỰC QR THANH TOÁN (Vị trí khoanh vàng) -->
-    <div id="qr-payment-zone" onclick="phongToQR()" style="cursor:pointer; text-align:center; background:#f9f9f9; padding:5px; border-radius:8px; border:1px solid #ddd;">
-        <img id="qr-image" src="" style="width:60px; height:60px; display:block; object-fit:contain;">
-        <span style="font-size:8px; color:#000; font-weight:bold;">QUÉT MÃ</span>
-    </div>
+   
 </div>
+
 
 <!-- Modal để phóng to QR khi cần -->
 <div id="modal-qr-big" onclick="this.style.display='none'" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:1000000; align-items:center; justify-content:center; flex-direction:column; color:#fff;">
@@ -1579,29 +1773,41 @@ body {
     <p style="margin-top:20px;color: #000;">Chạm để đóng</p>
 </div>
 
- <!-- Khu vực chọn mã Voucher cho nhân viên -->
-<div style="background: #f1f8e9; border: 1px dashed #2e7d32; border-radius: 8px; padding: 10px; margin-bottom: 12px;">
-    <div style="font-size: 11px; color: #2e7d32; font-weight: bold; margin-bottom: 5px;">
-        🎁 CHỌN MÃ GIẢM GIÁ:
+<!-- Khu vực chọn mã Voucher thiết kế chuẩn theo mẫu -->
+<div style="background: #f1f8e9; border: 1px solid #dcedc8; border-radius: 20px; padding: 5px 5px 5px 12px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+    
+    <!-- Vạch vàng và Chữ tiêu đề -->
+    <div style="display: flex; align-items: center; gap: 5px; flex-shrink: 0;">
+        <div style="width: 3px; height: 12px; background: #ffa000; border-radius: 2px;"></div>
+        <span style="font-size: 11px; color: #2e7d32; font-weight: 800; letter-spacing: -0.2px;">CHỌN MÃ GIẢM GIÁ</span>
     </div>
-    <div style="display: flex; gap: 5px;">
-        <!-- ID đổi thành coupon-select cho khớp với hàm JS ở trên -->
-        <select id="coupon-select" style="flex:1; font-size:12px; padding:5px; border-radius:5px; border:1px solid #ccc; outline: none; background: white;">
+
+    <!-- Ô chọn Select -->
+    <div style="flex: 1; position: relative; display: flex; align-items: center;">
+        <select id="coupon-select" 
+                style="width: 100%; font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid #fff; outline: none; background: white; appearance: none; -webkit-appearance: none; color: #333;">
             <option value="0">-- Không áp dụng --</option>
             <option value="5">Túy Tâm (5%)</option>
             <option value="10">Túy Thượng (10%)</option>
             <option value="15">Phở Túy 11 (15%)</option>
         </select>
-
-        <button onclick="apDungGiamGia()" style="background: #2e7d32; color: #fff; border: none; padding: 0 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold;">
-            Áp dụng
-        </button>
-        
-        <button onclick="xoaGiamGia()" style="background: #ddd; border: none; padding: 0 10px; border-radius: 5px; cursor: pointer; color: #666;">
-            ✕
-        </button>
+        <!-- Mũi tên nhỏ cho select (tùy chọn) -->
+        <div style="position: absolute; right: 8px; pointer-events: none; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid #666;"></div>
     </div>
+
+    <!-- Nút Áp dụng bo tròn -->
+    <button onclick="apDungGiamGia()" 
+            style="background: #2e7d32; color: #fff; border: none; padding: 6px 15px; border-radius: 15px; cursor: pointer; font-size: 12px; font-weight: bold; flex-shrink: 0;">
+        Áp dụng
+    </button>
+    
+    <!-- Nút Xóa (Dấu X) -->
+    <button onclick="xoaGiamGia()" 
+            style="background: transparent; border: none; padding: 0 8px 0 0; cursor: pointer; color: #999; font-size: 16px;">
+        ✕
+    </button>
 </div>
+
             <div class="action-group" style="display: flex; flex-direction: column; gap: 8px;">
         <button id="step-print" onclick="chuyenBuoc('printed')" style="padding: 12px; background: #1976d2; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">🖨️ IN HÓA ĐƠN & GỬI BẾP</button>
         <button id="step-pay" onclick="chuyenBuoc('paid')" style="padding: 12px; background: #2e7d32; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">💰 THANH TOÁN (KHO)</button>
@@ -1754,6 +1960,18 @@ const MENU_MASTER = [
     { id: "combo_tam_chau", ten: 'Combo Tâm Châu', gia: 55000, loai: 'combo', desc: 'Túy Tâm + Túy Long Hỏa Châu', soldToday: 0, limit: 25, img: "" },
     { id: "combo_song_long", ten: 'Combo Song Long Hội Tụ', gia: 175000, loai: 'combo', desc: '2 Túy Thượng + 2 Túy Long Tiềm Thủy + quẩy', soldToday: 0, limit: 10, img: "" }
 ];
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*2.KHAI BÁO THU CHI*/
 const THU_CHI_MASTER = [
@@ -2964,158 +3182,777 @@ function renderChiTieu() {
 let orderListener = null;
 
 
+
 /*15.Chọn bàn */
 function selectTable(id) {
+
     currentTableId = id;
-    const currentTable = TABLES.find(t => String(t.id) === String(id));
+
+    const currentTable = TABLES.find(
+        t => String(t.id) === String(id)
+    );
+
     if (!currentTable) return;
 
-    // 1. Lấy mã giảm giá đã lưu của bàn này
-    currentDiscountPercent = currentTable.discount || 0; 
-    
-    // 2. Cập nhật lại thanh Select cho đúng số đã lưu
-    const couponSelect = document.getElementById("coupon-select");
-    if (couponSelect) couponSelect.value = currentDiscountPercent.toString();
+    // =========================
+    // LOAD DISCOUNT
+    // =========================
 
-    document.getElementById("table-header").innerText = currentTable.name;
+    currentDiscountPercent =
+        currentTable.discount || 0;
+
+    const couponSelect =
+        document.getElementById("coupon-select");
+
+    if (couponSelect) {
+        couponSelect.value =
+            currentDiscountPercent.toString();
+    }
+
+    // =========================
+    // HEADER
+    // =========================
+
+    document.getElementById("table-header").innerText =
+        currentTable.name;
 
     capNhatNut();
 
-     // ==========================================================
-    // 🟢 ĐÃ SỬA: LẤY ĐẦY ĐỦ THÔNG TIN KHI QUAY LẠI BÀN CŨ
-    // ==========================================================
-    const inputBox = document.querySelector(".customer-select-box");
-    const infoEl = document.getElementById("selected-customer-card");
+    // =========================
+    // CUSTOMER UI
+    // =========================
+
+    const inputBox =
+        document.querySelector(".customer-select-box");
+
+    const infoEl =
+        document.getElementById("selected-customer-card");
+
+    // =========================
+    // CÓ HỘI VIÊN
+    // =========================
 
     if (currentTable.customerId) {
-        if (inputBox) inputBox.style.display = "none";
 
-        let cardEl = document.getElementById("selected-customer-card");
-        if (!cardEl) {
-            cardEl = document.createElement("div");
-            cardEl.id = "selected-customer-card";
-            if (inputBox) inputBox.parentNode.insertBefore(cardEl, inputBox.nextSibling);
+        if (inputBox) {
+            inputBox.style.display = "none";
         }
 
-        // 🔥 THAY ĐỔI Ở ĐÂY: Đọc trực tiếp từ node members để lấy đủ SĐT, Rank, Điểm, Sở thích
-        db.ref(`members/${currentTable.customerId}`).on("value", memberSnap => {
-            const v = memberSnap.val() || {};
-            const points = (Number(v.tuy_tam_count) || 0) + (Number(v.tuy_thuong_count) || 0);
+        let cardEl =
+            document.getElementById("selected-customer-card");
 
-            let badgeHTML = "";
-            const hang = v.rank || "MEMBER";
-            if (hang === "VIP") badgeHTML = `<span style="font-size: 10px; background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; padding: 2px 6px; border-radius: 4px; font-weight: bold;">👑 VIP</span>`;
-            else if (hang === "ACTIVE") badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🔥 ACTIVE</span>`;
-            else if (hang === "NEW") badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🆕 NEW</span>`;
-            else badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">MEMBER</span>`;
+        if (!cardEl) {
 
-            // Vẽ đầy đủ thông tin y hệt như lúc bạn mới tìm kiếm chọn khách
-            if (document.getElementById("selected-customer-card")) {
-                document.getElementById("selected-customer-card").innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
-                            ${(v.ten || "K").split(' ').pop().charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                            <div style="font-weight: 700; color: #1e293b; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                                ${v.ten || "Khách hàng"} ${badgeHTML}
-                            </div>
-                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">📞 ${v.sdt || "---"}</div>
-                            <div style="font-size: 11px; color: #f59e0b; margin-top: 2px;">⭐ Sở thích: ${v.sothich || "Chưa rõ"}</div>
-                            <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">• Điểm tích lũy: <b style="color: #10b981;">${points}</b> bát</div>
-                        </div>
-                    </div>
-                    <span onclick="huyChonKhachVaoBan(${TABLES.indexOf(currentTable)})" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
-                </div>`;
+            cardEl = document.createElement("div");
+
+            cardEl.id = "selected-customer-card";
+
+            if (inputBox) {
+                inputBox.parentNode.insertBefore(
+                    cardEl,
+                    inputBox.nextSibling
+                );
             }
+        }
+
+        // 🔥 CHỈ GỌI RENDER CARD MỚI
+        db.ref(`members/${currentTable.customerId}`)
+        .on("value", memberSnap => {
+
+            const v = memberSnap.val() || {};
+
+            renderCustomerCard(
+                {
+                    ...v,
+
+                    points:
+                        (Number(v.tuy_tam_count) || 0) +
+                        (Number(v.tuy_thuong_count) || 0)
+                },
+
+                TABLES.indexOf(currentTable)
+            );
+
         });
 
-    } else {
-        // Trường hợp bàn TRỐNG: Xóa Profile Card và hiện lại ô tìm kiếm
+    }
+
+    // =========================
+    // KHÔNG CÓ HỘI VIÊN
+    // =========================
+
+    else {
+
         if (inputBox) {
+
             inputBox.style.display = "block";
-            document.getElementById("order-customer-input").value = "";
+
+            const input =
+                document.getElementById(
+                    "order-customer-input"
+                );
+
+            if (input) {
+                input.value = "";
+            }
         }
+
         if (infoEl) {
             infoEl.remove();
         }
     }
-    // ==========================================================
 
-    if (orderListener) orderListener.off();
-    orderListener = db.ref("orders/" + id);
+    // =========================
+    // LISTENER ORDER
+    // =========================
+
+    if (orderListener) {
+
+        orderListener.off();
+    }
+
+    orderListener =
+        db.ref("orders/" + id);
+
     orderListener.on("value", s => {
-        // 3. Khi vẽ đơn hàng, renderOrder sẽ lấy currentDiscountPercent vừa nạp ở trên
+
         renderOrder(s.val() || []);
+
         capNhatNut();
+
     });
+
+    // =========================
+    // RENDER TABLES
+    // =========================
 
     renderTables();
 
-    // --- THÊM ĐOẠN NÀY ĐỂ TỰ ĐỘNG HIỆN CHI TIẾT ĐƠN ---
+    // =========================
+    // MOBILE AUTO OPEN
+    // =========================
+
     if (window.innerWidth <= 1024) {
-        const sheet = document.getElementById('order-column');
+
+        const sheet =
+            document.getElementById(
+                'order-column'
+            );
+
         if (sheet) {
-            sheet.classList.add('mo-ra'); // Tự động trượt lên
+
+            sheet.classList.add('mo-ra');
         }
     }
 }
 
 
-/*11.HIỂN THÌ CARD HỘI VIÊN THEO BÀN*/
-window.hienThiProfileCardTheoBan = function(tableId) {
+
+/*RENDER CARD HỘI VIÊN CHUNG*/
+function renderCustomerCard(hv, tableIdx) {
+
     const inputBox = document.querySelector(".customer-select-box");
-    const infoEl = document.getElementById("selected-customer-card");
 
-    if (!tableId) return;
+    let infoEl = document.getElementById("selected-customer-card");
 
-    // Lấy thông tin bàn từ mảng TABLES toàn cục của bạn
-    const table = TABLES.find(t => String(t.id) === String(tableId));
+    if (!infoEl) {
 
-    if (table && table.customerId) {
-        // 1. Nếu bàn CÓ khách: Ẩn ô tìm kiếm và vẽ Profile Card
-        if (inputBox) inputBox.style.display = "none";
+        infoEl = document.createElement("div");
 
-        // Tìm hoặc tạo thẻ chứa Profile Card
-        let cardEl = document.getElementById("selected-customer-card");
-        if (!cardEl) {
-            cardEl = document.createElement("div");
-            cardEl.id = "selected-customer-card";
-            if (inputBox) inputBox.parentNode.insertBefore(cardEl, inputBox.nextSibling);
+        infoEl.id = "selected-customer-card";
+
+        if (inputBox) {
+            inputBox.parentNode.insertBefore(
+                infoEl,
+                inputBox.nextSibling
+            );
         }
+    }
 
-        // Đổ dữ liệu tĩnh từ bàn (Điểm số Real-time sẽ do hàm db.ref.on lo)
-        cardEl.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
-                    ${(table.customerName || "K").split(' ').pop().charAt(0).toUpperCase()}
-                </div>
-                <div>
-                    <div style="font-weight: 700; color: #1e293b; font-size: 14px;">${table.customerName}</div>
-                    <div style="font-size: 11px; color: #10b981; margin-top: 2px; font-weight: 600;">Hội viên đang ngồi bàn</div>
-                </div>
-            </div>
-            <span onclick="huyChonKhachVaoBan(${TABLES.indexOf(table)})" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
-        </div>`;
+    // =========================
+    // BADGE
+    // =========================
 
-        // Gọi hàm lắng nghe điểm số Real-time cho khách này (Hàm đã viết ở bước trước) [INDEX]
-        if (typeof kichHoatLangNgheDiemKhach === "function") {
-            kichHoatLangNgheDiemKhach(table.customerId);
-        }
+    let badgeHTML = "";
+
+    if (hv.rank === "VIP") {
+
+        badgeHTML = `
+        <span style="
+            font-size:10px;
+            background:#fff7ed;
+            color:#ea580c;
+            border:1px solid #fed7aa;
+            padding:3px 8px;
+            border-radius:999px;
+            font-weight:800;
+            box-shadow:0 2px 8px rgba(245,158,11,0.15);
+        ">
+            👑 VIP
+        </span>
+        `;
+
+    } else if (hv.rank === "ACTIVE") {
+
+        badgeHTML = `
+        <span style="
+            font-size:10px;
+            background:#f0fdf4;
+            color:#166534;
+            border:1px solid #bbf7d0;
+            padding:3px 8px;
+            border-radius:999px;
+            font-weight:800;
+        ">
+            🔥 ACTIVE
+        </span>
+        `;
+
+    } else if (hv.rank === "NEW") {
+
+        badgeHTML = `
+        <span style="
+            font-size:10px;
+            background:#eff6ff;
+            color:#2563eb;
+            border:1px solid #bfdbfe;
+            padding:3px 8px;
+            border-radius:999px;
+            font-weight:800;
+        ">
+            🆕 NEW
+        </span>
+        `;
 
     } else {
-        // 2. Nếu bàn TRỐNG: Hiện lại ô tìm kiếm và xóa Profile Card của bàn trước đi [INDEX]
-        if (inputBox) {
-            inputBox.style.display = "block";
-            document.getElementById("order-customer-input").value = "";
-        }
-        if (infoEl) {
-            infoEl.remove(); // Xóa thẻ Profile Card cũ [INDEX]
+
+        badgeHTML = `
+        <span style="
+            font-size:10px;
+            background:#f8fafc;
+            color:#64748b;
+            border:1px solid #e2e8f0;
+            padding:3px 8px;
+            border-radius:999px;
+            font-weight:800;
+        ">
+            MEMBER
+        </span>
+        `;
+    }
+
+    const ten = hv.ten || "Khách hàng";
+
+    const points =
+        (Number(hv.tuy_tam_count) || 0) +
+        (Number(hv.tuy_thuong_count) || 0);
+
+    const percent = Math.min((points / 10) * 100, 100);
+
+    // =========================
+    // CHECK SINH NHẬT
+    // =========================
+
+    let birthdayHTML = "";
+
+    if (hv.ngaysinh) {
+
+        const arr = hv.ngaysinh.split("-");
+
+        if (arr.length === 3) {
+
+            const thang = Number(arr[1]);
+            const ngay = Number(arr[2]);
+
+            const today = new Date();
+
+            const isBirthday =
+                today.getDate() === ngay &&
+                (today.getMonth() + 1) === thang;
+
+            if (isBirthday) {
+
+                birthdayHTML = `
+                <div style="
+                    margin-top:8px;
+                    padding:4px 10px;
+                    border-radius:999px;
+                    background:linear-gradient(135deg,#fdf2f8,#fce7f3);
+                    border:1px solid #f9a8d4;
+                    font-size:11px;
+                    font-weight:800;
+                    color:#be185d;
+                    display:flex;
+                    align-items:center;
+                    gap:6px;
+                    width:max-content;
+                    box-shadow:0 4px 12px rgba(236,72,153,0.15);
+                    animation:pulseBirthday 1.5s infinite;
+                ">
+                    🎂 Hôm nay là sinh nhật khách
+                </div>
+                `;
+            }
         }
     }
+
+    infoEl.innerHTML = `
+
+    <style>
+@keyframes giftPop {
+    0% { transform:scale(1); }
+    50% { transform:scale(1.12); }
+    100% { transform:scale(1); }
 }
+        @keyframes pulseBirthday {
+            0% { transform:scale(1); }
+            50% { transform:scale(1.03); }
+            100% { transform:scale(1); }
+        }
+    </style>
+
+    <div style="
+        position:relative;
+        overflow:hidden;
+        background:${hv.rank === 'VIP'
+            ? 'linear-gradient(135deg,#fffdf7,#fffbeb)'
+            : '#ffffff'};
+        border:${hv.rank === 'VIP'
+            ? '1px solid rgba(245,158,11,0.35)'
+            : '1px solid #edf2f7'};
+        border-radius:24px;
+        padding:18px;
+        margin-bottom:15px;
+        box-shadow:
+            0 10px 30px rgba(15,23,42,0.08),
+            0 2px 10px rgba(15,23,42,0.04);
+        transition:all .3s cubic-bezier(.4,0,.2,1);
+        backdrop-filter:blur(10px);
+    ">
+
+        ${
+            hv.rank === 'VIP'
+            ? `
+            <div style="
+                position:absolute;
+                top:-40px;
+                right:-40px;
+                width:120px;
+                height:120px;
+                background:rgba(245,158,11,0.10);
+                filter:blur(40px);
+                border-radius:50%;
+            "></div>
+            `
+            : ''
+        }
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            gap:14px;
+            position:relative;
+            z-index:2;
+        ">
+
+            <div style="
+                display:flex;
+                gap:14px;
+                align-items:center;
+                flex:1;
+            ">
+
+                <div style="
+                    width:62px;
+                    height:62px;
+                    border-radius:20px;
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #10b981 0%,
+                            #059669 100%
+                        );
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    color:white;
+                    font-size:24px;
+                    font-weight:900;
+                    flex-shrink:0;
+                    box-shadow:
+                        inset 0 1px 1px rgba(255,255,255,0.25),
+                        0 10px 24px rgba(16,185,129,0.35);
+                ">
+                    ${ten.split(' ').pop().charAt(0).toUpperCase()}
+                </div>
+
+                <div style="flex:1; min-width:0;">
+
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <div style="
+                            font-size:18px;
+                            font-weight:900;
+                            color:#0f172a;
+                            letter-spacing:0.2px;
+                        ">
+                            ${ten}
+                        </div>
+
+                        ${badgeHTML}
+
+                    </div>
+
+<!-- DÒNG THÔNG TIN CHÍNH -->
+<div style="
+    margin-top:6px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+">
+
+    <!-- SĐT -->
+    <div style="
+        font-size:12px;
+        color:#64748b;
+        display:flex;
+        align-items:center;
+        gap:5px;
+        font-weight:600;
+    ">
+        📞 ${hv.sdt || "---"}
+    </div>
+
+    <!-- BÁT -->
+    <span style="
+        font-size:11px;
+        background:#f8fafc;
+        color:#334155;
+        padding:4px 10px;
+        border-radius:999px;
+        font-weight:800;
+        border:1px solid #e2e8f0;
+        display:flex;
+        align-items:center;
+        gap:4px;
+    ">
+        🍜 ${points} bát
+    </span>
+
+    <!-- RANK -->
+    <span style="
+        font-size:11px;
+        background:#ecfeff;
+        color:#0891b2;
+        padding:4px 10px;
+        border-radius:999px;
+        font-weight:800;
+        border:1px solid #bae6fd;
+        display:flex;
+        align-items:center;
+        gap:4px;
+    ">
+        💎 ${hv.rank || 'MEMBER'}
+    </span>
+
+</div>
+
+<!-- SỞ THÍCH + SINH NHẬT -->
+<div style="
+    margin-top:7px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+">
+
+    <div style="
+        font-size:12px;
+        color:#f59e0b;
+        font-weight:700;
+        display:flex;
+        align-items:center;
+        gap:5px;
+    ">
+        ⭐ ${hv.sothich || "Chưa rõ"}
+    </div>
+
+    ${birthdayHTML}
+
+</div>
+
+                </div>
+            </div>
+
+            <div
+                onclick="huyChonKhachVaoBan(${tableIdx})"
+                style="
+                    width:34px;
+                    height:34px;
+                    border-radius:12px;
+                    background:rgba(239,68,68,0.08);
+                    backdrop-filter:blur(10px);
+                    color:#ef4444;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    cursor:pointer;
+                    font-weight:900;
+                    transition:0.25s;
+                    flex-shrink:0;
+                "
+                onmouseover="this.style.transform='scale(1.08)'"
+                onmouseout="this.style.transform='scale(1)'"
+            >
+                ✕
+            </div>
+
+        </div>
+
+       <div style="
+    margin-top:18px;
+    position:relative;
+    z-index:2;
+">
+
+   <div style="
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+">
+
+    <!-- LEFT -->
+    <div style="
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+    ">
+
+        <div style="
+            font-size:11px;
+            color:#64748b;
+            font-weight:900;
+            letter-spacing:0.5px;
+        ">
+            TIẾN ĐỘ QUÀ TẶNG
+        </div>
+
+        ${
+            points < 10
+            ? `
+            <div style="
+                padding:4px 10px;
+                border-radius:999px;
+                background:linear-gradient(135deg,#fff7ed,#fffbeb);
+                border:1px solid #fed7aa;
+                font-size:11px;
+                font-weight:800;
+                color:#ea580c;
+                display:flex;
+                align-items:center;
+                gap:5px;
+                box-shadow:0 2px 10px rgba(251,191,36,0.12);
+            ">
+                🎁 Còn ${10 - points} bát nhận quà
+            </div>
+            `
+            : `
+            <div style="
+                padding:4px 10px;
+                border-radius:999px;
+                background:linear-gradient(135deg,#ecfdf5,#f0fdf4);
+                border:1px solid #86efac;
+                font-size:11px;
+                font-weight:900;
+                color:#16a34a;
+                display:flex;
+                align-items:center;
+                gap:5px;
+                box-shadow:0 2px 10px rgba(34,197,94,0.12);
+            ">
+                🏆 Đã đạt quà VIP
+            </div>
+            `
+        }
+
+    </div>
+
+    <!-- RIGHT -->
+    <div style="
+        color:#16a34a;
+        font-size:13px;
+        font-weight:900;
+        flex-shrink:0;
+    ">
+        ${percent}%
+    </div>
+
+</div>
+
+    <!-- THANH BAR -->
+    <div style="
+        position:relative;
+        height:10px;
+        background:#e5e7eb;
+        border-radius:999px;
+        overflow:visible;
+    ">
+
+        <!-- PROGRESS -->
+        <div style="
+            width:${percent}%;
+            height:100%;
+            background:
+                linear-gradient(
+                    90deg,
+                    #16a34a,
+                    #22c55e,
+                    #34d399
+                );
+            border-radius:999px;
+            transition:1s;
+            box-shadow:
+                0 0 12px rgba(34,197,94,0.35);
+            position:relative;
+        ">
+
+            <!-- SHINE -->
+            <div style="
+                position:absolute;
+                top:0;
+                left:0;
+                bottom:0;
+                width:40%;
+                background:
+                    linear-gradient(
+                        90deg,
+                        transparent,
+                        rgba(255,255,255,0.45),
+                        transparent
+                    );
+                animation:shineBar 2s linear infinite;
+            "></div>
+
+        </div>
+
+        <!-- MỐC 0 -->
+        <div style="
+            position:absolute;
+            left:0%;
+            top:50%;
+            transform:translate(-50%,-50%);
+            width:16px;
+            height:16px;
+            border-radius:50%;
+            background:white;
+            border:3px solid #22c55e;
+            box-shadow:0 2px 6px rgba(0,0,0,0.08);
+        "></div>
+
+     <!-- MỐC 5 -->
+<div style="
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:30px;
+    height:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+">
+
+    <div style="
+        width:28px;
+        height:28px;
+        border-radius:50%;
+        background:${points >= 5
+            ? 'linear-gradient(135deg,#22c55e,#16a34a)'
+            : 'linear-gradient(135deg,#fbbf24,#f59e0b)'};
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:white;
+        font-size:${points >= 5 ? '15px' : '13px'};
+        font-weight:900;
+        border:3px solid white;
+        box-shadow:${points >= 5
+            ? '0 6px 18px rgba(34,197,94,0.35)'
+            : '0 6px 16px rgba(251,191,36,0.35)'};
+        animation:${points >= 5 ? 'giftPop 1.5s infinite' : 'none'};
+        transition:all .3s ease;
+    ">
+        ${points >= 5 ? '🎉' : '🎁'}
+    </div>
+
+</div>
+
+        <!-- MỐC 10 -->
+        <div style="
+            position:absolute;
+            left:100%;
+            top:50%;
+            transform:translate(-50%,-50%);
+            width:26px;
+            height:26px;
+            border-radius:50%;
+            background:#16a34a;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            color:white;
+            font-size:13px;
+            font-weight:900;
+            box-shadow:
+                0 6px 16px rgba(22,163,74,0.35);
+            border:3px solid white;
+        ">
+            💎
+        </div>
+
+    </div>
+
+    <!-- LABEL -->
+    <div style="
+        margin-top:12px;
+        display:flex;
+        justify-content:space-between;
+        font-size:11px;
+        font-weight:800;
+        color:#64748b;
+        padding:0 2px;
+    ">
+        <span>Bắt đầu</span>
+        <span>5 bát</span>
+        <span>10 bát</span>
+    </div>
+
+    
+
+            </div>
+
+        </div>
+
+    </div>
+    `;
+}
+
+
+
+
+
+
+
 
 
 /*16.Thêm món - ĐÃ FIX LỖI NHẢY ĐIỂM REAL-TIME*/
@@ -3237,166 +4074,452 @@ function hoanTatAddItem(items) {
 
 
 
+// =========================
+// MAP ẢNH FULL MENU
+// =========================
+
+const MENU_IMAGES = {
+
+    // MÓN CHÍNH
+    tuy_tam:
+        "https://i.postimg.cc/8cd71X1v/tam.png",
+
+    tuy_thuong:
+        "https://i.postimg.cc/Y0NvpDpY/Thuong.png",
+
+    tiem_thuy:
+        "https://i.postimg.cc/GtP4cgcv/Tiem-thuy.png",
+
+    hoa_chau:
+        "https://i.postimg.cc/cCGKGGNR/Hoa-chau.png",
+
+    quay:
+        "https://i.postimg.cc/W4Qz0czM/quay.png",
+
+    // COMBO
+    combo_thuong_thuy:
+        "https://i.postimg.cc/7h15xtx7/Thuong-thuy.png",
+
+    combo_tam_chau:
+        "https://i.postimg.cc/mkWcWWGw/Tam-chau.png",
+
+    combo_song_long:
+        "https://i.postimg.cc/SRbXbbpD/Song-long.png"
+};
+
+
 /*18.VẼ ORDER*/
 function renderOrder(items) {
+
     const orderItems = items || [];
+
     let h = "";
     let sub = 0;
 
-    // 1. DUYỆT VẼ DANH SÁCH MÓN
+    // =========================
+    // DUYỆT MÓN
+    // =========================
+
     orderItems.forEach((item, index) => {
+
         const sl = item.sl || 1;
         const gia = item.gia || 0;
-        sub += (gia * sl);
+
+        sub += gia * sl;
+
         const isSent = item.isSent === true;
 
-        const dsHienGhiChu = ['tuy_tam', 'tuy_thuong', 'combo_thuong_thuy', 'combo_tam_chau', 'combo_song_long'];
-        const idMon = item.id_mon || item.id;
-        let ghiChuHTML = "";
+        // =========================
+        // FIX ẢNH
+        // =========================
 
-       if (dsHienGhiChu.includes(idMon)) {
-    ghiChuHTML = `
-        <div style="font-size:11px; margin-top:2px; display: flex; align-items: center;">
-            <!-- Chữ Ghi chú cố định -->
-            <span style="color: #d32f2f; font-weight: bold; margin-right: 5px; flex-shrink: 0;">Ghi chú:</span>
-            
-            <div style="position: relative; flex-grow: 1; display: flex; align-items: center;">
-                <input type="text" 
-                       value="${item.note || ''}" 
-                       onchange="suaNote(${index}, this.value)"
-                       placeholder=""
-                       style="border: none; background: transparent; width: 100%; font-size: 11px; color: #333; outline: none; font-style: italic; padding: 0; position: relative; z-index: 2;">
-                
-                <!-- Đường gạch chân dashed -->
-                <div style="position: absolute; left: 0; bottom: 2px; width: 100%; border-bottom: 1px dashed #ccc; z-index: 1;"></div>
-            </div>
-        </div>`;
-}
+        const imageSrc =
+            item.img ||
+            MENU_IMAGES[item.id_mon] ||
+            "https://i.postimg.cc/cCGKGGNR/Hoa-chau.png";
 
         h += `
-        <div style="padding:10px; border-bottom:1px dashed #eee;">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-                <div style="flex:1">
-                    <b style="font-size: 15px;">${item.ten}</b> ${isSent ? '✔️' : '🕒'}
-                    ${sl > 1 ? `<span style="background:#d32f2f; color:#fff; border-radius:50%; padding:0 6px; font-size:10px; margin-left:5px;">x${sl}</span>` : ""}
-                    ${ghiChuHTML}
-                </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <b>${(gia * sl).toLocaleString()}đ</b>
-                    <button onclick="xoaMon(${index})" style="background:#ff5252; color:#fff; border:none; border-radius:4px; padding:2px 6px;">X</button>
-                </div>
+
+        <div style="
+            display:flex;
+            align-items:center;
+            gap:12px;
+            padding:14px;
+            border-bottom:1px solid #f1f5f9;
+            background:white;
+        ">
+
+            <!-- ẢNH -->
+            <div style="
+                width:62px;
+                height:62px;
+                border-radius:16px;
+                overflow:hidden;
+                flex-shrink:0;
+                background:#f8fafc;
+                border:1px solid #e2e8f0;
+                box-shadow:
+                    0 4px 10px rgba(0,0,0,0.05);
+            ">
+
+                <img
+                    src="${imageSrc}"
+                    onerror="this.src='https://i.postimg.cc/cCGKGGNR/Hoa-chau.png'"
+                    style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                    "
+                >
+
             </div>
-        </div>`;
+
+            <!-- INFO -->
+            <div style="
+                flex:1;
+                min-width:0;
+            ">
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:6px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div style="
+                        font-size:15px;
+                        font-weight:800;
+                        color:#0f172a;
+                    ">
+                        ${item.ten}
+                    </div>
+
+                    <span style="
+                        font-size:13px;
+                    ">
+                        ${isSent ? '✔️' : '🕒'}
+                    </span>
+
+                </div>
+
+                <!-- NOTE -->
+                <div style="
+                    margin-top:6px;
+                    display:flex;
+                    align-items:center;
+                    gap:6px;
+                ">
+
+                    <span style="
+                        font-size:11px;
+                        font-weight:700;
+                        color:#8b5cf6;
+                        flex-shrink:0;
+                    ">
+                        Ghi chú:
+                    </span>
+
+                    <input
+                        type="text"
+                        value="${item.note || ''}"
+                        onchange="suaNote(${index}, this.value)"
+                        placeholder="..."
+                        style="
+                            border:none;
+                            outline:none;
+                            background:transparent;
+                            width:100%;
+                            font-size:11px;
+                            color:#64748b;
+                            border-bottom:1px dashed #cbd5e1;
+                            padding-bottom:2px;
+                            font-style:italic;
+                        "
+                    >
+
+                </div>
+
+            </div>
+
+            <!-- SỐ LƯỢNG -->
+            <div style="
+                background:#f3f0ff;
+                color:#7c3aed;
+                min-width:34px;
+                height:34px;
+                border-radius:12px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:12px;
+                font-weight:900;
+                flex-shrink:0;
+            ">
+                x${sl}
+            </div>
+
+            <!-- GIÁ -->
+            <div style="
+                width:85px;
+                text-align:right;
+                flex-shrink:0;
+            ">
+
+                <div style="
+                    font-size:15px;
+                    font-weight:900;
+                    color:#0f172a;
+                ">
+                    ${(gia * sl).toLocaleString()}đ
+                </div>
+
+            </div>
+
+            <!-- XÓA -->
+            <button
+                onclick="xoaMon(${index})"
+                style="
+                    width:34px;
+                    height:34px;
+                    border:none;
+                    border-radius:12px;
+                    background:#fef2f2;
+                    color:#ef4444;
+                    font-size:16px;
+                    cursor:pointer;
+                    flex-shrink:0;
+                    transition:.2s;
+                "
+                onmouseover="
+                    this.style.transform='scale(1.08)';
+                "
+                onmouseout="
+                    this.style.transform='scale(1)';
+                "
+            >
+                ✕
+            </button>
+
+        </div>
+        `;
     });
 
-    // --- PHẦN QUAN TRỌNG: CHIA LÀM 2 VÙNG ---
-    // Vùng 1: Danh sách món (Cho phép cuộn)
+    // =========================
+    // HEADER
+    // =========================
+
+  const headerHTML = `
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:16px 18px;
+        border-bottom:1px solid #edf2f7;
+        background:white;
+    ">
+        <!-- Khối bên trái: Icon và Tiêu đề -->
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div style="
+                width:34px; height:34px; border-radius:12px;
+                background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+                display:flex; align-items:center; justify-content:center;
+                color:white; font-size:14px;
+            ">
+                📋
+            </div>
+            <div>
+                <div style="font-size:14px; font-weight:900; color:#0f172a;">
+                    DANH SÁCH MÓN
+                </div>
+                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">
+                    ${orderItems.length} món trong order
+                </div>
+            </div>
+        </div>
+
+        <!-- Khối ở giữa: Chữ Số Lượng (Vùng khoanh đỏ) -->
+        <div style="
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            flex-grow: 1;
+            text-align: center; /* Căn giữa trong khoảng trống còn lại */
+            margin-right: 20px; /* Tạo khoảng cách với badge tím */
+        ">
+            Số Lượng
+        </div>
+
+        <!-- Khối bên phải: Badge số lượng -->
+        <div style="
+            background:#f3f0ff;
+            color:#7c3aed;
+            padding:6px 14px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:900;
+            white-space: nowrap;
+        ">
+            ${orderItems.length} món
+        </div>
+    </div>
+`;
+
+    // =========================
+    // RENDER
+    // =========================
+
     document.getElementById("order-container").innerHTML = `
-        <div style="flex: 1; overflow-y: auto; max-height: calc(85vh - 250px); padding-bottom: 20px;">
-            ${h || `<div style="text-align:center;color:#ccc;margin-top:20px;">Chưa có món ăn</div>`}
+
+        <div style="
+            background:white;
+            border-radius:24px;
+            overflow:hidden;
+            box-shadow:
+                0 10px 30px rgba(15,23,42,0.06),
+                0 2px 10px rgba(15,23,42,0.04);
+            display:flex;
+            flex-direction:column;
+            height:100%;
+        ">
+
+            ${headerHTML}
+
+            <div style="
+                flex:1;
+                overflow-y:auto;
+                max-height:calc(85vh - 350px);
+                min-height:200px;
+            ">
+
+                ${
+                    h ||
+                    `
+                    <div style="
+                        padding:60px 20px;
+                        text-align:center;
+                        color:#94a3b8;
+                        font-size:14px;
+                        font-weight:700;
+                    ">
+                        🍜 Chưa có món ăn
+                    </div>
+                    `
+                }
+
+            </div>
+
         </div>
     `;
 
-    // 2. TÍNH TOÁN TIỀN
-    const discountAmount = Math.round(sub * (currentDiscountPercent / 100));
-    const subAfterDiscount = sub - discountAmount;
-    const tax = Math.round(subAfterDiscount * 0.02);
-    const total = subAfterDiscount + tax;
+    // =========================
+    // TÍNH TIỀN
+    // =========================
 
-    // Cập nhật các con số tiền
-    if(document.getElementById("sub-total")) document.getElementById("sub-total").innerText = sub.toLocaleString() + "đ";
-    if(document.getElementById("discount-val")) document.getElementById("discount-val").innerText = "-" + discountAmount.toLocaleString() + "đ";
-    if(document.getElementById("tax-val")) document.getElementById("tax-val").innerText = tax.toLocaleString() + "đ";
-    if(document.getElementById("total-price")) document.getElementById("total-price").innerText = total.toLocaleString();
-  // 🔥 DÒNG QUAN TRỌNG: CẬP NHẬT MÃ QR THEO SỐ TIỀN TỔNG
+    const discountAmount =
+        Math.round(sub * (currentDiscountPercent / 100));
+
+    const subAfterDiscount =
+        sub - discountAmount;
+
+    const tax =
+        Math.round(subAfterDiscount * 0.02);
+
+    const total =
+        subAfterDiscount + tax;
+
+    const updateText = (id, val) => {
+
+        const el = document.getElementById(id);
+
+        if (el) {
+            el.innerText = val;
+        }
+    };
+
+    updateText(
+        "sub-total",
+        sub.toLocaleString() + "đ"
+    );
+
+    updateText(
+        "discount-val",
+        "-" + discountAmount.toLocaleString() + "đ"
+    );
+
+    updateText(
+        "tax-val",
+        tax.toLocaleString() + "đ"
+    );
+
+    updateText(
+        "total-price",
+        total.toLocaleString() + "đ"
+    );
+
+    // QR
+
     if (typeof capNhatQRThanhToan === "function") {
+
         capNhatQRThanhToan(total);
     }
 
-    // 3. ĐIỀU KHIỂN NÚT (ÉP HIỂN THỊ CỐ ĐỊNH Ở ĐÁY)
-    const btnPrint = document.getElementById('step-print');
-    const btnPay = document.getElementById('step-pay');
-    const btnClear = document.getElementById('step-clear');
-    const extra = document.getElementById('extra-actions');
+    // =========================
+    // BUTTON
+    // =========================
 
-    // Reset trạng thái
-    [btnPrint, btnPay, btnClear, extra].forEach(el => { if(el) el.style.display = 'none'; });
+    const btnPrint =
+        document.getElementById('step-print');
 
-    // Hiển thị bộ nút dựa theo trạng thái
-    if (orderItems.length > 0) {
-        if(extra) extra.style.display = 'flex'; // Hiện Gộp/Tách
-        const hasUnsent = orderItems.some(i => !i.isSent);
-        if (hasUnsent) btnPrint.style.display = 'block';
-        else btnPay.style.display = 'block';
-    } else {
-        const table = TABLES.find(t => t.id === currentTableId);
-        if (table?.status === 'paid') btnClear.style.display = 'block';
-    }
-}
+    const btnPay =
+        document.getElementById('step-pay');
 
+    const btnClear =
+        document.getElementById('step-clear');
 
+    const extra =
+        document.getElementById('extra-actions');
 
+    [btnPrint, btnPay, btnClear, extra]
+        .forEach(el => {
 
-/*11.LẮNG NGHE HỘI VIÊN THEO BÀN*/
-function langNgheHoiVienTheoBan(tableId) {
-    if (!tableId) return;
-
-    // 1. Lắng nghe dữ liệu của bàn hiện tại xem có khách không [INDEX]
-    db.ref(`tables/${tableIdx_HienTai}`).on("value", snap => {
-        const tableData = snap.val() || {};
-        const inputBox = document.querySelector(".customer-select-box");
-        let infoEl = document.getElementById("selected-customer-card");
-        
-        // Nếu bàn này có khách hàng
-        if (tableData.customerId) {
-            if (inputBox) inputBox.style.display = "none"; // Ẩn ô tìm kiếm [INDEX]
-            
-            if (!infoEl) {
-                infoEl = document.createElement("div");
-                infoEl.id = "selected-customer-card";
-                if (inputBox) inputBox.parentNode.insertBefore(infoEl, inputBox.nextSibling);
+            if (el) {
+                el.style.display = 'none';
             }
+        });
 
-            // 2. Lắng nghe điểm số REAL-TIME trực tiếp từ node members [INDEX]
-            db.ref(`members/${tableData.customerId}`).on("value", memberSnap => {
-                const v = memberSnap.val() || {};
-                const points = (Number(v.tuy_tam_count) || 0) + (Number(v.tuy_thuong_count) || 0);
+    if (orderItems.length > 0) {
 
-                let badgeHTML = "";
-                const hang = v.rank || "MEMBER";
-                if (hang === "VIP") badgeHTML = `<span style="font-size: 10px; background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; padding: 2px 6px; border-radius: 4px; font-weight: bold;">👑 VIP</span>`;
-                else if (hang === "ACTIVE") badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🔥 ACTIVE</span>`;
-                else if (hang === "NEW") badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🆕 NEW</span>`;
-                else badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">MEMBER</span>`;
-
-                // Đổ dữ liệu vào Profile Card
-                const card = document.getElementById("selected-customer-card");
-                if (card) {
-                    card.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
-                                ${(v.ten || "K").split(' ').pop().charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <div style="font-weight: 700; color: #1e293b; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                                    ${v.ten || "Khách hàng"} ${badgeHTML}
-                                </div>
-                                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">📞 ${v.sdt || "---"}</div>
-                                <div style="font-size: 11px; color: #f59e0b; margin-top: 2px;">⭐ Sở thích: ${v.sothich || "Chưa rõ"}</div>
-                                <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">• Điểm tích lũy: <b style="color: #10b981;">${points}</b> bát</div>
-                            </div>
-                        </div>
-                        <span onclick="huyChonKhachVaoBan()" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
-                    </div>`;
-                }
-            });
-        } else {
-            // Nếu bàn trống, trả về ô tìm kiếm
-            if (inputBox) inputBox.style.display = "block";
-            if (infoEl) infoEl.remove();
+        if (extra) {
+            extra.style.display = 'flex';
         }
-    });
+
+        const hasUnsent =
+            orderItems.some(i => !i.isSent);
+
+        if (hasUnsent) {
+
+            btnPrint.style.display = 'block';
+
+        } else {
+
+            btnPay.style.display = 'block';
+        }
+
+    } else {
+
+        const table =
+            typeof TABLES !== 'undefined'
+                ? TABLES.find(
+                    t => t.id === currentTableId
+                )
+                : null;
+
+        if (table?.status === 'paid') {
+
+            btnClear.style.display = 'block';
+        }
+    }
 }
 
 
@@ -3472,14 +4595,36 @@ function chuyenBuoc(st) {
                 // C. Đánh dấu tất cả món trong đơn là ĐÃ GỬI (Để lần sau gọi thêm không bị trùng)
                 items.forEach(i => i.isSent = true);
 
-                // --- THÊM MỚI: Đẩy riêng món mới vào node kitchen_orders để màn hình bếp hiển thị ---
-                const kitchenPush = db.ref("kitchen_orders").push({
-                    tableId: currentTableId,
-                    tableName: TABLES.find(t => String(t.id) === String(currentTableId))?.name || "Bàn " + currentTableId,
-                    timestamp: Date.now(),
-                    items: monMoi // CHỈ GỬI MÓN MỚI, KHÔNG GỬI 'items' TỔNG
-                });
-                // --------------------------------------------------------------------------------
+                // --- PUSH MÓN XUỐNG BẾP CÓ KÈM ẢNH ---
+const monGuiBep = monMoi.map(item => {
+
+    const imageSrc =
+        item.img ||
+        MENU_IMAGES?.[item.id_mon] ||
+        MENU_IMAGES?.[item.id] ||
+        "https://i.postimg.cc/cCGKGGNR/Hoa-chau.png";
+
+    return {
+        ...item,
+        img: imageSrc
+    };
+});
+
+const kitchenPush = db.ref("kitchen_orders").push({
+
+    tableId: currentTableId,
+
+    tableName:
+        TABLES.find(
+            t => String(t.id) === String(currentTableId)
+        )?.name || "Bàn " + currentTableId,
+
+    timestamp: Date.now(),
+
+    items: monGuiBep
+
+});
+
 
                 // D. Cập nhật đồng thời đơn hàng và Menu lên Firebase
                return Promise.all([
@@ -4492,36 +5637,25 @@ function chonKhachVaoBan(hvJson) {
                 infoEl.id = "selected-customer-card";
                 if (inputBox) inputBox.parentNode.insertBefore(infoEl, inputBox.nextSibling);
             }
+db.ref(`members/${id}`).once("value")
+.then(snap => {
 
-            let badgeHTML = "";
-            if (hv.rank === "VIP") {
-                badgeHTML = `<span style="font-size: 10px; background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; padding: 2px 6px; border-radius: 4px; font-weight: bold;">👑 VIP</span>`;
-            } else if (hv.rank === "ACTIVE") {
-                badgeHTML = `<span style="font-size: 10px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🔥 ACTIVE</span>`;
-            } else if (hv.rank === "NEW") {
-                badgeHTML = `<span style="font-size: 10px; background: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; padding: 2px 6px; border-radius: 4px; font-weight: bold;">🆕 NEW</span>`;
-            } else {
-                badgeHTML = `<span style="font-size: 10px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold;">MEMBER</span>`;
-            }
+    const v = snap.val() || {};
 
-            // Đổ đầy đủ thông tin (Đã thêm sở thích vào dưới số điện thoại) [INDEX]
-            infoEl.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 12px 15px; border-radius: 12px; border: 1px solid #edf2f7; margin-bottom: 15px; font-family: 'Segoe UI', sans-serif;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #475569;">
-                        ${ten.split(' ').pop().charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                        <div style="font-weight: 700; color: #1e293b; font-size: 14px; display: flex; align-items: center; gap: 6px;">
-                            ${ten} ${badgeHTML}
-                        </div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 2px;">📞 ${hv.sdt}</div>
-                        <div style="font-size: 11px; color: #f59e0b; margin-top: 2px;">⭐ Sở thích: ${sothich}</div> <!-- Hiển thị sở thích -->
-                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">• Điểm tích lũy: <b style="color: #10b981;">${hv.points}</b> bát</div>
-                    </div>
-                </div>
-                <span onclick="huyChonKhachVaoBan(${tableIdx})" style="font-size: 18px; color: #ef4444; cursor: pointer; font-weight: bold;" title="Bỏ chọn khách">&times;</span>
-            </div>`;
+    renderCustomerCard(
+        {
+            ...v,
+
+            points:
+                (Number(v.tuy_tam_count) || 0) +
+                (Number(v.tuy_thuong_count) || 0)
+        },
+
+        tableIdx
+    );
+
+});
+    
 
             if (typeof renderTables === "function") {
                 renderTables(); 
@@ -4949,6 +6083,8 @@ if (t.status && t.status !== "empty") {
 // 🔥 ĐỪNG QUÊN DÒNG NÀY Ở CUỐI FILE JS ĐỂ ĐỒNG HỒ TỰ NHẢY REAL-TIME
 setInterval(() => { if (typeof renderTables === "function") renderTables(); }, 60000);
 
+
+
 /*44. XÁC NHẬN PHỤ VỤ*/
 function xacNhanPhucVu(event, tableId) {
     // Ngăn việc nhấn vào nút ✅ bị tính là nhấn vào chọn bàn
@@ -5229,6 +6365,10 @@ function renderStockStatus() {
     
     displayList.innerHTML = ''; 
     let alertMsg = ""; 
+    
+    // Biến để kiểm tra trạng thái của 2 món chính
+    let hetTuyTam = false;
+    let hetTuyThuong = false;
 
     MENU.forEach((mon, index) => { 
         const tenMon = (mon.ten || "")
@@ -5237,60 +6377,58 @@ function renderStockStatus() {
             .replace(/[\u0300-\u036f]/g, "");
 
         if (tenMon.includes('tuy tam') || tenMon.includes('tuy thuong')) {
-
             let limit = Number(mon.limit) || 0;
             let sold = Number(mon.soldToday) || 0;
             let conLai = Math.max(0, limit - sold);
 
+            // Đánh dấu nếu món đã hết
+            if (conLai <= 0) {
+                if (tenMon.includes('tuy tam')) hetTuyTam = true;
+                if (tenMon.includes('tuy thuong')) hetTuyThuong = true;
+            }
+
+            // --- Vẽ UI (Giữ nguyên logic của bạn) ---
+            let phanTram = limit > 0 ? Math.min(100, Math.max(0, (conLai / limit) * 100)) : 0;
             let bgColor = '#4caf50'; 
             if (conLai <= (tenMon.includes('tuy tam') ? 25 : 15)) bgColor = '#ffa000';
             if (conLai <= 0) bgColor = '#d32f2f';
 
-            // Tránh chia cho 0
-            let phanTram = limit > 0 ? Math.min(100, Math.max(0, (conLai / limit) * 100)) : 0;
-
             displayList.innerHTML += `
                 <div class="stock-item-row" style="display:flex; align-items:center; padding:10px 0; border-bottom:1px solid #eee; font-weight:bold; gap: 15px;">
-                    <!-- 1. Tên món -->
                     <span style="color: #333; min-width: 100px; flex-shrink: 0;">🍜 ${mon.ten}</span>
-                    
-                    <!-- 2. Thanh tiến độ -->
                     <div style="flex: 1; height: 18px; background: #eee; border-radius: 20px; position: relative; overflow: hidden; margin: 0 auto; min-width: 200px;">
-                        <!-- Thanh màu chạy (Tách biệt hoàn toàn với text để không bị che chữ) -->
                         <div style="width: ${phanTram}%; height: 100%; background: ${bgColor}; border-radius: 20px; transition: width 0.5s ease;"></div>
-                        
-                        <!-- Con số hiển thị đè lên chính giữa thanh tiến độ -->
                         <span style="color: ${phanTram < 45 ? '#333' : 'white'}; font-size: 11px; white-space: nowrap; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; pointer-events: none;">
                             ${conLai} / ${limit}
                         </span>
                     </div>
-                    
-                    <!-- 3. Nút bấm -->
                     <button onclick="congLaiSuat(${index})" style="width:28px; height:28px; border-radius:50%; border:1px solid #ddd; background:#fff; cursor:pointer; font-weight:bold; flex-shrink: 0;">+</button>
                 </div>`;
 
-            // 🔥 CẢNH BÁO
+            // Gom tin nhắn cảnh báo lẻ
             let nguong = tenMon.includes('tuy tam') ? 25 : 15;
-
             if (conLai <= 0) {
                 alertMsg += `🏮 Món ${mon.ten} đã hết! --- `;
-            } 
-            else if (conLai <= nguong) {
+            } else if (conLai <= nguong) {
                 alertMsg += `✨ Món <span style="color:red; font-weight:bold;">${mon.ten}</span> chỉ còn <span style="color:red; font-weight:bold;">${conLai}</span> suất! --- `;
             }
         }
     });
 
+    // 🔥 LOGIC CẢNH BÁO TỔNG KHI CẢ 2 CÙNG HẾT
+    if (hetTuyTam && hetTuyThuong) {
+        alertMsg = `<span style="color:red; font-size: 15px;">🏮 🌿 Lời xin lỗi từ Phở Túy: Hiện tại chúng tôi đã hoàn thành phục vụ các suất ăn trong ngày. Rất mong được đón tiếp Quý khách vào sáng mai. 🌿🏮</span>`;
+    }
+
     if (warningBox) {
         if (alertMsg) {
             warningBox.style.display = "block";
-            warningBox.innerHTML = `<marquee style="color:black; font-weight:bold;">${alertMsg}</marquee>`;
+            warningBox.innerHTML = `<marquee scrollamount="6" style="color:black; font-weight:bold;">${alertMsg}</marquee>`;
         } else {
-            warningBox.style.display = "none"; // Ẩn đi nếu không có cảnh báo nào
+            warningBox.style.display = "none";
         }
     }
 }
-
 // chạy ngay khi vào app
 checkAndResetStockAt5AM();
 
@@ -6567,74 +7705,318 @@ db.ref("members").on("value", snapshot => {
 
 
 /*70.MÀN HÌNH BẾP*/
+
 let bepTimer = null;
 
 function moManHinhBep() {
+
     document.getElementById('modal-bep').style.display = 'flex';
-    
+
     db.ref("kitchen_orders").on("value", snapshot => {
+
         const bepQueue = snapshot.val() || {};
         const bepGrid = document.getElementById('bep-grid');
+
         bepGrid.innerHTML = "";
+
         let count = 0;
 
-        const tickets = Object.keys(bepQueue).map(key => ({
-            id: key,
-            ...bepQueue[key]
-        })).sort((a, b) => a.timestamp - b.timestamp);
+        const tickets = Object.keys(bepQueue)
+            .map(key => ({
+                id: key,
+                ...bepQueue[key]
+            }))
+            .sort((a, b) => a.timestamp - b.timestamp);
 
         tickets.forEach(ticket => {
+
             count++;
+
             const items = ticket.items || [];
-            const isDone = ticket.isDoneByChef === true; // Trạng thái bếp đã làm xong
+            const isDone = ticket.isDoneByChef === true;
+
+            /* =========================
+               ITEMS HTML
+            ========================= */
 
             let itemsHtml = items.map(i => {
-                const ghiChu = i.note ? `<div style="color:#d32f2f; font-size:13px; font-weight:bold; font-style:italic; margin-top:2px;">⚠️ Ghi chú: ${i.note}</div>` : "";
-                return `
-                <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #ccc; opacity: ${isDone ? '0.5' : '1'}">
-                    <div style="text-align:left; flex:1;">
-                        <b style="font-size:18px; color:#333;">${i.ten}</b>
-                        ${ghiChu}
+
+                const ghiChu = i.note
+                    ? `
+                    <div style="
+                        margin-top:6px;
+                        background:#fef2f2;
+                        border:1px solid #fecaca;
+                        color:#dc2626;
+                        padding:6px 8px;
+                        border-radius:10px;
+                        font-size:12px;
+                        font-weight:700;
+                        line-height:1.4;
+                    ">
+                        ⚠️ ${i.note}
                     </div>
-                    <div style="font-size:24px; color:#2e7d32; font-weight:900; margin-left:15px;">x${i.sl}</div>
-                </div>`;
+                    `
+                    : "";
+
+                return `
+                <div style="
+                    display:flex;
+                    gap:12px;
+                    padding:12px 0;
+                    border-bottom:1px dashed #dbe2ea;
+                    opacity:${isDone ? '0.5' : '1'};
+                    align-items:flex-start;
+                ">
+
+                    <!-- ẢNH -->
+                    <div style="
+                        width:74px;
+                        height:74px;
+                        border-radius:16px;
+                        overflow:hidden;
+                        background:#f1f5f9;
+                        flex-shrink:0;
+                        border:1px solid #e2e8f0;
+                        box-shadow:
+                            0 4px 12px rgba(0,0,0,0.06);
+                    ">
+
+                        <img
+                            <img
+    src="${
+        i.img ||
+        'https://i.postimg.cc/cCGKGGNR/Hoa-chau.png'
+    }"
+
+    onerror="
+        this.src='https://i.postimg.cc/cCGKGGNR/Hoa-chau.png'
+    "
+
+    style="
+        width:100%;
+        height:100%;
+        object-fit:cover;
+    "
+/>
+                            style="
+                                width:100%;
+                                height:100%;
+                                object-fit:cover;
+                            "
+                        />
+
+                    </div>
+
+                    <!-- INFO -->
+                    <div style="
+                        flex:1;
+                        min-width:0;
+                    ">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:flex-start;
+                            gap:10px;
+                        ">
+
+                            <!-- TÊN -->
+                            <div style="
+                                font-size:18px;
+                                font-weight:900;
+                                color:#0f172a;
+                                line-height:1.35;
+                            ">
+                                ${i.ten}
+                            </div>
+
+                            <!-- SL -->
+                            <div style="
+                                min-width:44px;
+                                height:44px;
+                                border-radius:14px;
+                                background:${isDone
+                                    ? '#94a3b8'
+                                    : 'linear-gradient(135deg,#22c55e,#16a34a)'};
+                                color:white;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                font-size:18px;
+                                font-weight:900;
+                                box-shadow:
+                                    0 8px 18px rgba(34,197,94,0.28);
+                                flex-shrink:0;
+                            ">
+                                ×${i.sl}
+                            </div>
+
+                        </div>
+
+                        ${ghiChu}
+
+                    </div>
+
+                </div>
+                `;
+
             }).join('');
 
             const startTime = ticket.timestamp || Date.now();
-            const orderTime = new Date(startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-            // Thiết lập nút bấm động
-            const btnBg = isDone ? "#78909c" : "#2e7d32";
-            const btnText = isDone ? "CHỜ PHỤC VỤ BƯNG... ⏳" : "XÁC NHẬN XONG ✅";
-            const btnAction = isDone ? "" : `onclick="xacNhanGiaoMon('${ticket.tableId}')"`;
+            const orderTime = new Date(startTime)
+                .toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+            /* =========================
+               BUTTON
+            ========================= */
+
+            const btnBg = isDone
+                ? "#64748b"
+                : "linear-gradient(135deg,#16a34a,#22c55e)";
+
+            const btnText = isDone
+                ? "CHỜ PHỤC VỤ BƯNG ⏳"
+                : "XÁC NHẬN XONG ✅";
+
+            const btnAction = isDone
+                ? ""
+                : `onclick="xacNhanGiaoMon('${ticket.tableId}')"`;
+
+
+            /* =========================
+               CARD
+            ========================= */
 
             bepGrid.innerHTML += `
-            <div class="order-card-bep card-safe" id="ticket-${ticket.id}" 
-                 style="background:${isDone ? '#f5f5f5' : '#fff'}; border: 2px solid ${isDone ? '#78909c' : 'transparent'}; border-radius:15px; overflow:hidden; display:flex; flex-direction:column; min-height: 250px; height: 100%; transition: 0.3s;">
-                
-                <div class="card-header-pos header-safe" style="padding:10px; display:flex; justify-content:space-between; align-items:center; flex-shrink: 0; background:${isDone ? '#546e7a' : ''}">
+
+            <div 
+                class="order-card-bep card-safe"
+                id="ticket-${ticket.id}"
+
+                style="
+                    background:${isDone ? '#f8fafc' : '#ffffff'};
+                    border:${isDone
+                        ? '2px solid #94a3b8'
+                        : '1px solid #e2e8f0'};
+                    border-radius:24px;
+                    overflow:hidden;
+                    display:flex;
+                    flex-direction:column;
+                    min-height:320px;
+                    height:100%;
+                    transition:0.3s;
+                    box-shadow:
+                        0 10px 30px rgba(15,23,42,0.06),
+                        0 2px 10px rgba(15,23,42,0.04);
+                "
+            >
+
+                <!-- HEADER -->
+                <div
+                    class="card-header-pos header-safe"
+
+                    style="
+                        padding:14px 16px;
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        flex-shrink:0;
+                        background:${isDone
+                            ? 'linear-gradient(135deg,#64748b,#475569)'
+                            : 'linear-gradient(135deg,#0f172a,#1e293b)'};
+                        color:white;
+                    "
+                >
+
                     <div>
-                        <b style="font-size:16px;">${ticket.tableName}</b>
-                        <div style="font-size:10px; opacity:0.8;">🕙 ${orderTime}</div>
+
+                        <div style="
+                            font-size:18px;
+                            font-weight:900;
+                        ">
+                            ${ticket.tableName}
+                        </div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.8;
+                            margin-top:2px;
+                        ">
+                            🕙 ${orderTime}
+                        </div>
+
                     </div>
-                    <div id="timer-${ticket.id}" class="bep-timer" data-start="${startTime}" style="font-family:monospace; font-weight:bold; font-size:18px;">00:00</div>
+
+                    <!-- TIMER -->
+                    <div
+                        id="timer-${ticket.id}"
+                        class="bep-timer"
+                        data-start="${startTime}"
+
+                        style="
+                            font-family:monospace;
+                            font-weight:900;
+                            font-size:20px;
+                            background:rgba(255,255,255,0.12);
+                            padding:8px 12px;
+                            border-radius:12px;
+                            backdrop-filter:blur(8px);
+                        "
+                    >
+                        00:00
+                    </div>
+
                 </div>
 
-                <div style="padding:15px; flex-grow: 1; overflow-y:auto;">
+                <!-- BODY -->
+                <div style="
+                    padding:16px;
+                    flex-grow:1;
+                    overflow-y:auto;
+                ">
                     ${itemsHtml}
                 </div>
 
-                <button ${btnAction} 
-                    style="background:${btnBg}; color:#fff; border:none; padding:15px; font-weight:bold; cursor:${isDone ? 'default' : 'pointer'}; font-size:16px; width: 100%; flex-shrink: 0; margin-top: auto;">
+                <!-- BUTTON -->
+                <button
+                    ${btnAction}
+
+                    style="
+                        background:${btnBg};
+                        color:#fff;
+                        border:none;
+                        padding:16px;
+                        font-weight:900;
+                        cursor:${isDone ? 'default' : 'pointer'};
+                        font-size:15px;
+                        width:100%;
+                        flex-shrink:0;
+                        margin-top:auto;
+                        letter-spacing:0.3px;
+                    "
+                >
                     ${btnText}
                 </button>
-            </div>`;
+
+            </div>
+
+            `;
+
         });
-        
-        document.getElementById('bep-count').innerText = `Phiếu chờ nấu: ${count}`;
+
+        document.getElementById('bep-count').innerText =
+            `Yêu cầu chế biến: ${count}`;
+
     });
 
-    if(window.bepTimer) clearInterval(window.bepTimer);
+    if (window.bepTimer)
+        clearInterval(window.bepTimer);
+
     window.bepTimer = setInterval(updateAllTimers, 1000);
 }
 
@@ -6838,6 +8220,9 @@ function playFlyEffect(e) {
     flyer.style.zIndex = '999999';
     flyer.style.pointerEvents = 'none';
     flyer.style.transition = 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+flyer.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+flyer.style.borderRadius = '18px';
+flyer.style.backgroundColor = '#ffffff'; // Đảm bảo thẻ có nền trắng khi bay
     
     // 3. Tính toán vị trí hiện tại của món ăn trên màn hình
     const rect = originalItem.getBoundingClientRect();
@@ -9921,19 +11306,18 @@ function doiNgonNgu(lang) {
 
 
 /*117.HÀM ĐIỀU PHỐI MỞ CHỨC NĂNG CHÍNH XÁC */
+/*117.HÀM ĐIỀU PHỐI MỞ CHỨC NĂNG CHÍNH XÁC - ĐÃ THÊM CASE HOIVIEN */
 function moChucNangTuSidebar(type) {
     console.log("--- Chuyển mục: " + type + " ---");
 
-    // 1. Tuyệt đối KHÔNG gọi dongSideMenu() hay toggleSidebar() 
-
-    // 2. Dọn dẹp: Ẩn các Modals đang mở (Đã thêm modal-thu-chi)
+    // 1. Dọn dẹp: Ẩn các Modals đang mở
     const dsModal = [
         'modal-quan-ly-nhan-su', 
         'modal-qr-list', 
         'modal-bao-cao-tong', 
-        'modal-hoivien',
+        'modal-hoivien', // Đảm bảo ID này khớp 100% với ID trong HTML
         'modal-kho-hang',
-        'modal-thu-chi', // <-- Thêm ID modal thu chi vào đây
+        'modal-thu-chi',
         'modal-cai-dat'
     ];
     
@@ -9942,36 +11326,55 @@ function moChucNangTuSidebar(type) {
         if (m) m.style.display = 'none';
     });
 
-    // 3. Mở chức năng tương ứng
+    // 2. Mở chức năng tương ứng
     switch (type) {
-        case 'thuchi': // <-- THÊM CASE MỚI Ở ĐÂY
+        case 'hoivien': // <-- THÊM MỚI CASE NÀY
+            const modalHV = document.getElementById('modal-hoivien');
+            if (modalHV) {
+                modalHV.style.display = 'block';
+                // Nếu bạn có hàm render lại danh sách hội viên thì gọi ở đây
+                if (typeof renderHoiVien === 'function') renderHoiVien(); 
+            } else {
+                console.error("Không tìm thấy modal-hoivien trong HTML");
+            }
+            break;
+
+        case 'thuchi':
             const modalThuChi = document.getElementById('modal-thu-chi');
             if (modalThuChi) {
                 modalThuChi.style.display = 'block';
-                if (typeof listenThuChi === 'function') listenThuChi(); // Gọi hàm tải dữ liệu
+                if (typeof listenThuChi === 'function') listenThuChi();
             }
             break;
+
         case 'baocao':
             if (typeof moModalBaoCao === 'function') moModalBaoCao();
             break;
+
         case 'kho':
             if (typeof moKhoHang === 'function') moKhoHang();
             break;
+
         case 'bep':
             if (typeof moManHinhBep === 'function') moManHinhBep();
             break;
+
         case 'qr':
             if (typeof moDanhSachChoQR === 'function') moDanhSachChoQR();
             break;
+
         case 'nhansu':
             if (typeof moQuanLyNhanSu === 'function') moQuanLyNhanSu();
             break;
-        case 'tongquan':
-            console.log("Đã quay lại màn hình Sơ đồ bàn & Đơn hàng");
-            break;
+
         case 'caidat':
             const modalCaiDat = document.getElementById('modal-cai-dat');
             if (modalCaiDat) modalCaiDat.style.display = 'block';
+            break;
+
+        case 'tongquan':
+            // Quay về sơ đồ bàn (thường là ẩn hết modal là thấy sơ đồ bàn)
+            console.log("Đã quay lại màn hình Sơ đồ bàn & Đơn hàng");
             break;
     }
 }
@@ -10549,29 +11952,1019 @@ function toggleCustomDate() {
     document.getElementById('custom-date-group').style.display = (val === 'custom') ? 'flex' : 'none';
 }
 
+function toggleRevCustomDate() {
+    const val = document.getElementById('rev-table-filter-time').value;
+    document.getElementById('rev-custom-date-group').style.display = (val === 'custom') ? 'flex' : 'none';
+}
 
 
-/* 127.CẬP NHẬT ĐIỂM TÍCH LŨY Ở NGOÀI ORDER CHO HỘI VIÊN*/
-// HÀM LẮNG NGHE ĐIỂM SỐ REAL-TIME CHO PROFILE CARD [INDEX]
+/*127.CẬP NHẬT REALTIME HỘI VIÊN*/
 function kichHoatLangNgheDiemKhach(customerId) {
+
     if (!customerId) return;
 
-    // Lắng nghe trực tiếp sự thay đổi tại node members/ID_KHACH [INDEX]
-    db.ref(`members/${customerId}`).on("value", memberSnap => {
-        const v = memberSnap.val() || {};
-        
-        const points = (Number(v.tuy_tam_count) || 0) + (Number(v.tuy_thuong_count) || 0);
+    db.ref(`members/${customerId}`)
+    .on("value", memberSnap => {
 
-        // Tìm thẻ hiển thị điểm tích lũy trong Profile Card và cập nhật số mới
-        // (Dựa theo đoạn mã HTML Profile Card tôi đã hướng dẫn bạn viết trước đó)
-        const pointsEl = document.querySelector("#selected-customer-card b[style*='color: #10b981']");
-        
-        if (pointsEl) {
-            pointsEl.innerText = points; // Cập nhật số điểm mới nhất [INDEX]
-            console.log("🔥 Đã cập nhật điểm Real-time:", points);
-        }
+        const v = memberSnap.val() || {};
+
+        const points =
+            (Number(v.tuy_tam_count) || 0) +
+            (Number(v.tuy_thuong_count) || 0);
+
+        const tableIdx = TABLES.findIndex(
+            t => String(t.customerId) === String(customerId)
+        );
+
+        // 🔥 RENDER FULL CARD MỚI
+        renderCustomerCard(
+            {
+                ...v,
+                points: points
+            },
+
+            tableIdx
+        );
+
+        console.log(
+            "🔥 Realtime customer updated:",
+            points
+        );
+
     });
 }
+
+
+
+/* Hàm hỗ trợ mở nhanh báo cáo từ màn hình Bếp */
+function moChucNhanhBaoCaoTuBep() {
+    // 1. Đóng màn hình bếp trước
+    if (typeof dongManHinhBep === "function") {
+        dongManHinhBep();
+    } else {
+        document.getElementById('modal-bep').style.display = 'none';
+    }
+
+    // 2. Gọi hàm điều phối mở báo cáo (Dùng hàm 117 của bạn)
+    if (typeof moChucNhanTuSidebar === "function") {
+        moChucNhanTuSidebar('baocao');
+    } else {
+        // Nếu không gọi được hàm điều phối, mở trực tiếp modal báo cáo
+        const modalBC = document.getElementById('modal-bao-cao-tong');
+        if (modalBC) modalBC.style.display = 'block';
+    }
+    
+    console.log("🚀 Mở nhanh Báo cáo từ phím tắt Double Click tại Bếp");
+}
+
+
+
+
+let revenueChartInstance = null;
+
+function moModalRevenueTable() {
+    document.getElementById('modal-revenue-by-table').style.display = 'flex';
+    taiBaoCaoDoanhThuTheoBan();
+}
+
+function dongModalRevenueTable() {
+    document.getElementById('modal-revenue-by-table').style.display = 'none';
+}
+
+/* =========================================================
+   BÁO CÁO DOANH THU THEO BÀN - FIX FULL
+========================================================= */
+
+function taiBaoCaoDoanhThuTheoBan() {
+
+    const timeFilter =
+        document.getElementById('rev-table-filter-time').value;
+
+    const startVal =
+        document.getElementById('rev-start-date').value;
+
+    const endVal =
+        document.getElementById('rev-end-date').value;
+
+    db.ref("history_orders").once("value").then(snap => {
+
+        const data = snap.val();
+
+        if (!data) {
+
+            document.getElementById(
+                'revenue-table-list'
+            ).innerHTML = "Chưa có dữ liệu!";
+
+            return;
+        }
+
+        const orders = Object.values(data);
+
+        let tableMap = {};
+
+        let grandTotal = 0;
+
+        let totalOrdersCount = 0;
+
+        /* =========================
+           TIME FILTER
+        ========================= */
+
+        const now = new Date();
+
+        const startOfToday =
+            new Date(
+                now.setHours(0,0,0,0)
+            ).getTime();
+
+        const dayMs =
+            24 * 60 * 60 * 1000;
+
+        let curS = 0;
+        let curE = Date.now();
+
+        let prevS = 0;
+        let prevE = 0;
+
+        if (timeFilter === 'today') {
+
+            curS = startOfToday;
+            curE = Date.now();
+
+            prevS = startOfToday - dayMs;
+            prevE = startOfToday;
+
+        } else if (timeFilter === 'yesterday') {
+
+            curS = startOfToday - dayMs;
+            curE = startOfToday;
+
+            prevS = startOfToday - (dayMs * 2);
+            prevE = startOfToday - dayMs;
+
+        } else if (
+            timeFilter === 'custom'
+            && startVal
+            && endVal
+        ) {
+
+            curS =
+                new Date(startVal)
+                .setHours(0,0,0,0);
+
+            curE =
+                new Date(endVal)
+                .setHours(23,59,59,999);
+
+            let duration = curE - curS;
+
+            prevS = curS - duration;
+            prevE = curS;
+        }
+
+        /* =========================
+           CALC
+        ========================= */
+
+        orders.forEach(order => {
+
+            const t =
+                order.timestamp || 0;
+
+            const money =
+                Number(order.total || 0);
+
+            const tableName =
+                order.tableName || "Bàn ẩn";
+
+            if (t >= curS && t <= curE) {
+
+                if (money <= 0) return;
+
+                if (!tableMap[tableName]) {
+
+                    tableMap[tableName] = {
+                        name: tableName,
+                        total: 0,
+                        count: 0,
+                        totalPrev: 0
+                    };
+                }
+
+                tableMap[tableName].total += money;
+
+                tableMap[tableName].count += 1;
+
+                grandTotal += money;
+
+                totalOrdersCount += 1;
+
+            } else if (
+                t >= prevS
+                && t < prevE
+            ) {
+
+                if (money <= 0) return;
+
+                if (!tableMap[tableName]) {
+
+                    tableMap[tableName] = {
+                        name: tableName,
+                        total: 0,
+                        count: 0,
+                        totalPrev: 0
+                    };
+                }
+
+                tableMap[tableName].totalPrev += money;
+            }
+        });
+
+        /* =========================
+           SORT
+        ========================= */
+
+        const sortedData =
+            Object.values(tableMap)
+
+            .filter(item => item.total > 0)
+
+            .sort((a, b) =>
+                b.total - a.total
+            );
+
+        /* =========================
+           RENDER
+        ========================= */
+
+        const listEl =
+            document.getElementById(
+                'revenue-table-list'
+            );
+
+        const rows = sortedData.map((item, index) => {
+
+            const phanTram =
+                grandTotal > 0
+                ? ((item.total / grandTotal) * 100).toFixed(1)
+                : 0;
+
+            /* =========================
+               TREND
+            ========================= */
+
+            let trend = "";
+
+            let diff = 0;
+
+            if (item.totalPrev > 0) {
+
+                diff =
+                    (
+                        (
+                            (item.total - item.totalPrev)
+                            / item.totalPrev
+                        ) * 100
+                    ).toFixed(1);
+
+            } else {
+
+                diff =
+                    item.total > 0
+                    ? 100
+                    : 0;
+            }
+
+            if (diff > 0) {
+
+                trend = `
+                <span style="
+                    color:#16a34a;
+                    font-weight:800;
+                ">
+                    ↑ ${diff}%
+                </span>
+                `;
+
+            } else if (diff < 0) {
+
+                trend = `
+                <span style="
+                    color:#ef4444;
+                    font-weight:800;
+                ">
+                    ↓ ${Math.abs(diff)}%
+                </span>
+                `;
+
+            } else {
+
+                trend = `
+                <span style="
+                    color:#94a3b8;
+                    font-weight:700;
+                ">
+                    0%
+                </span>
+                `;
+            }
+
+            /* =========================
+               TOP STYLE
+            ========================= */
+
+            let progressColor = "#94a3b8";
+
+            let subTitle =
+                "Hiệu suất trung bình";
+
+            let rankDisplay = "";
+
+            let cardBorder = "#e2e8f0";
+
+            let bgSoft = "#ffffff";
+
+            if (index === 0) {
+
+                progressColor = "#f59e0b";
+
+                cardBorder = "#fbbf24";
+
+                bgSoft =
+                    "linear-gradient(135deg,#fffdf7,#ffffff)";
+
+                subTitle =
+                    "🔥 Hiệu suất vượt trội";
+
+                rankDisplay = `
+
+                <div style="
+                    width:82px;
+                    min-width:82px;
+                    height:96px;
+
+                    border-radius:22px;
+
+                    background:
+                        linear-gradient(
+                            180deg,
+                            #fff7d6 0%,
+                            #fffdf5 100%
+                        );
+
+                    border:1px solid #fde68a;
+
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    justify-content:center;
+
+                    position:relative;
+                ">
+
+                    <div style="
+                        position:absolute;
+                        top:-12px;
+                        font-size:22px;
+                    ">
+                        👑
+                    </div>
+
+                    <div style="
+                        width:46px;
+                        height:46px;
+
+                        border-radius:999px;
+
+                        background:
+                            linear-gradient(
+                                135deg,
+                                #fcd34d,
+                                #f59e0b
+                            );
+
+                        color:white;
+
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+
+                        font-size:22px;
+                        font-weight:900;
+
+                        border:3px solid #fff7ed;
+
+                        box-shadow:
+                            0 6px 14px rgba(245,158,11,0.35);
+                    ">
+                        1
+                    </div>
+
+                    <div style="
+                        margin-top:7px;
+
+                        font-size:10px;
+                        font-weight:900;
+
+                        color:#d97706;
+
+                        letter-spacing:0.5px;
+                    ">
+                        LEADER
+                    </div>
+
+                    <div style="
+                        margin-top:4px;
+
+                        padding:2px 7px;
+
+                        border-radius:999px;
+
+                        border:1px solid #fed7aa;
+
+                        background:#fff;
+
+                        font-size:8px;
+                        font-weight:800;
+
+                        color:#d97706;
+                    ">
+                        TOP TABLE
+                    </div>
+
+                </div>
+                `;
+
+            } else if (index === 1) {
+
+                progressColor = "#3b82f6";
+
+                cardBorder = "#cbd5e1";
+
+                bgSoft =
+                    "linear-gradient(135deg,#f8fbff,#ffffff)";
+
+                subTitle =
+                    "✨ Hiệu suất tốt";
+
+                rankDisplay = `
+
+                <div style="
+                    width:82px;
+                    min-width:82px;
+                    height:96px;
+
+                    border-radius:22px;
+
+                    background:
+                        linear-gradient(
+                            180deg,
+                            #f8fafc 0%,
+                            #ffffff 100%
+                        );
+
+                    border:1px solid #e2e8f0;
+
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    justify-content:center;
+
+                    position:relative;
+                ">
+
+                    <div style="
+                        position:absolute;
+                        top:-12px;
+                        font-size:20px;
+                    ">
+                        🥈
+                    </div>
+
+                    <div style="
+                        width:46px;
+                        height:46px;
+
+                        border-radius:999px;
+
+                        background:
+                            linear-gradient(
+                                135deg,
+                                #e2e8f0,
+                                #94a3b8
+                            );
+
+                        color:white;
+
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+
+                        font-size:22px;
+                        font-weight:900;
+
+                        border:3px solid white;
+
+                        box-shadow:
+                            0 6px 14px rgba(148,163,184,0.35);
+                    ">
+                        2
+                    </div>
+
+                    <div style="
+                        margin-top:7px;
+
+                        font-size:10px;
+                        font-weight:900;
+
+                        color:#475569;
+
+                        letter-spacing:0.5px;
+                    ">
+                        EXCELLENT
+                    </div>
+
+                    <div style="
+                        margin-top:4px;
+
+                        padding:2px 7px;
+
+                        border-radius:999px;
+
+                        border:1px solid #cbd5e1;
+
+                        background:white;
+
+                        font-size:8px;
+                        font-weight:800;
+
+                        color:#475569;
+                    ">
+                        TOP TABLE
+                    </div>
+
+                </div>
+                `;
+
+            } else if (index === 2) {
+
+                progressColor = "#f97316";
+
+                cardBorder = "#fdba74";
+
+                bgSoft =
+                    "linear-gradient(135deg,#fff8f3,#ffffff)";
+
+                subTitle =
+                    "💪 Hiệu suất khá";
+
+                rankDisplay = `
+
+                <div style="
+                    width:82px;
+                    min-width:82px;
+                    height:96px;
+
+                    border-radius:22px;
+
+                    background:
+                        linear-gradient(
+                            180deg,
+                            #fff7ed 0%,
+                            #ffffff 100%
+                        );
+
+                    border:1px solid #fed7aa;
+
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    justify-content:center;
+
+                    position:relative;
+                ">
+
+                    <div style="
+                        position:absolute;
+                        top:-12px;
+                        font-size:20px;
+                    ">
+                        🥉
+                    </div>
+
+                    <div style="
+                        width:46px;
+                        height:46px;
+
+                        border-radius:999px;
+
+                        background:
+                            linear-gradient(
+                                135deg,
+                                #fdba74,
+                                #f97316
+                            );
+
+                        color:white;
+
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+
+                        font-size:22px;
+                        font-weight:900;
+
+                        border:3px solid white;
+
+                        box-shadow:
+                            0 6px 14px rgba(249,115,22,0.35);
+                    ">
+                        3
+                    </div>
+
+                    <div style="
+                        margin-top:7px;
+
+                        font-size:10px;
+                        font-weight:900;
+
+                        color:#c2410c;
+
+                        letter-spacing:0.5px;
+                    ">
+                        STRONG
+                    </div>
+
+                    <div style="
+                        margin-top:4px;
+
+                        padding:2px 7px;
+
+                        border-radius:999px;
+
+                        border:1px solid #fdba74;
+
+                        background:white;
+
+                        font-size:8px;
+                        font-weight:800;
+
+                        color:#c2410c;
+                    ">
+                        TOP TABLE
+                    </div>
+
+                </div>
+                `;
+
+            } else {
+
+                rankDisplay = `
+
+                <div style="
+                    width:62px;
+                    min-width:62px;
+                    height:62px;
+
+                    border-radius:18px;
+
+                    background:#f8fafc;
+
+                    border:1px solid #e2e8f0;
+
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+
+                    font-size:24px;
+                    font-weight:900;
+
+                    color:#64748b;
+                ">
+                    ${index + 1}
+                </div>
+                `;
+            }
+
+            return `
+
+            <div style="
+                background:${bgSoft};
+
+                border:1px solid ${cardBorder};
+
+                border-left:4px solid ${progressColor};
+
+                border-radius:26px;
+
+                padding:16px 18px;
+
+                display:flex;
+                align-items:center;
+                justify-content:space-between;
+
+                gap:18px;
+
+                margin-bottom:14px;
+
+                box-shadow:
+                    0 6px 20px rgba(15,23,42,0.04);
+            ">
+
+                <!-- LEFT -->
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:16px;
+                    flex:1;
+                ">
+
+                    ${rankDisplay}
+
+                    <!-- INFO -->
+
+                    <div style="
+                        flex:1;
+                    ">
+
+                        <div style="
+                            display:flex;
+                            align-items:center;
+                            gap:6px;
+                        ">
+
+                            <b style="
+                                font-size:15px;
+                                color:#0f172a;
+                            ">
+                                ${item.name}
+                            </b>
+
+                            ${index === 0 ? '👑' : ''}
+
+                        </div>
+
+                        <div style="
+                            margin-top:2px;
+
+                            font-size:10px;
+                            color:#64748b;
+                        ">
+                            ${item.count} đơn hàng phục vụ
+                        </div>
+
+                        <div style="
+                            margin-top:6px;
+
+                            font-size:10px;
+                            font-weight:700;
+
+                            color:${progressColor};
+                        ">
+                            ● ${subTitle}
+                        </div>
+
+                        <!-- PROGRESS -->
+
+                        <div style="
+                            display:flex;
+                            align-items:center;
+                            gap:10px;
+
+                            margin-top:8px;
+                        ">
+
+                            <div style="
+                                flex:1;
+                                height:6px;
+
+                                border-radius:999px;
+
+                                overflow:hidden;
+
+                                background:#e2e8f0;
+                            ">
+
+                                <div style="
+                                    width:${phanTram}%;
+
+                                    height:100%;
+
+                                    border-radius:999px;
+
+                                    background:${progressColor};
+                                "></div>
+
+                            </div>
+
+                            <div style="
+                                font-size:11px;
+                                font-weight:800;
+
+                                color:${progressColor};
+                            ">
+                                ${phanTram}%
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- RIGHT -->
+
+                <div style="
+                    min-width:120px;
+                    text-align:right;
+                ">
+
+                    <div style="
+                        font-size:17px;
+                        font-weight:900;
+
+                        color:#0f172a;
+                    ">
+                        ${item.total.toLocaleString()}đ
+                    </div>
+
+                    <div style="
+                        margin-top:6px;
+
+                        display:inline-flex;
+                        align-items:center;
+                        gap:5px;
+
+                        background:#f8fafc;
+
+                        padding:5px 9px;
+
+                        border-radius:10px;
+
+                        font-size:11px;
+                        font-weight:800;
+
+                        color:${progressColor};
+                    ">
+                        ${phanTram}% doanh thu
+                    </div>
+
+                    <div style="
+                        margin-top:6px;
+
+                        font-size:10px;
+                    ">
+                        ${trend}
+
+                        <span style="
+                            color:#94a3b8;
+                        ">
+                            so với kỳ trước
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- ARROW -->
+
+                <div style="
+                    color:#cbd5e1;
+                    font-size:16px;
+                ">
+                    ❯
+                </div>
+
+            </div>
+            `;
+
+        }).join('');
+
+        listEl.innerHTML =
+            rows ||
+            `
+            <div style="
+                text-align:center;
+                padding:30px;
+                color:#94a3b8;
+            ">
+                Không có dữ liệu
+            </div>
+            `;
+
+        document.getElementById(
+            'rev-total-val'
+        ).innerText =
+            grandTotal.toLocaleString() + "đ";
+
+        document.getElementById(
+            'rev-total-orders'
+        ).innerText =
+            totalOrdersCount;
+
+        if (
+            typeof veBieuDoDoanhThu === "function"
+        ) {
+
+            veBieuDoDoanhThu(sortedData);
+        }
+
+    });
+}
+function veBieuDoDoanhThu(sortedData) {
+    const ctx = document.getElementById('revenuePieChart').getContext('2d');
+    if (window.revenueChartInstance) window.revenueChartInstance.destroy();
+
+    // 1. Chỉ lấy Top 5 bàn đầu, phần còn lại gom vào "Khác"
+    let displayData = sortedData.slice(0, 5);
+    let totalOther = sortedData.slice(5).reduce((sum, item) => sum + item.total, 0);
+    if (totalOther > 0) displayData.push({ name: "Khác", total: totalOther });
+
+    const grandTotal = sortedData.reduce((sum, item) => sum + item.total, 0);
+    const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#a855f7', '#ec4899', '#94a3b8'];
+
+    // 2. Vẽ số ở giữa (Viết tắt triệu M hoặc nghìn K)
+    const shortVal = grandTotal >= 1000000 ? (grandTotal/1000000).toFixed(1) + "M" : (grandTotal/1000).toFixed(0) + "K";
+    document.getElementById('chart-center-val').innerText = shortVal;
+
+    // 3. Khởi tạo Biểu đồ Doughnut
+    window.revenueChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: displayData.map(d => d.name),
+            datasets: [{
+                data: displayData.map(d => d.total),
+                backgroundColor: colors,
+                borderWidth: 0,
+                cutout: '75%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } } // Ẩn legend mặc định để tự vẽ
+        }
+    });
+
+    // 4. Vẽ danh sách chú thích bên phải
+    document.getElementById('chart-legend-list').innerHTML = displayData.map((d, i) => {
+        const percent = grandTotal > 0 ? ((d.total / grandTotal) * 100).toFixed(1) : 0;
+        return `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: ${colors[i]};"></div>
+                <div style="font-size: 12px; font-weight: 700; color: #1e293b;">${d.name}</div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="font-size: 11px; color: #64748b;">${percent}%</div>
+            </div>
+        </div>`;
+    }).join('');
+
+    // 5. Cập nhật thanh tóm tắt Insight
+    if (displayData.length > 0) {
+        const top = displayData[0];
+        const p = ((top.total / grandTotal) * 100).toFixed(1);
+        document.getElementById('chart-summary-text').innerHTML = 
+            `<b>${top.name}</b> đang chiếm <span style="color:#22c55e">${p}%</span> tổng doanh thu`;
+    }
+}
+
+
+/*Hàm tính toán thời gian đối xứng của rank bàn*/
+function getComparePeriod(timeFilter, startVal, endVal) {
+    const now = new Date();
+    const startOfToday = new Date(now.setHours(0,0,0,0)).getTime();
+    const dayMs = 24 * 60 * 60 * 1000;
+
+    let currentRange = { start: 0, end: Date.now() };
+    let previousRange = { start: 0, end: 0 };
+
+    if (timeFilter === 'today') {
+        currentRange = { start: startOfToday, end: Date.now() };
+        previousRange = { start: startOfToday - dayMs, end: startOfToday };
+    } 
+    else if (timeFilter === 'yesterday') {
+        currentRange = { start: startOfToday - dayMs, end: startOfToday };
+        previousRange = { start: startOfToday - (dayMs * 2), end: startOfToday - dayMs };
+    }
+    else if (timeFilter === 'custom' && startVal && endVal) {
+        const s = new Date(startVal).getTime();
+        const e = new Date(endVal).getTime() + dayMs;
+        const duration = e - s;
+        currentRange = { start: s, end: e };
+        previousRange = { start: s - duration, end: s };
+    }
+    // Sếp có thể thêm 'thisMonth' tương tự
+    return { currentRange, previousRange };
+}
+
+
+
+
+
+
 
 
 
@@ -10708,17 +13101,37 @@ function kichHoatLangNgheDiemKhach(customerId) {
     <!-- Khung nội dung chính -->
     <div style="background:#f8fafc; width:100%; height:100%; border-radius:24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column; overflow:hidden; border: 1px solid rgba(255,255,255,0.1); animation: modalZoom 0.3s ease-out;">
         
-        <!-- HEADER -->
-        <div style="padding: 15px 25px; background:#fff; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0;">
-            <h2 style="margin:0; font-size:18px; color:#1e293b; display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-chart-bar" style="color:#3b82f6;"></i> PHÂN TÍCH DOANH THU HỆ THỐNG
-            </h2>
-<!-- Nút mở bảng thời gian trung bình -->
-<button onclick="moModalTimeAverage()" style="background: #f8fafc; color: #1e293b; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 13px; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#f8fafc'">
-    <i class="far fa-clock"></i> Time Average Table
-</button>
-            <button onclick="document.getElementById('modal-bao-cao-tong').style.display='none'" style="background:none; border:none; font-size:24px; color:#94a3b8; cursor:pointer;">&times;</button>
+      <!-- HEADER -->
+<div style="padding: 15px 25px; background:#fff; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #e2e8f0;">
+    
+    <!-- KHỐI BÊN TRÁI: Bao gồm Tiêu đề và Cụm nút -->
+    <div style="display: flex; align-items: center; gap: 20px;"> <!-- gap: 20px là khoảng cách giữa Chữ và Nút -->
+        
+        <h2 style="margin:0; font-size:18px; color:#1e293b; display:flex; align-items:center; gap:8px;">
+            <i class="fas fa-chart-bar" style="color:#3b82f6;"></i> PHÂN TÍCH DOANH THU HỆ THỐNG
+        </h2>
+
+        <!-- Cụm nút (Nằm ngay cạnh tiêu đề) -->
+        <div style="display: flex; gap: 6px; background: #f1f5f9; padding: 4px; border-radius: 12px;">
+            <!-- Nút 1: Time Average -->
+            <button onclick="moModalTimeAverage()" 
+                    style="display: flex; align-items: center; gap: 6px; background: #fff; color: #1e293b; border: none; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: 0.2s;">
+                <span>🕒</span> Time Average
+            </button>
+
+            <!-- Nút 2: Revenue Table -->
+            <button onclick="moModalRevenueTable()" 
+                    style="display: flex; align-items: center; gap: 6px; background: transparent; color: #64748b; border: none; padding: 6px 14px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s;"
+                    onmouseover="this.style.color='#1e293b'" 
+                    onmouseout="this.style.color='#64748b'">
+                <span>💰</span> Revenue Table
+            </button>
         </div>
+    </div>
+
+    <!-- Nút đóng (Vẫn nằm bên phải nhờ justify-content: space-between của Header) -->
+    <button onclick="document.getElementById('modal-bao-cao-tong').style.display='none'" style="background:none; border:none; font-size:24px; color:#94a3b8; cursor:pointer;">&times;</button>
+</div>
 
         <div style="flex:1; overflow-y:auto; padding:20px;" class="custom-scroll">
             <!-- BỘ LỌC (Filter Bar) -->
@@ -11036,13 +13449,22 @@ function kichHoatLangNgheDiemKhach(customerId) {
 <div id="modal-bep" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200000; align-items:center; justify-content:center; backdrop-filter: blur(8px);">
     <div style="background:#f4f4f4; padding:20px; border-radius:15px; width:98%; height:95vh; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position:relative; display:flex; flex-direction:column;">
         
-        <!-- Header -->
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:#fff; padding:15px; border-radius:10px;">
-            <h2 style="margin:0; color:#1b5e20;">👨‍🍳 DANH SÁCH CHẾ BIẾN (BẾP)</h2>
-            <div style="display:flex; gap:15px; align-items:center;">
-                <b id="bep-count" style="background:#d32f2f; color:#fff; padding:5px 15px; border-radius:20px;">Đang chờ: 0</b>
-                <button onclick="dongManHinhBep()" style="border:none; background:#ddd; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold;">ĐÓNG</button>
-            </div>
+       <!-- Header -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:#fff; padding:15px; border-radius:10px; position:relative;"> <!-- Thêm position:relative ở đây -->
+    
+    <!-- 1. Bên trái: Tiêu đề -->
+    <h2 style="margin:0; color:#1b5e20; font-size: 1.2rem;">👨‍🍳 DANH SÁCH CHẾ BIẾN (BẾP)</h2>
+
+    <!-- 2. CHÍNH GIỮA: Số lượng phiếu (Phần bạn muốn) -->
+    <div style="position: absolute; left: 50%; transform: translateX(-50%);">
+        <b id="bep-count" style="background:#d32f2f; color:#fff; padding:8px 20px; border-radius:20px; font-size: 16px; white-space: nowrap; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);">
+            Yêu cầu chế biến: 0
+        </b>
+    </div>
+
+    <!-- 3. Bên phải: Nút đóng -->
+    <button onclick="dongManHinhBep()" style="border:none; background:#eee; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold; color: #555;">ĐÓNG</button>
+</div>
         </div>
 
         <!-- Vùng hiển thị các Order Cards -->
@@ -12441,6 +14863,157 @@ div[style*="display:flex; align-items:center"]:has(#hv-search-input):focus-withi
         </div>
     </div>
 </div>
+
+
+
+
+<!-- MODAL DOANH THU THEO BÀN PREMIUM -->
+<div id="modal-revenue-by-table" style="display:none; position:fixed; inset:0; background:rgba(15, 23, 42, 0.6); z-index:100002; align-items:center; justify-content:center; backdrop-filter: blur(12px);">
+    <div style="background:#ffffff; width:95%; max-width:1100px; border-radius:30px; overflow:hidden; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.3); animation: modalFadeIn 0.4s ease-out;">
+        
+        <!-- Header -->
+        <div style="padding: 25px 40px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.8);">
+          <div style="display: flex; align-items: center; gap: 15px;">
+    <!-- Icon -->
+    <span style="background:#dcfce7; padding:10px; border-radius:12px; display: flex; align-items: center; justify-content: center;">📊</span>
+    
+    <!-- Cụm chữ tiêu đề -->
+    <div style="display: flex; flex-direction: column;">
+        <h3 style="margin:0; font-size:22px; color:#1e293b; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;">
+            PHÂN TÍCH DOANH THU BÀN
+        </h3>
+        <div style="font-size: 13px; color: #64748b; font-weight: 400; margin-top: 2px;">
+            Tổng quan hiệu suất doanh thu theo bàn
+        </div>
+    </div>
+
+
+                
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <select id="rev-table-filter-time" class="filter-control" onchange="toggleRevCustomDate(); taiBaoCaoDoanhThuTheoBan();" 
+                            style="padding:10px 15px; border-radius:12px; border:1px solid #e2e8f0; font-size: 14px; font-weight:600; color:#475569; outline:none; transition:0.3s;">
+                        <option value="today">Hôm nay</option>
+                        <option value="yesterday">Hôm qua</option>
+                        <option value="custom">Khoảng ngày tùy chỉnh</option>
+                    </select>
+
+                    <div id="rev-custom-date-group" style="display:none; gap:8px; align-items:center; background:#f8fafc; padding:5px 12px; border-radius:12px; border:1px solid #e2e8f0;">
+                        <input type="date" id="rev-start-date" onchange="taiBaoCaoDoanhThuTheoBan()" class="filter-control" style="border:none; background:transparent; font-size:13px; font-weight:600; outline:none;">
+                        <span style="color:#94a3b8; font-weight:bold;">→</span>
+                        <input type="date" id="rev-end-date" onchange="taiBaoCaoDoanhThuTheoBan()" class="filter-control" style="border:none; background:transparent; font-size:13px; font-weight:600; outline:none;">
+                    </div>
+                </div>
+            </div>
+            <button onclick="dongModalRevenueTable()" class="btn-close-modal" style="border:none; background:#f1f5f9; width:40px; height:40px; border-radius:50%; cursor:pointer; font-size:24px; transition:0.3s; display:flex; align-items:center; justify-content:center;">&times;</button>
+        </div>
+
+        <!-- Body -->
+        <div style="display: flex; padding: 30px; gap: 35px; max-height: 75vh; overflow-y: auto;">
+            
+            <!-- Cột Trái -->
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <div style="font-size: 11px; color: #94a3b8; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1.5px; padding-left: 10px;">
+                    🏆 Bảng xếp hạng hiệu quả
+                </div>
+                <div id="revenue-table-list" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- JS sẽ render các div class="revenue-card-item" vào đây -->
+                </div>
+            </div>
+
+           <!-- Cột Phải: Phân tích trực quan & Chú thích -->
+<div style="flex: 1.5; display: flex; flex-direction: column; gap: 20px;">
+    
+    <!-- Vùng Biểu đồ & Chú thích -->
+    <div style="background: #fff; border-radius: 24px; padding: 25px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <div style="font-size: 11px; color: #94a3b8; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1.5px;">
+            📊 TỶ TRỌNG DOANH THU THEO BÀN
+        </div>
+        
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <!-- Biểu đồ có chữ ở giữa -->
+            <div style="position: relative; width: 220px; height: 220px; flex-shrink: 0;">
+                <canvas id="revenuePieChart"></canvas>
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                    <div id="chart-center-val" style="font-size: 22px; font-weight: 900; color: #1e293b; line-height: 1;">0đ</div>
+                    <div style="font-size: 9px; color: #94a3b8; font-weight: 700; text-transform: uppercase; margin-top: 5px;">Tổng cộng</div>
+                </div>
+            </div>
+
+            <!-- Danh sách chú thích bên phải biểu đồ -->
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+                <div style="font-size: 11px; font-weight: 800; color: #475569; margin-bottom: 5px; border-bottom: 1px solid #f1f5f9; padding-bottom: 5px;">TOP DOANH THU</div>
+                <div id="chart-legend-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- JS sẽ render danh sách vào đây -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Thanh tóm tắt bên dưới biểu đồ -->
+        <div id="chart-summary-bar" style="margin-top: 20px; background: #f0fdf4; padding: 12px 15px; border-radius: 14px; display: flex; align-items: center; gap: 12px; border: 1px solid #dcfce7;">
+            <div style="background: #22c55e; color: white; width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px;">📈</div>
+            <div id="chart-summary-text" style="font-size: 13px; color: #166534; font-weight: 600;">
+                Đang tổng hợp dữ liệu...
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê tổng: Phong cách Dashboard Hiện Đại -->
+<div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 25px; border-radius: 24px; color: white; box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.4); margin-top: 20px;">
+    <div style="display: flex; justify-content: space-around; align-items: center; gap: 15px;">
+        
+        <!-- Cụm Tổng Lượt Đơn -->
+        <div style="display: flex; align-items: center; gap: 15px; flex: 1;">
+            <!-- Icon Lượt Đơn (Xanh lá - Gradient) -->
+            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 8px 15px rgba(34, 197, 94, 0.3); flex-shrink: 0;">
+                📋
+            </div>
+            <div>
+                <div style="font-size: 11px; opacity: 0.6; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Tổng lượt đơn</div>
+                <div id="rev-total-orders" style="font-size: 26px; font-weight: 800; font-family: 'Segoe UI', sans-serif;">0</div>
+            </div>
+        </div>
+
+        <!-- Thanh ngăn cách dọc -->
+        <div style="width: 1px; height: 45px; background: rgba(255,255,255,0.1);"></div>
+
+        <!-- Cụm Tổng Doanh Thu -->
+        <div style="display: flex; align-items: center; gap: 15px; flex: 1.2; padding-left: 15px;">
+            <!-- Icon Doanh Thu (Xanh biển/Lá nhạt - Gradient) -->
+            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 8px 15px rgba(16, 185, 129, 0.3); flex-shrink: 0;">
+                💵
+            </div>
+            <div>
+                <div style="font-size: 11px; opacity: 0.6; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Tổng doanh thu</div>
+                <div id="rev-total-val" style="font-size: 26px; font-weight: 800; color: #4ade80; font-family: 'Segoe UI', sans-serif;">0đ</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 </body>
