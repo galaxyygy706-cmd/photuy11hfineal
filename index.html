@@ -2,8 +2,25 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- viewport-fit=cover: cho phép dùng env(safe-area-inset-*) trên iPhone tai thỏ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Phở Túy POS PRO - Full Features</title>
+
+    <!-- ==================== KHAI BÁO PWA (CÀI ĐẶT NHƯ APP THẬT) ==================== -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#d32f2f">
+    <meta name="description" content="Phần mềm quản lý bán hàng Phở Túy 11h - Sơ đồ bàn, thực đơn, chi tiết đơn.">
+
+    <!-- iOS: Safari không đọc manifest, phải khai báo riêng -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Phở Túy">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- Icon trên thanh tab trình duyệt -->
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 
     <style>
 
@@ -1472,7 +1489,7 @@ body {
 <div class="left" style="background: #f8f9fa;"> <!-- Đổi nền xám nhẹ cho toàn cột -->
     
    <!-- 1. PHẦN LOGO & THÔNG TIN QUÁN (HEADER) - CLICK ĐỂ MỞ SIDEBAR -->
-<div onclick="toggleSideMenu()" style="display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #eee; cursor: pointer;" title="Mở menu hệ thống">
+<div id="store-header" onclick="toggleSideMenu()" style="display: flex; align-items: center; gap: 12px; padding: 10px 0; margin-bottom: 15px; border-bottom: 1px solid #eee; cursor: pointer;" title="Mở menu hệ thống">
     
     <!-- LOGO ICON -->
     <div style="width: 45px; height: 45px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
@@ -1579,7 +1596,7 @@ body {
 </div>
 
 <!-- 4. THẺ NHÂN VIÊN (ẤN VÀO ĐỂ ĐỔI ĐẠI SỨ) -->
-<div onclick="moModalDoiNgu()" style="margin-top: 20px; margin-bottom: 20px; padding: 12px; background: #fff; border-radius: 12px; border: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;">
+<div id="main-staff-card" onclick="moModalDoiNgu()" style="margin-top: 20px; margin-bottom: 20px; padding: 12px; background: #fff; border-radius: 12px; border: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer;">
 
     <!-- LEFT: AVATAR + INFO -->
     <div style="display: flex; align-items: center; gap: 12px;">
@@ -2397,8 +2414,10 @@ html, body {
     #menu-column.center {
         /* Giúp hiệu ứng trượt mượt như trên iPhone */
         will-change: transform;
-        /* Ngăn việc vuốt lá sớ làm cuộn trang web ở dưới */
-        touch-action: none; 
+        /* Cho phép vuốt CUỘN DỌC bên trong lá sớ (danh sách món / danh sách đơn),
+           nhưng vẫn chặn cuộn ngang và pull-to-refresh của trang nền.
+           Trước đây để 'none' khiến không cuộn được menu bằng ngón tay. */
+        touch-action: pan-y;
     }
 }
 
@@ -3807,6 +3826,97 @@ div[style*="display:flex; align-items:center"]:has(#hv-search-input):focus-withi
 
 
 <script src="app.js"></script>
+
+<!-- ============================================================================
+     ĐĂNG KÝ SERVICE WORKER (PWA)
+     ----------------------------------------------------------------------------
+     - Giúp app mở nhanh và vẫn mở được khi mạng chập chờn.
+     - KHÔNG tự động tải lại trang khi có bản mới: chỉ hiện thông báo nhỏ để nhân
+       viên tự bấm, tránh mất đơn đang gõ dở giữa ca.
+     - Chỉ chạy trên https:// hoặc localhost. Mở file trực tiếp (file://) sẽ bỏ qua.
+     ========================================================================== -->
+<script>
+(function () {
+    if (!('serviceWorker' in navigator)) return;
+    if (location.protocol === 'file:') {
+        console.info('[PWA] Bỏ qua Service Worker vì đang mở bằng file://. Hãy chạy qua http/https.');
+        return;
+    }
+
+    /* Hiện thanh thông báo "có bản mới" ở đáy màn hình */
+    function hienThongBaoCapNhat(worker) {
+        if (document.getElementById('pwa-update-toast')) return;
+
+        var box = document.createElement('div');
+        box.id = 'pwa-update-toast';
+        box.style.cssText =
+            'position:fixed; left:50%; transform:translateX(-50%);' +
+            'bottom:calc(20px + env(safe-area-inset-bottom));' +
+            'background:#1c2529; color:#fff; padding:12px 16px; border-radius:14px;' +
+            'display:flex; align-items:center; gap:12px; font-size:13px; font-weight:600;' +
+            'box-shadow:0 8px 30px rgba(0,0,0,0.35); z-index:2147483647;' +
+            'font-family:"Segoe UI",Tahoma,sans-serif; max-width:92vw;';
+
+        var text = document.createElement('span');
+        text.textContent = '🔄 Đã có bản cập nhật mới';
+
+        var btn = document.createElement('button');
+        btn.textContent = 'Tải lại';
+        btn.style.cssText =
+            'background:#d32f2f; color:#fff; border:none; border-radius:10px;' +
+            'padding:8px 14px; font-weight:bold; font-size:13px; cursor:pointer;';
+        btn.onclick = function () {
+            btn.disabled = true;
+            btn.textContent = 'Đang tải...';
+            worker.postMessage({ type: 'SKIP_WAITING' });
+        };
+
+        var close = document.createElement('span');
+        close.textContent = '✕';
+        close.style.cssText = 'cursor:pointer; opacity:0.6; padding:0 4px;';
+        close.onclick = function () { box.remove(); };
+
+        box.appendChild(text);
+        box.appendChild(btn);
+        box.appendChild(close);
+        document.body.appendChild(box);
+    }
+
+    /* Khi Service Worker mới tiếp quản -> tải lại đúng 1 lần */
+    var dangTaiLai = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (dangTaiLai) return;
+        dangTaiLai = true;
+        location.reload();
+    });
+
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js')
+            .then(function (reg) {
+                /* Trường hợp bản mới đã tải xong từ lần trước, đang chờ */
+                if (reg.waiting && navigator.serviceWorker.controller) {
+                    hienThongBaoCapNhat(reg.waiting);
+                }
+
+                reg.addEventListener('updatefound', function () {
+                    var sw = reg.installing;
+                    if (!sw) return;
+                    sw.addEventListener('statechange', function () {
+                        /* installed + đã có controller = đây là BẢN CẬP NHẬT,
+                           không phải lần cài đầu tiên */
+                        if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+                            hienThongBaoCapNhat(sw);
+                        }
+                    });
+                });
+            })
+            .catch(function (err) {
+                /* Lỗi đăng ký không được làm chết app bán hàng */
+                console.warn('[PWA] Không đăng ký được Service Worker:', err);
+            });
+    });
+})();
+</script>
 <style id="responsive-optimization-v2">
 /* ============================================================
    TỐI ƯU RESPONSIVE CHO WEB / IPAD / MOBILE
@@ -3908,6 +4018,146 @@ img, canvas, svg { max-width: 100%; }
 @media (max-width: 380px) {
     div[style*="repeat(2, 1fr)"] {
         grid-template-columns: 1fr !important;
+    }
+}
+
+/* ============================================================================
+   GIAO DIỆN ĐIỆN THOẠI RÚT GỌN (≤768px)
+   ----------------------------------------------------------------------------
+   Mục tiêu: trên điện thoại CHỈ hiển thị 3 thứ
+       1. SƠ ĐỒ BÀN     (cột trái, phủ toàn màn hình)
+       2. CHI TIẾT ĐƠN  (lá sớ trượt từ dưới lên)
+       3. THỰC ĐƠN      (lá sớ trượt từ dưới lên)
+   Mọi thứ khác được ẩn đi. Riêng thanh header tên quán được GIỮ LẠI (thu gọn)
+   vì đó là lối duy nhất mở sidebar để đăng nhập / đăng xuất / vào quản trị.
+
+   Block này đặt CUỐI thẻ <style> để ghi đè các rule phía trên.
+   Không ảnh hưởng máy tính bảng (769px - 1024px) và máy tính (>1024px).
+   ========================================================================== */
+@media (max-width: 768px) {
+
+    /* ---------- 1. ẨN CÁC THÀNH PHẦN KHÔNG THUỘC 3 KHỐI CHÍNH ---------- */
+
+    /* Cụm nút tròn nổi góc phải (Báo cáo / Kho / Hội viên / Bếp / Thông báo).
+       Các chức năng này vào bằng sidebar khi cần. */
+    .fab-wrapper,
+    .floating-history-btn {
+        display: none !important;
+    }
+
+    /* Thẻ nhân viên ở đáy cột trái (đổi đại sứ / đăng xuất)
+       -> đã có sẵn trong sidebar, bỏ ở đây cho gọn màn hình */
+    #main-staff-card {
+        display: none !important;
+    }
+
+    /* Thanh tab chỉ có đúng 1 nút "SƠ ĐỒ BÀN" -> thừa trên màn hình nhỏ */
+    .left .tab-headers {
+        display: none !important;
+    }
+
+    /* ---------- 2. THU GỌN HEADER TÊN QUÁN (GIỮ LẠI - LỐI VÀO SIDEBAR) ---------- */
+
+    #store-header {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 50 !important;
+        background: #f8f9fa !important;
+        padding: 6px 0 8px 0 !important;
+        margin-bottom: 8px !important;
+        gap: 8px !important;
+    }
+
+    /* Dòng địa chỉ dài làm vỡ hàng trên máy nhỏ */
+    #store-header h2 + div {
+        display: none !important;
+    }
+
+    #store-header h2 {
+        font-size: 15px !important;
+    }
+
+    /* Logo nhỏ lại */
+    #store-header > div:first-child {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 18px !important;
+    }
+
+    /* Trạng thái mở cửa: chữ nhỏ, không chiếm chỗ */
+    #store-status,
+    #store-time-text {
+        font-size: 11px !important;
+    }
+
+    /* Dấu hiệu cho biết chạm vào header sẽ mở menu hệ thống */
+    #store-header::after {
+        content: "☰";
+        font-size: 20px;
+        color: #999;
+        padding-left: 4px;
+        align-self: center;
+    }
+
+    /* ---------- 3. CỘT SƠ ĐỒ BÀN CHIẾM TRỌN MÀN HÌNH ---------- */
+
+    /* 100dvh thay cho 100vh: tránh bị thanh địa chỉ trình duyệt cắt mất đáy */
+    .left {
+        height: 100dvh !important;
+        padding: 10px 12px 0 12px !important;
+        overflow: hidden !important;
+    }
+
+    /* Chừa chỗ cho 2 lá sớ ló ra ở đáy (~110px) + vùng an toàn iPhone */
+    #tab-so-do {
+        padding-bottom: calc(140px + env(safe-area-inset-bottom)) !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Ô bàn: nhiều cột hơn, mỗi ô to vừa ngón tay */
+    #table-grid, #bar-grid {
+        grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)) !important;
+        gap: 10px !important;
+        padding: 8px 0 !important;
+    }
+
+    /* Bỏ chiều rộng cố định 90px để ô bàn lấp đầy ô lưới */
+    .table-card {
+        width: 100% !important;
+        height: 58px !important;
+    }
+
+    /* ---------- 4. HAI LÁ SỚ (THỰC ĐƠN + CHI TIẾT ĐƠN) ---------- */
+
+    #order-column.right,
+    #menu-column.center {
+        height: 85dvh !important;
+        /* Đệm đáy cho iPhone có thanh gạt Home */
+        padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    /* Phần ló ra khi đóng: cộng thêm vùng an toàn để tiêu đề luôn bấm được */
+    #order-column.right {
+        transform: translateY(calc(100% - 65px - env(safe-area-inset-bottom))) !important;
+    }
+
+    #menu-column.center {
+        transform: translateY(calc(100% - 45px - env(safe-area-inset-bottom))) !important;
+    }
+
+    /* Khi mở ra thì trượt lên hết (giữ nguyên hành vi cũ) */
+    #order-column.right.mo-ra,
+    #menu-column.center.mo-ra {
+        transform: translateY(0) !important;
+    }
+
+    /* Marquee địa chỉ trong header thực đơn -> bỏ cho đỡ rối */
+    #menu-trigger marquee {
+        display: none !important;
+    }
+
+    #menu-trigger h2 {
+        font-size: 15px !important;
     }
 }
 </style>
