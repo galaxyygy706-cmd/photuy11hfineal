@@ -26,15 +26,30 @@ window.addEventListener('DOMContentLoaded', () => {
         moModalDoiNgu();
     }
 });
-/*1.PHÂN QUYỀN*/
-const HE_THONG_QUYEN = {
-    "ADMIN": ["full_control", "manage_staff", "view_history", "edit_menu", "delete_order"],
-    "Đại sứ Minh Bạch": ["payment", "order", "view_history", "print_bill"], // Thu ngân
-    "Đại sứ Ngoại Giao": ["order", "print_kitchen", "view_table"],         // Phục vụ
-    "Đại sứ Hương Vị": ["view_kitchen", "confirm_done"],                 // Đầu bếp
-    "Đại sứ Đón Tiếp": ["view_table", "status_check"],                   // Bảo vệ
-    "Đại sứ Sạch Sẽ": ["clear_table_status"]                             // Vệ sinh
+
+/*1.PHÂN QUYỀN — BẢNG QUYỀN DUY NHẤT CỦA TOÀN APP.
+  Trước đây có 2 bảng khác nhau (HE_THONG_QUYEN ở đây và PHAN_QUYEN định nghĩa
+  lại bên trong chonDaiSu()) không đồng bộ với nhau, bảng này chỉ khai báo mà
+  không hàm nào đọc. Đã gộp lại làm MỘT, và đây là nguồn duy nhất được đọc bởi
+  coQuyen() ở khu vực đăng nhập (~chonDaiSu). Không tạo bảng quyền cục bộ nào
+  khác — mọi permission mới phải khai báo ở đây. */
+const PERMISSIONS_BY_ROLE = {
+    "Đại sứ Minh Bạch": ["full_control"],                                          // Thu ngân
+    "Đại sứ Ngoại Giao": ["order", "print", "print_kitchen", "view_table", "payment", "discount"], // Phục vụ
+    "Đại sứ Hương Vị": ["view_kitchen", "confirm_done", "order", "print"],          // Đầu bếp
+    "Đại sứ Đón Tiếp": ["view_table", "status_check"],                             // Bảo vệ
+    "Đại sứ Sạch Sẽ": ["clear_table", "clear_table_status"]                        // Vệ sinh
 };
+
+// Người dùng đang đăng nhập — nguồn duy nhất, không đọc lại tên/vai trò từ DOM.
+let currentUser = null; // { id, ten, vaiTro, capDo, quyen: string[] }
+
+// Kiểm tra quyền của người đang đăng nhập. capDo "ADMIN" luôn có full_control
+// (gán trong chonDaiSu() khi build currentUser.quyen), bất kể vaiTro là gì.
+function coQuyen(quyen) {
+    if (!currentUser || !Array.isArray(currentUser.quyen)) return false;
+    return currentUser.quyen.includes("full_control") || currentUser.quyen.includes(quyen);
+}
 
 const BANG_LUONG = {
     "Bếp trưởng": 12000000,
@@ -653,27 +668,21 @@ function switchTabKho(tab, element) {
 
 /*10.XÓA LỊCH SỬ KHO*/
 function xoaLichSu() {
-    // 1. Thiết lập mật khẩu admin của bạn ở đây
-    const ADMIN_PASSWORD = "123"; 
+    // Trước đây dùng mật khẩu ẩn "123" tách biệt hệ thống đăng nhập chính -> gộp về
+    // chung 1 hệ thống quyền canonical (coQuyen), chỉ full_control (Admin/Thu ngân) được xoá.
+    if (!coQuyen("full_control")) {
+        alert("⛔ Chức năng này chỉ dành cho Admin/Thu ngân.");
+        return;
+    }
 
-    // 2. Hỏi mật khẩu trước khi cho phép xóa
-    const password = prompt("Chức năng này chỉ dành cho Admin. Vui lòng nhập mật khẩu xác nhận:");
-
-    if (password === null) return; // Người dùng bấm Hủy
-
-    if (password === ADMIN_PASSWORD) {
-        // Nếu đúng mật khẩu thì mới hỏi xác nhận lần cuối
-        if (confirm("XÁC NHẬN QUAN TRỌNG: Bạn có chắc chắn muốn xóa toàn bộ Nhật ký biến động kho không? Hành động này không thể hoàn tác!")) {
-            db.ref("lich_su_kho").remove()
-                .then(() => {
-                    alert("✅ Đã xóa sạch nhật ký kho.");
-                })
-                .catch((error) => {
-                    alert("❌ Lỗi khi xóa: " + error.message);
-                });
-        }
-    } else {
-        alert("⚠️ Sai mật khẩu! Bạn không có quyền thực hiện chức năng này.");
+    if (confirm("XÁC NHẬN QUAN TRỌNG: Bạn có chắc chắn muốn xóa toàn bộ Nhật ký biến động kho không? Hành động này không thể hoàn tác!")) {
+        db.ref("lich_su_kho").remove()
+            .then(() => {
+                alert("✅ Đã xóa sạch nhật ký kho.");
+            })
+            .catch((error) => {
+                alert("❌ Lỗi khi xóa: " + error.message);
+            });
     }
 }
 
@@ -1309,6 +1318,7 @@ function tinhKpiHoiVien() {
 
 /*12.xóa hội viên*/
 function xoaHoiVien(id) {
+    if (!coQuyen("manage_member")) { alert("⛔ Bạn không có quyền xoá hội viên!"); return; }
     if (!id) return;
 
     // 1. Lấy tên khách để xác nhận xóa cho chắc chắn
@@ -3133,6 +3143,7 @@ loadLichSuChiTieu();
 
 /*27.XÓA CHI TIÊU*/
 function xoaChiTieu(id) {
+    if (!coQuyen("manage_expense")) { alert("⛔ Bạn không có quyền xoá khoản chi!"); return; }
     if (confirm("Bạn có chắc chắn muốn xóa khoản chi này?")) {
         db.ref("expenses/" + id).remove();
     }
@@ -3889,7 +3900,10 @@ window.huyChonKhachVaoBan = function(tableIdx) {
 };
 
 /*35.XÓA HV*/
-function xoaHV(id) { if(confirm("Xóa?")) db.ref("hoivien/"+id).remove(); }
+function xoaHV(id) {
+    if (!coQuyen("manage_member")) { alert("⛔ Bạn không có quyền xoá hội viên!"); return; }
+    if (confirm("Xóa?")) db.ref("hoivien/"+id).remove();
+}
 
 /*36.SƯA KHO*/
 function editKho(i, v) { KHO[i].ton += v; db.ref("kho").set(KHO); }
@@ -4109,6 +4123,7 @@ function getMoTa(mon) {
 
 /*42.XÓA MÓN*/
 function xoaMon(index) {
+    if (!coQuyen("order")) { alert("⛔ Bạn không có quyền sửa đơn hàng!"); return; }
     if (!currentTableId) return;
 
     db.ref("orders/" + currentTableId).once("value").then(s => {
@@ -4533,6 +4548,7 @@ function apDungGiamGia() {
 }
 /*54.XÓA GIẢM GIÁ*/
 function xoaGiamGia() {
+    if (!coQuyen("discount")) { alert("⛔ Bạn không có quyền xoá giảm giá!"); return; }
     currentDiscountPercent = 0;
     document.getElementById("coupon-select").value = "0";
     db.ref("orders/" + currentTableId).once("value").then(s => {
@@ -5138,6 +5154,7 @@ function xemLichSuKhach(cid, name) {
 
 /*60.MODAL BÁO CÁO*/
 function moModalBaoCao() {
+    if (!coQuyen("view_history")) { alert("⛔ Bạn không có quyền xem báo cáo doanh thu!"); return; }
     document.getElementById('modal-bao-cao-tong').style.display = 'flex';
     
     // Tự động chọn ngày hôm nay nếu chưa chọn
@@ -6679,7 +6696,7 @@ function xuLyDangNhap(ten) {
         
         // Gọi hàm phân quyền cho Admin
         if (typeof chonDaiSu === "function") {
-            chonDaiSu("Đại sứ Minh Bạch", "Quản trị viên", "https://placeholder.com", "Cả ngày");
+            chonDaiSu("Đại sứ Minh Bạch", "Quản trị viên", "https://placeholder.com", "Cả ngày", "ADMIN", "master-admin");
         }
         return;
     }
@@ -6716,7 +6733,7 @@ function xuLyDangNhap(ten) {
         if (nv) {
             if (String(uInput) === String(nv.username) && String(pInput) === String(nv.password)) {
                 firebase.database().ref('NhanSu/' + idFirebase).update({ isOnline: true });
-                chonDaiSu(nv.vaiTro, nv.ten, nv.avatarUrl, nv.ca);
+                chonDaiSu(nv.vaiTro, nv.ten, nv.avatarUrl, nv.ca, nv.capDo, idFirebase);
                 alert(`🎉 Chào mừng Đại sứ ${nv.ten} đã vào ca!`);
             } else {
                 alert("❌ Sai tài khoản hoặc mật khẩu!");
@@ -6731,7 +6748,7 @@ function xuLyDangNhap(ten) {
 }
 
 /*86.CHỌN ĐẠI SỨ (PHIÊN BẢN PREMIUM)*/
-function chonDaiSu(vaiTro, ten, avatarUrl, ca) {
+function chonDaiSu(vaiTro, ten, avatarUrl, ca, capDo, id) {
     // 1. CẬP NHẬT GIAO DIỆN HỒ SƠ (Profile Card)
     // Cập nhật text
     if(document.getElementById('main-staff-role')) {
@@ -6757,17 +6774,17 @@ function chonDaiSu(vaiTro, ten, avatarUrl, ca) {
     }
 
     // 3. LOGIC PHÂN QUYỀN & MỞ KHÓA
-    daDangNhap = true; 
-    const PHAN_QUYEN = {
-        "Đại sứ Đón Tiếp": [],
-        "Đại sứ Hương Vị": ["order", "print"],
-        "Đại sứ Ngoại Giao": ["order", "print", "payment", "discount"],
-        "Đại sứ Sạch Sẽ": ["clear_table"],
-        "Đại sứ Minh Bạch": ["full_control"]
-    };
+    daDangNhap = true;
 
-    const quyenHienTai = PHAN_QUYEN[vaiTro] || [];
-    const coQuyen = (q) => quyenHienTai.includes("full_control") || quyenHienTai.includes(q);
+    // capDo "ADMIN" luôn full_control bất kể vaiTro; ngược lại tra theo
+    // bảng quyền canonical duy nhất PERMISSIONS_BY_ROLE (đầu file).
+    const quyenHieuLuc = capDo === "ADMIN"
+        ? ["full_control"]
+        : (PERMISSIONS_BY_ROLE[vaiTro] || []);
+
+    // currentUser là nguồn duy nhất cho biết ai đang đăng nhập + quyền gì.
+    // coQuyen() (hàm global đầu file) đọc trực tiếp từ đây.
+    currentUser = { id: id || null, ten, vaiTro, capDo: capDo || "STAFF", quyen: quyenHieuLuc };
 
     // Mở khóa lớp bảo vệ chính
     const wrapper = document.querySelector('.main-wrapper');
@@ -6796,7 +6813,7 @@ function chonDaiSu(vaiTro, ten, avatarUrl, ca) {
     const btnLogout = document.getElementById('btn-logout-main');
     if (btnLogout) {
         btnLogout.style.display = "block";
-        btnLogout.onclick = () => xuLyDangXuat(ten); // Gọi hàm đăng xuất đã viết trước đó
+        btnLogout.onclick = () => dangXuat();
     }
 
     // Đóng Modal chọn đại sứ
@@ -6845,6 +6862,7 @@ function dangXuat() {
     const thucHienThoat = () => {
         // 2. RESET TRẠNG THÁI HỆ THỐNG
         daDangNhap = false;
+        currentUser = null;
 
         // 3. XÓA TOÀN BỘ THÔNG TIN HIỂN THỊ
         if(document.getElementById('main-staff-role')) document.getElementById('main-staff-role').innerText = "---";
@@ -6879,9 +6897,10 @@ function dangXuat() {
     };
 
     // LOGIC CẬP NHẬT FIREBASE TRƯỚC KHI THOÁT
+    // Ưu tiên currentUser.id (đáng tin hơn) thay vì suy ra ID từ tên hiển thị trên DOM
     if (tenNhanVien && tenNhanVien !== "Chưa đăng nhập") {
-        const idFirebase = tenNhanVien.replace(/\s+/g, '_');
-        firebase.database().ref('NhanSu/' + idFirebase).update({ 
+        const idFirebase = (currentUser && currentUser.id) || tenNhanVien.replace(/\s+/g, '_');
+        firebase.database().ref('NhanSu/' + idFirebase).update({
             isOnline: false 
         }).then(() => {
             thucHienThoat();
@@ -7028,11 +7047,21 @@ function themNhanSuMoi() {
         alert("⚠️ Vui lòng nhập ít nhất Tên và ID đăng nhập!");
         return;
     }
+    if (!dangSuaId && !pass) {
+        alert("⚠️ Vui lòng đặt mật khẩu cho nhân sự mới!");
+        return;
+    }
 
     // 6. ID NHÂN VIÊN CỐ ĐỊNH
     // Nếu đang sửa => giữ nguyên ID cũ
     // Nếu thêm mới => tạo ID mới
     const id = dangSuaId || ("nv_" + Date.now());
+
+    // Ô mật khẩu để trống khi sửa hồ sơ (không còn tự điền mật khẩu cũ ra màn hình
+    // để tránh lộ mật khẩu người khác) -> nếu để trống thì giữ nguyên mật khẩu cũ,
+    // chỉ ghi đè khi người dùng chủ động nhập mật khẩu mới.
+    const nvDangSua = dangSuaId ? DANH_SACH_NV.find(nv => nv.id === dangSuaId) : null;
+    const matKhauCuoiCung = pass || (nvDangSua ? nvDangSua.password : "");
 
     // 7. Kiểm tra username bị trùng
     const usernameDaTonTai = DANH_SACH_NV.find(nv => 
@@ -7056,7 +7085,7 @@ function themNhanSuMoi() {
         diachi: diachi,
 
         username: user,
-        password: pass,
+        password: matKhauCuoiCung,
         capDo: capDo,
 
         vaiTro: vaiTro,
@@ -7294,7 +7323,9 @@ window.chuanBiSuaNhanSu = function(idNhanVien) {
     setValue('ins-diachi', nv.diachi);
 
     setValue('ins-username', nv.username);
-    setValue('ins-password', nv.password);
+    // Không tự điền mật khẩu cũ ra màn hình (tránh lộ mật khẩu người khác);
+    // để trống ô này = giữ nguyên mật khẩu cũ khi lưu (xem themNhanSuMoi()).
+    setValue('ins-password', '');
 
     setValue('ins-vaitro', nv.vaiTro || "Đại sứ Hương Vị");
 
@@ -7342,6 +7373,7 @@ window.chuanBiSuaNhanSu = function(idNhanVien) {
 
 /*97.XÓA NHÂN VIÊN*/
 function xoaNhanSu(idNhanVien) {
+    if (!coQuyen("manage_staff")) { alert("⛔ Bạn không có quyền xoá nhân sự!"); return; }
 
     // 1. Kiểm tra ID
     if (!idNhanVien) {
@@ -9498,6 +9530,7 @@ function updateChartsAndPercents(dataThu, dataChi) {
 
 /* 124.XÓA THU CHI */
 function xoaThuChi(key) {
+    if (!coQuyen("manage_expense")) { alert("⛔ Bạn không có quyền xoá giao dịch thu chi!"); return; }
     if(confirm("Xóa giao dịch này?")) db.ref("thu_chi/"+key).remove();
 }
 
@@ -9506,6 +9539,7 @@ listenThuChi();
 
 /* 124.XÓA THU CHI */
 async function xoaTC(key) {
+    if (!coQuyen("manage_expense")) { alert("⛔ Bạn không có quyền xoá giao dịch thu chi!"); return; }
     if (confirm("Bạn có chắc chắn muốn xóa giao dịch này không?")) {
         try {
             await db.ref("thu_chi/" + key).remove();
