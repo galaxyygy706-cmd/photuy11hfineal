@@ -6291,8 +6291,10 @@ const menuTrigger = document.getElementById('menu-trigger');
 
 menuTrigger.onclick = function(e) {
     e.stopPropagation(); // Chặn không cho báo lên document
-    menuCol.classList.remove('mo-ra'); // CHỈ hạ chính nó
-    console.log("Đã đóng Menu, Order đứng im nhé!");
+    // Trước đây chỉ .remove('mo-ra') -> lá sớ Thực đơn CHỈ đóng được, không bao giờ
+    // mở được bằng cách chạm vào tiêu đề của chính nó. Đổi sang .toggle() giống hệt
+    // order-trigger để mở/đóng bình thường.
+    menuCol.classList.toggle('mo-ra');
 };
 
 menuCol.onclick = function(e) {
@@ -6332,9 +6334,8 @@ document.addEventListener('click', function (e) {
     // 1. Nếu nhấn trúng tiêu đề MENU (Trigger của Menu)
     if (e.target.closest('#menu-trigger')) {
         e.stopPropagation(); // Chặn đứng sự kiện, không cho lan ra ngoài
-        menuCol.classList.remove('mo-ra'); // CHỈ hạ Menu
-        console.log("Đã đóng Menu - Giữ nguyên Order");
-        return; 
+        menuCol.classList.toggle('mo-ra'); // Mở/đóng Menu, giống hệt xử lý ở order-trigger
+        return;
     }
 
     // 2. Nếu nhấn trúng tiêu đề CHI TIẾT ĐƠN (Trigger của Order)

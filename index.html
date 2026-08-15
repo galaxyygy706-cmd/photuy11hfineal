@@ -4202,6 +4202,19 @@ img, canvas, svg { max-width: 100%; }
         transform: translateY(0) !important;
     }
 
+    /* #order-container (danh sách món đã gọi) dùng flex:1 + overflow-y:auto để tự
+       giãn theo khoảng trống còn lại trong #order-column. Trên desktop cột cao
+       ~880px nên đủ chỗ; trên mobile cột chỉ còn 85dvh, các khối anh em (ô tìm
+       khách, khung tổng tiền/QR, ô mã giảm giá, nút thanh toán...) cộng lại đã
+       gần hết chỗ -> vì #order-container là phần tử flex DUY NHẤT có overflow:auto
+       (khiến kích thước tối thiểu tự động của nó bằng 0), flexbox "hy sinh" đúng nó
+       trước tiên, co gần như về 0 dù nội dung bên trong vẫn render đầy đủ. Ép sàn
+       chiều cao tối thiểu để danh sách món luôn thấy được; #order-column vẫn cuộn
+       dọc bình thường (overflow-y:auto có sẵn) để xem phần còn lại bên dưới. */
+    #order-container {
+        min-height: 220px !important;
+    }
+
     /* Marquee địa chỉ trong header thực đơn -> bỏ cho đỡ rối */
     #menu-trigger marquee {
         display: none !important;
