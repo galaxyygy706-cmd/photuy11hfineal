@@ -2886,7 +2886,7 @@ html, body {
                     </button>
                 </div>
                 
-                <div style="display:flex; padding:12px 20px; background:#f8fafc; color:#64748b; font-size:11px; text-transform:uppercase; font-weight:bold; letter-spacing:1px; border-bottom: 1px solid #e2e8f0;">
+                <div id="nhan-su-list-header" style="display:flex; padding:12px 20px; background:#f8fafc; color:#64748b; font-size:11px; text-transform:uppercase; font-weight:bold; letter-spacing:1px; border-bottom: 1px solid #e2e8f0;">
                     <div style="flex:1;">Hồ sơ đại sứ</div>
                     <div style="width:200px;">Vai trò & Ca làm</div>
                     <div style="width:150px;">Hiệu suất</div>
@@ -3949,6 +3949,10 @@ img, canvas, svg { max-width: 100%; }
         left: 0 !important;
         right: 0 !important;
         padding: 10px !important;
+        /* #modal-cai-dat vốn dùng bottom:80px (khác hẳn bottom:10px của 5 modal còn lại),
+           để hở một khoảng trống lớn phía đáy trên tablet/mobile -> đồng bộ về 10px
+           như các modal quản trị khác, cộng thêm vùng an toàn đáy iPhone */
+        bottom: calc(10px + env(safe-area-inset-bottom)) !important;
     }
 
     #modal-time-average > div,
@@ -3999,6 +4003,27 @@ img, canvas, svg { max-width: 100%; }
         padding: 12px 15px !important;
     }
 
+    /* 5 card thông số báo cáo doanh thu (grid repeat(5,1fr)) chưa có breakpoint riêng
+       -> rút về 2 cột cho vừa màn hình điện thoại */
+    div[style*="repeat(5, 1fr)"] {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Danh sách nhân sự trong #modal-quan-ly-nhan-su: mỗi dòng dùng width:40%/25%/20%/120px
+       cố định trên 1 hàng ngang -> vỡ layout trên điện thoại dọc. Ẩn hàng tiêu đề cột
+       (không còn ý nghĩa khi đã xếp dọc) và xếp mỗi dòng nhân sự thành 1 thẻ dọc. */
+    #nhan-su-list-header {
+        display: none !important;
+    }
+    #nhan-su-list-body > div {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    #nhan-su-list-body > div > div {
+        width: 100% !important;
+        padding-right: 0 !important;
+    }
+
     /* Sidebar trượt: không rộng quá màn hình rất nhỏ (iPhone SE, Zenfone cỡ nhỏ...) */
     #sidebar-den { width: 82vw !important; max-width: 300px; }
 
@@ -4010,13 +4035,39 @@ img, canvas, svg { max-width: 100%; }
         overflow-x: auto;
     }
 
-    /* Tăng vùng bấm cho các nút nhỏ, dễ bấm hơn bằng ngón tay */
-    button { min-height: 34px; }
+    /* Tăng vùng bấm cho các nút nhỏ, dễ bấm hơn bằng ngón tay (khuyến nghị 44px) */
+    button { min-height: 44px; }
+
+    /* Nút tròn/vuông chỉ chứa icon (đóng modal, sửa, xoá, lịch sử, +/-...) thường có
+       width/height cố định 28-36px trong style inline -> ép sàn 44px cho vùng chạm,
+       giữ nguyên icon bên trong không bị phóng to */
+    button[style*="width:28px"], button[style*="width: 28px"],
+    button[style*="width:30px"], button[style*="width: 30px"],
+    button[style*="width:32px"], button[style*="width: 32px"],
+    button[style*="width:34px"], button[style*="width: 34px"],
+    button[style*="width:35px"], button[style*="width: 35px"],
+    button[style*="width:36px"], button[style*="width: 36px"],
+    button[style*="height:28px"], button[style*="height: 28px"],
+    button[style*="height:30px"], button[style*="height: 30px"],
+    button[style*="height:32px"], button[style*="height: 32px"],
+    button[style*="height:34px"], button[style*="height: 34px"],
+    button[style*="height:35px"], button[style*="height: 35px"],
+    button[style*="height:36px"], button[style*="height: 36px"] {
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
 }
 
 /* ---------- ĐIỆN THOẠI RẤT NHỎ (≤380px) ---------- */
 @media (max-width: 380px) {
     div[style*="repeat(2, 1fr)"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Grid 5 cột báo cáo đã rút về 2 cột ở breakpoint 768px -> rút tiếp về 1 cột
+       cho máy siêu nhỏ (chọn theo chuỗi style gốc vì attribute selector không
+       theo được giá trị đã bị !important ghi đè ở breakpoint khác) */
+    div[style*="repeat(5, 1fr)"] {
         grid-template-columns: 1fr !important;
     }
 }
