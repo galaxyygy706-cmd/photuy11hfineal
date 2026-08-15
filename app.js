@@ -167,7 +167,7 @@ const THU_CHI_MASTER = [
 
 
 const firebaseConfig = {
-  apiKey: "YXBpS2V5OiAiQUl6YVN5QXR3cjg3bDRwam5Jbk92TF85VE1rQlJpLXh6a3AyWUdBIiw=",
+  apiKey: "AIzaSyAtwr87l4pjnInOvL_9TMkBRi-xzkp2YGA",
   authDomain: "pho-tuy.firebaseapp.com",
   databaseURL: "https://pho-tuy-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "pho-tuy",
