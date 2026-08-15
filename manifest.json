@@ -1,0 +1,13 @@
+{
+  "name": "Phở Túy Manager",
+  "short_name": "Phở Túy",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#d32f2f",
+  "theme_color": "#d32f2f",
+  "icons": [{
+    "src": "https://flaticon.com",
+    "sizes": "512x512",
+    "type": "image/png"
+  }]
+}
