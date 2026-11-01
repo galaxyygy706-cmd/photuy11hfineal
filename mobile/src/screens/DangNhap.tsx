@@ -7,7 +7,7 @@ function thongDiepLoi(e: unknown): string {
   if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email'].includes(ma))
     return DUNG_EMULATOR
       ? 'Sai tên đăng nhập hoặc mật khẩu. Bản demo dùng: quanly / thungan / phucvu / daubep, mật khẩu 123456.'
-      : 'Sai tên đăng nhập hoặc mật khẩu. Lưu ý: tài khoản demo (quanly, phucvu…) KHÔNG có trên hệ thống thật.';
+      : 'Sai tên đăng nhập hoặc mật khẩu. Dùng đúng tên đăng nhập và mật khẩu như ở app cũ.';
   if (ma === 'auth/too-many-requests') return 'Nhập sai quá nhiều lần. Thử lại sau ít phút.';
   if (ma === 'auth/network-request-failed')
     return DUNG_EMULATOR ? 'Không kết nối được máy chủ demo (Firebase Emulator chưa chạy?).' : 'Không có mạng. Kiểm tra Wi-Fi/4G rồi thử lại.';
@@ -42,7 +42,7 @@ export function DangNhap() {
     <main className="dang-nhap">
       <img src="/m/icons/icon.svg" alt="" className="dang-nhap-logo" />
       <h1>Phở Túy</h1>
-      <p className="mo-ta">Đăng nhập để vào ca</p>
+      <p className="mo-ta">Đăng nhập để vào ca — dùng tài khoản như app cũ</p>
       {/* Cho biết đang nối vào đâu — tài khoản demo chỉ tồn tại ở bản DEMO */}
       <p className={`nhan-moi-truong ${DUNG_EMULATOR ? 'demo' : 'that'}`}>
         {DUNG_EMULATOR ? 'BẢN DEMO · dữ liệu giả trên máy này' : 'HỆ THỐNG THẬT · dữ liệu quán'}
