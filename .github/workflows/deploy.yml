@@ -1,0 +1,51 @@
+# Tự động deploy lên Firebase Hosting (project pho-tuy) mỗi lần push lên nhánh main.
+# - Build app mobile (mobile/ -> m/) vì m/ bị gitignore, không có sẵn trong repo.
+# - Chạy typecheck + test trước; lỗi thì DỪNG, không deploy bản hỏng lên quán.
+# - CHỈ deploy Hosting. Security Rules (database.rules*.json) không bị đụng tới — đổi rules
+#   vẫn phải chạy tay `firebase deploy --only database` sau khi xác nhận (xem CLAUDE.md §6, §8).
+# Cần secret FIREBASE_SERVICE_ACCOUNT_PHO_TUY (JSON khoá dịch vụ) trong Settings → Secrets → Actions.
+name: Deploy Firebase Hosting
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # cho phép bấm chạy tay trong tab Actions
+
+# Hai lần push sát nhau: huỷ lần cũ, chỉ deploy bản mới nhất
+concurrency:
+  group: deploy-hosting
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Cài thư viện app mobile
+        working-directory: mobile
+        run: npm ci
+
+      - name: Kiểm tra kiểu + test
+        working-directory: mobile
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Build app mobile ra m/
+        working-directory: mobile
+        run: npm run build
+
+      - name: Deploy lên Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PHO_TUY }}
+          projectId: pho-tuy
+          channelId: live
