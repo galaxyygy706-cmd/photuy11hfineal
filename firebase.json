@@ -12,6 +12,11 @@
       "*.log",
       "database.rules*.json"
     ],
+    "redirects": [
+      { "source": "/", "destination": "/m/", "type": 302 },
+      { "source": "/index.html", "destination": "/m/", "type": 302 },
+      { "source": "/khach.html", "destination": "/m/khach.html", "type": 302 }
+    ],
     "headers": [
       {
         "comment": "App mobile (/m/): sw.js + index.html luôn lấy bản mới; file trong assets/ có hash trong tên nên cache vĩnh viễn",
