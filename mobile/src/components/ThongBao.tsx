@@ -1,6 +1,6 @@
 /* Toast + hộp xác nhận thay cho alert()/confirm() của app cũ (chặn toàn màn hình, xấu trên mobile). */
 
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 type LoaiToast = 'thanh_cong' | 'loi' | 'thong_tin';
 interface Toast { id: number; noiDung: string; loai: LoaiToast }
@@ -33,6 +33,20 @@ export function ThongBaoProvider({ children }: { children: ReactNode }) {
       ),
     [],
   );
+
+  // Esc / Enter cho hộp xác nhận trên PC. Bắt ở pha capture + preventDefault để Esc
+  // không đóng luôn lá sớ / trang phía sau (xem useNutQuayLai).
+  useEffect(() => {
+    if (!hop) return;
+    const phim = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      hop.tra(false);
+      setHop(null);
+    };
+    window.addEventListener('keydown', phim, true);
+    return () => window.removeEventListener('keydown', phim, true);
+  }, [hop]);
 
   const chay = useCallback<GiaTri['chay']>(
     async (viec, thanhCong) => {

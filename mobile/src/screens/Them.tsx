@@ -7,13 +7,37 @@ import { coQuyen } from '../quyen/phanQuyen';
 import { taoTaiKhoanChoNhanSu } from '../services/taiKhoan';
 import { chamCong } from '../services/quanLy';
 import type { NhanSu, TaiKhoan } from '../types/duLieu';
+import type { NguoiDung } from '../quyen/phanQuyen';
 import { Kho } from './quanly/Kho';
 import { ThuChi } from './quanly/ThuChi';
 import { BaoCao } from './quanly/BaoCao';
 import { HoiVienQL } from './quanly/HoiVienQL';
 import { NhanSuQL } from './quanly/NhanSuQL';
 
-type TrangQL = 'bao_cao' | 'thu_chi' | 'kho' | 'hoi_vien' | 'nhan_su';
+export type TrangQL = 'bao_cao' | 'thu_chi' | 'kho' | 'hoi_vien' | 'nhan_su';
+
+/** Các mục quản lý theo quyền — dùng chung cho tab Thêm (điện thoại) và thanh bên (PC).
+    Ẩn mục chỉ là lớp phụ; mỗi hàm service vẫn tự kiểm tra quyền. */
+export function mucQuanLy(user: NguoiDung): { k: TrangQL; icon: string; ten: string }[] {
+  const ds: [TrangQL, string, string, boolean][] = [
+    ['bao_cao', '📊', 'Báo cáo doanh thu', coQuyen(user, 'view_history')],
+    ['thu_chi', '💰', 'Thu chi', coQuyen(user, 'manage_expense')],
+    ['kho', '📦', 'Kho nguyên liệu', coQuyen(user, 'manage_stock')],
+    ['hoi_vien', '⭐', 'Hội viên', coQuyen(user, 'order') || coQuyen(user, 'manage_member')],
+    ['nhan_su', '🧑‍🍳', 'Nhân sự & chấm công', coQuyen(user, 'manage_staff')],
+  ];
+  return ds.filter(([, , , duoc]) => duoc).map(([k, icon, ten]) => ({ k, icon, ten }));
+}
+
+export function TrangQuanLy({ trang, dong }: { trang: TrangQL; dong: () => void }) {
+  switch (trang) {
+    case 'kho': return <Kho dong={dong} />;
+    case 'thu_chi': return <ThuChi dong={dong} />;
+    case 'bao_cao': return <BaoCao dong={dong} />;
+    case 'hoi_vien': return <HoiVienQL dong={dong} />;
+    case 'nhan_su': return <NhanSuQL dong={dong} />;
+  }
+}
 
 export function Them() {
   const user = useNguoiDung();
@@ -21,16 +45,6 @@ export function Them() {
   const { xacNhan } = useThongBao();
   const [moTaiKhoan, setMoTaiKhoan] = useState(false);
   const [trang, setTrang] = useState<TrangQL | null>(null);
-  const dongTrang = () => setTrang(null);
-
-  // Menu hiện theo quyền (ẩn nút chỉ là lớp phụ — mỗi hàm service vẫn tự kiểm tra quyền)
-  const menu: [TrangQL, string, boolean][] = [
-    ['bao_cao', '📊 Báo cáo doanh thu', coQuyen(user, 'view_history')],
-    ['thu_chi', '💰 Thu chi', coQuyen(user, 'manage_expense')],
-    ['kho', '📦 Kho nguyên liệu', coQuyen(user, 'manage_stock')],
-    ['hoi_vien', '⭐ Hội viên', coQuyen(user, 'order') || coQuyen(user, 'manage_member')],
-    ['nhan_su', '🧑‍🍳 Nhân sự & chấm công', coQuyen(user, 'manage_staff')],
-  ];
 
   return (
     <div className="them">
@@ -47,8 +61,8 @@ export function Them() {
       <ChamCongCuaToi />
 
       <div className="ds-lua-chon">
-        {menu.filter(([, , duoc]) => duoc).map(([k, ten]) => (
-          <button key={k} className="lua-chon" onClick={() => setTrang(k)}>{ten}<span aria-hidden>›</span></button>
+        {mucQuanLy(user).map(({ k, icon, ten }) => (
+          <button key={k} className="lua-chon" onClick={() => setTrang(k)}>{icon} {ten}<span aria-hidden>›</span></button>
         ))}
         {coQuyen(user, 'manage_staff') && (
           <button className="lua-chon" onClick={() => setMoTaiKhoan(true)}>🔑 Tài khoản đăng nhập</button>
@@ -57,14 +71,37 @@ export function Them() {
           if (await xacNhan('Đăng xuất khỏi app?', { nutDongY: 'Đăng xuất', nguyHiem: true })) await dangXuat();
         }}>🚪 Đăng xuất</button>
       </div>
-      <p className="phien-ban">Phở Túy POS mobile · v0.2.0 · <a href="/">mở app cũ</a></p>
+      <p className="phien-ban">Phở Túy POS · v0.3.0</p>
 
       <TaiKhoanNhanVien mo={moTaiKhoan} dong={() => setMoTaiKhoan(false)} />
-      {trang === 'kho' && <Kho dong={dongTrang} />}
-      {trang === 'thu_chi' && <ThuChi dong={dongTrang} />}
-      {trang === 'bao_cao' && <BaoCao dong={dongTrang} />}
-      {trang === 'hoi_vien' && <HoiVienQL dong={dongTrang} />}
-      {trang === 'nhan_su' && <NhanSuQL dong={dongTrang} />}
+      {trang && <TrangQuanLy trang={trang} dong={() => setTrang(null)} />}
+    </div>
+  );
+}
+
+/** Thẻ hồ sơ + chấm công + đăng xuất — dùng ở chân thanh bên PC. */
+export function HoSoNho() {
+  const user = useNguoiDung();
+  const { dangXuat } = useXacThuc();
+  const { xacNhan } = useThongBao();
+  const [moTaiKhoan, setMoTaiKhoan] = useState(false);
+  return (
+    <div className="ho-so-nho">
+      <ChamCongCuaToi />
+      <div className="ho-so-nho-dong">
+        <div className="the-ho-so-anh nho" aria-hidden>{user.ten.charAt(0).toUpperCase()}</div>
+        <div className="ho-so-nho-ten">
+          <b>{user.ten}</b>
+          <span className="phu">{user.vaiTro}</span>
+        </div>
+        {coQuyen(user, 'manage_staff') && (
+          <button className="nut-icon" title="Tài khoản đăng nhập" aria-label="Tài khoản đăng nhập" onClick={() => setMoTaiKhoan(true)}>🔑</button>
+        )}
+        <button className="nut-icon" title="Đăng xuất" aria-label="Đăng xuất" onClick={async () => {
+          if (await xacNhan('Đăng xuất khỏi app?', { nutDongY: 'Đăng xuất', nguyHiem: true })) await dangXuat();
+        }}>🚪</button>
+      </div>
+      <TaiKhoanNhanVien mo={moTaiKhoan} dong={() => setMoTaiKhoan(false)} />
     </div>
   );
 }

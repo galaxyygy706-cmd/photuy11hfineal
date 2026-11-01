@@ -4,6 +4,7 @@ import { LaSo } from '../components/LaSo';
 import { useThongBao } from '../components/ThongBao';
 import { useDuLieuQuan } from '../hooks/DuLieuQuan';
 import { useNutQuayLai } from '../hooks/useNutQuayLai';
+import { useNhung } from '../hooks/useManHinhRong';
 import { coQuyen } from '../quyen/phanQuyen';
 import { botMon, datGiamGia, donBan, guiBep, suaGhiChu, themMon } from '../services/donHang';
 import { MUC_GIAM_GIA, dinhDangTien, tinhTien } from '../services/tinhTien';
@@ -17,7 +18,9 @@ import { GopBan, TachMon } from './don/GopTach';
 type LaSoMo = null | 'thuc_don' | 'thanh_toan' | 'giam_gia' | 'hoi_vien' | 'gop' | 'tach' | 'them_lua_chon';
 
 export function ChiTietDon({ tableId, dong, chuyenBan }: { tableId: number; dong: () => void; chuyenBan: (id: number) => void }) {
-  useNutQuayLai(true, dong);
+  // PC: đơn là cột cố định bên phải (không phủ màn hình, không chiếm nút Back); thực đơn luôn hiện ở cột giữa
+  const nhung = useNhung();
+  useNutQuayLai(!nhung, dong);
   const user = useNguoiDung();
   const { ban: dsBan, donTheoBan, menu } = useDuLieuQuan();
   const { chay, xacNhan, bao } = useThongBao();
@@ -85,9 +88,9 @@ export function ChiTietDon({ tableId, dong, chuyenBan }: { tableId: number; dong
   }
 
   return (
-    <div className="trang">
+    <div className={`trang ${nhung ? 'trang-nhung' : ''}`}>
       <header className="trang-dau">
-        <button className="nut-icon" onClick={dong} aria-label="Quay lại sơ đồ bàn">‹</button>
+        <button className="nut-icon" onClick={dong} aria-label={nhung ? 'Bỏ chọn bàn' : 'Quay lại sơ đồ bàn'}>{nhung ? '✕' : '‹'}</button>
         <div className="trang-dau-giua">
           <h1>{ban.name}</h1>
           <span className={`nhan-tt tt-${ban.status}`}>{NHAN_TRANG_THAI[ban.status]}</span>
@@ -104,7 +107,7 @@ export function ChiTietDon({ tableId, dong, chuyenBan }: { tableId: number; dong
           <div className="trang-thai-trong">
             <div className="bieu-tuong-lon" aria-hidden>🍜</div>
             Chưa có món nào.
-            {duocSua && <button className="nut nut-chinh" onClick={() => setLaSo('thuc_don')}>Chọn món</button>}
+            {duocSua && (nhung ? <span className="phu">Bấm món ở cột Thực đơn bên cạnh</span> : <button className="nut nut-chinh" onClick={() => setLaSo('thuc_don')}>Chọn món</button>)}
           </div>
         ) : (
           <ul className="ds-dong-mon">
@@ -145,7 +148,7 @@ export function ChiTietDon({ tableId, dong, chuyenBan }: { tableId: number; dong
             <div className="tong"><span>Tổng cộng</span><span>{dinhDangTien(tien.tongCong)}</span></div>
           </div>
           <div className="hang-nut">
-            {duocSua && <button className="nut nut-phu" onClick={() => setLaSo('thuc_don')}>+ Thêm món</button>}
+            {duocSua && !nhung && <button className="nut nut-phu" onClick={() => setLaSo('thuc_don')}>+ Thêm món</button>}
             {nutChinh && (
               <button className="nut nut-chinh nut-gian" onClick={nutChinh.lam} disabled={dangXuLy}>
                 {dangXuLy ? 'Đang xử lý…' : nutChinh.nhan}
@@ -155,7 +158,7 @@ export function ChiTietDon({ tableId, dong, chuyenBan }: { tableId: number; dong
         </footer>
       )}
 
-      <ThucDon mo={laSo === 'thuc_don'} dong={dongLaSo} tableId={tableId} />
+      {!nhung && <ThucDon mo={laSo === 'thuc_don'} dong={dongLaSo} tableId={tableId} />}
       <ThanhToan mo={laSo === 'thanh_toan'} dong={dongLaSo} ban={ban} items={items} />
       <ChonHoiVien mo={laSo === 'hoi_vien'} dong={dongLaSo} tableId={tableId} />
       <GopBan mo={laSo === 'gop'} dong={dongLaSo} tableId={tableId} sauKhiGop={chuyenBan} />

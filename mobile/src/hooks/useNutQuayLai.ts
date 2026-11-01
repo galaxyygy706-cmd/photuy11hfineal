@@ -25,6 +25,12 @@ window.addEventListener('popstate', () => {
   if (nganXep.length > 0) datMucChan();
 });
 
+// PC: phím Esc đóng lớp trên cùng giống nút Back (app cũ có "ESC thông minh").
+// Hộp xác nhận (ThongBao) tự bắt Esc trước và chặn lan truyền.
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !e.defaultPrevented && nganXep.length > 0) history.back();
+});
+
 export function useNutQuayLai(dangMo: boolean, dong: () => void): void {
   const dongRef = useRef(dong);
   dongRef.current = dong;

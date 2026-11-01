@@ -551,12 +551,285 @@ button.dong:active { background: #fafafa; }
   .la-so-day { height: 85dvh; }
 }
 
-/* ---------------------------------------------------------------- MÀN LỚN (≥1025px): bàn bên trái, đơn bên phải */
+/* ---------------------------------------------------------------- MÀN LỚN (≥1025px) — khung PC chi tiết ở cuối file */
 @media (min-width: 1025px) {
   .luoi-ban { grid-template-columns: repeat(5, 1fr); }
-  .co-ban-mo .noi-dung { padding-right: calc(440px + 16px); }
+  /* .trang không nhúng (hiếm trên PC) vẫn là ngăn kéo 440px bên phải */
   .trang {
     left: auto; width: 440px; border-left: 1px solid var(--vien);
     box-shadow: -8px 0 24px rgba(0,0,0,.06);
   }
+}
+
+/* ============================================================================
+   GIAO DIỆN PC (≥1025px) — THEME "TƯƠNG LAI"
+   ----------------------------------------------------------------------------
+   Nền tối xanh than có lưới mờ, mặt kính (glass) bán trong suốt, viền phát sáng,
+   điểm nhấn chuyển màu đỏ → cam (màu thương hiệu) và xanh cyan cho trạng thái "đang chọn".
+   Chỉ ĐỔI BIẾN màu ở :root nên mọi thành phần dùng var(--...) tự theo; những chỗ
+   còn ghi cứng màu sáng được ghi đè từng cái bên dưới. Điện thoại/tablet không đổi.
+   Không nạp web font (PWA phải chạy offline) — dùng font hệ thống, số dạng tabular.
+   ========================================================================== */
+@media (min-width: 1025px) {
+  :root {
+    color-scheme: dark;
+    --nen: #070b16;
+    --mat: rgba(20, 28, 48, .72);
+    --mat-dac: #111a2e;            /* mặt không trong suốt (hộp thoại, lá sớ) */
+    --chu: #e6ebf5;
+    --chu-phu: #8a96b0;
+    --vien: rgba(148, 170, 220, .14);
+    --do: #ff4d4f;
+    --do-dam: #ff7a6b;             /* trên nền tối "đậm" phải SÁNG hơn để đọc được */
+    --do-nhat: rgba(255, 77, 79, .14);
+    --xanh: #22d39a;
+    --cam: #ffb020;
+    --lam: #3b9eff;
+    --cyan: #22e3ff;
+    --tt-empty: #5b6782;
+    --nhan-chuyen: linear-gradient(135deg, #ff3d5a 0%, #ff8a3d 100%);
+    --phat-sang: 0 0 0 1px rgba(34, 227, 255, .55), 0 0 22px rgba(34, 227, 255, .25);
+    --bo: 16px;
+    font-variant-numeric: tabular-nums;
+  }
+  body {
+    /* Lưới mờ 32px + 2 quầng sáng góc — tạo chiều sâu, cố định khi cuộn */
+    background:
+      radial-gradient(900px 600px at 0% 0%, rgba(255, 77, 79, .10), transparent 60%),
+      radial-gradient(900px 700px at 100% 100%, rgba(34, 227, 255, .08), transparent 60%),
+      linear-gradient(rgba(148, 170, 220, .045) 1px, transparent 1px) 0 0 / 32px 32px,
+      linear-gradient(90deg, rgba(148, 170, 220, .045) 1px, transparent 1px) 0 0 / 32px 32px,
+      var(--nen);
+    background-attachment: fixed;
+  }
+  ::selection { background: rgba(34, 227, 255, .3); }
+  * { scrollbar-width: thin; scrollbar-color: rgba(148, 170, 220, .25) transparent; }
+
+  /* ---- Ghi đè các màu sáng ghi cứng ---- */
+  .nut-chinh { background: var(--nhan-chuyen); box-shadow: 0 6px 20px rgba(255, 61, 90, .28); }
+  .nut-chinh:hover:not(:disabled) { filter: brightness(1.1); }
+  .nut-chinh:active { background: var(--nhan-chuyen); filter: brightness(.95); }
+  .nut-phu { background: rgba(255, 255, 255, .04); }
+  .nut-phu:hover:not(:disabled), .lua-chon:hover { border-color: rgba(34, 227, 255, .45); background: rgba(34, 227, 255, .06); }
+  .nut-icon:hover { background: rgba(255, 255, 255, .07); }
+  .nut-icon:active, .nut-tron:active, button.dong:active { background: rgba(255, 255, 255, .1); }
+  .chip { background: rgba(255, 255, 255, .04); }
+  .chip.chon { background: rgba(34, 227, 255, .14); color: var(--cyan); border-color: rgba(34, 227, 255, .5); }
+  .the-nho.moi { background: rgba(59, 158, 255, .16); color: #8cc8ff; }
+  .the-nho.qua { background: rgba(255, 176, 32, .16); color: #ffcf70; }
+  .nhan-moi-truong.demo { background: rgba(255, 176, 32, .16); color: #ffcf70; }
+  .nhan-moi-truong.that { background: rgba(34, 211, 154, .16); color: #6ff0c4; }
+  .the-ban.tt-empty .the-ban-chinh { background: rgba(255, 255, 255, .025); }
+  .the-kho.muc-sap_het { background: rgba(255, 176, 32, .08); }
+  .the-hv-sinh-nhat { color: #ff8ad1; }
+  .o-nhap, .o-tim, .dang-nhap-form input, .form-tk input { background: rgba(0, 0, 0, .25); border-color: var(--vien); color: var(--chu); }
+  .o-nhap:focus, .o-tim:focus, .dang-nhap-form input:focus { border-color: rgba(34, 227, 255, .6); outline: none; box-shadow: var(--phat-sang); }
+  .o-nhap:disabled { background: rgba(255, 255, 255, .03); }
+  .la-so, .hop { background: var(--mat-dac); border: 1px solid var(--vien); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+  .la-so-nen.mo, .hop-nen { background: rgba(3, 6, 14, .6); backdrop-filter: blur(6px); }
+  .toast, .bao-cap-nhat { background: #1a2440; border: 1px solid var(--vien); }
+  /* Toast ở góc dưới phải — đầu màn hình PC là vùng thực đơn đang thao tác, không che */
+  /* right = bề rộng cột đơn (clamp giống .ban-hang-pc) + padding 14px + khe 14px + 12px đệm */
+  .toast-vung { top: auto; left: auto; right: calc(clamp(320px, 30vw, 420px) + 40px); bottom: 24px; align-items: flex-end; }
+  .toast { box-shadow: 0 10px 30px rgba(0, 0, 0, .5), inset 3px 0 0 var(--cyan); }
+  .phieu { background: var(--mat); border-color: var(--vien); }
+  .phieu-mon li, .dong-tk { border-color: var(--vien); }
+  .hoa-don, .thanh-ngang-nen, .thanh-tien-do, .the-ban-so-khach, .phieu-trang-thai { background: rgba(0, 0, 0, .25); }
+  .the-khoi, .the-ho-so, .the-cham-cong, .dong, .the-kho, .dong-mon, .the-hv, .lua-chon, .don-qr, .o-so {
+    background: var(--mat); border-color: var(--vien);
+  }
+  .the-mon-gia { color: #ff8a6b; }
+  .dang-nhap { background: transparent; }
+
+  /* ---- Khung: thanh bên + vùng chính ---- */
+  .vo-pc { height: 100dvh; display: grid; grid-template-columns: 236px minmax(0, 1fr); }
+  .thanh-ben {
+    display: flex; flex-direction: column; gap: 12px; min-height: 0;
+    padding: 16px 12px 12px;
+    /* KHÔNG dùng backdrop-filter ở các khung chứa lá sớ: nó biến khung thành "containing block"
+       của position:fixed -> lá sớ (đơn QR, thanh toán…) bị nhốt trong khung thay vì phủ màn hình */
+    background: linear-gradient(180deg, #111a2e, #0b1120);
+    border-right: 1px solid var(--vien);
+  }
+  .thanh-ben-dau { display: flex; align-items: center; justify-content: space-between; padding: 0 4px 0 8px; }
+  .thanh-ben-logo { font-size: 20px; font-weight: 800; }
+  /* Chữ chuyển màu tách riêng khỏi emoji — background-clip:text sẽ cắt mất hình emoji */
+  .thanh-ben-logo b {
+    letter-spacing: .02em;
+    background: var(--nhan-chuyen); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  /* Chuông QR vốn nằm trên thanh đầu đỏ (chữ trắng) -> trên thanh bên tối đổi lại số đếm */
+  .thanh-ben .nut-chuong { margin-right: 0; color: var(--chu); }
+  .thanh-ben .nut-chuong:hover { background: rgba(255, 255, 255, .07); }
+  .thanh-ben .nut-chuong-so { background: var(--nhan-chuyen); color: #fff; }
+  .thanh-ben-ds { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin: 0 -4px; padding: 0 4px; }
+  .thanh-ben-nhom {
+    margin: 14px 10px 4px; font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--chu-phu);
+  }
+  .muc-ben {
+    position: relative; display: flex; align-items: center; gap: 12px;
+    min-height: var(--cham); padding: 8px 12px; border: 1px solid transparent; border-radius: 12px;
+    background: transparent; color: var(--chu-phu); font-weight: 600; text-align: left;
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .muc-ben:hover { background: rgba(255, 255, 255, .05); color: var(--chu); }
+  .muc-ben.chon {
+    color: var(--chu); border-color: rgba(34, 227, 255, .35);
+    background: linear-gradient(90deg, rgba(34, 227, 255, .16), rgba(34, 227, 255, .02));
+  }
+  /* Vạch sáng bên trái mục đang chọn */
+  .muc-ben.chon::before {
+    content: ''; position: absolute; left: -1px; top: 10px; bottom: 10px; width: 3px; border-radius: 3px;
+    background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+  }
+  .muc-ben-icon { font-size: 18px; width: 24px; text-align: center; }
+  .muc-ben-nhan { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .muc-ben-so {
+    min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; display: grid; place-items: center;
+    background: var(--nhan-chuyen); color: #fff; font-size: 12px; font-weight: 800;
+  }
+
+  /* Hồ sơ + chấm công ở chân thanh bên */
+  .ho-so-nho { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px solid var(--vien); }
+  .ho-so-nho .the-cham-cong { padding: 10px 12px; flex-wrap: wrap; }
+  .ho-so-nho .the-cham-cong .nut { min-height: 36px; padding: 0 12px; font-size: 14px; }
+  .ho-so-nho-dong { display: flex; align-items: center; gap: 8px; }
+  .the-ho-so-anh { background: var(--nhan-chuyen); box-shadow: 0 0 0 2px rgba(255, 255, 255, .08); }
+  .the-ho-so-anh.nho { width: 38px; height: 38px; font-size: 16px; }
+  .ho-so-nho-ten { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .ho-so-nho-ten b, .ho-so-nho-ten .phu { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ho-so-nho-ten .phu { font-size: 12px; }
+
+  .vung-chinh { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .vung-chinh > .noi-dung { padding: 20px 24px 24px; }
+
+  /* ---- Bán hàng 3 cột. Cột đơn co giãn 320–420px theo bề rộng màn (clamp) thay vì thêm
+     breakpoint: ở 1025px vẫn đủ chỗ cho bàn 2 cột + thực đơn 2 cột. ---- */
+  .ban-hang-pc {
+    flex: 1; min-height: 0; display: grid; gap: 14px; padding: 14px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) clamp(320px, 30vw, 420px);
+  }
+  .cot-pc, .cot-don {
+    min-height: 0; border-radius: 20px; border: 1px solid var(--vien);
+    background: rgba(13, 19, 34, .82); /* không backdrop-filter — xem ghi chú ở .thanh-ben */
+  }
+  .cot-pc { overflow-y: auto; padding: 14px 14px 20px; }
+  .cot-don { overflow: hidden; display: flex; flex-direction: column; position: relative; }
+  /* Viền trên phát sáng của cột đơn — nhấn đây là "khu vực hành động" */
+  .cot-don::before {
+    content: ''; position: absolute; inset: 0 0 auto; height: 2px; z-index: 1;
+    background: var(--nhan-chuyen); opacity: .9;
+  }
+  .cot-don > .trang-thai-trong { margin: auto; padding: 24px; max-width: 260px; }
+  .ban-hang-pc .luoi-ban { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; }
+  .ban-hang-pc .luoi-mon { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+  /* Bộ lọc bàn dính trên đầu cột khi cuộn (top âm = bù padding 14px của cột) */
+  .ban-hang-pc .chip-hang {
+    position: sticky; top: -14px; z-index: 1; margin: -14px -14px 0; padding: 14px 14px 10px;
+    background: linear-gradient(rgba(13, 19, 34, .95) 70%, transparent);
+  }
+  .goi-y {
+    margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; font-size: 14px;
+    color: var(--cyan); background: rgba(34, 227, 255, .07); border: 1px dashed rgba(34, 227, 255, .3);
+  }
+
+  /* Thẻ bàn: kính + dải trạng thái phát sáng; bàn đang chọn có viền cyan */
+  .the-ban-chinh {
+    min-height: 96px; background: var(--mat); border: 1px solid var(--vien);
+    box-shadow: inset 0 3px 0 var(--tt, var(--tt-empty)), 0 -1px 14px -6px var(--tt, transparent);
+    transition: transform .12s, border-color .15s, box-shadow .15s;
+  }
+  .the-ban-chinh:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--tt, var(--tt-empty)) 55%, transparent); }
+  .the-ban.tt-empty .the-ban-chinh { box-shadow: inset 0 3px 0 var(--tt-empty); }
+  .the-ban.dang-chon .the-ban-chinh { border-color: transparent; box-shadow: inset 0 3px 0 var(--tt, var(--tt-empty)), var(--phat-sang); }
+  .the-ban-xac-nhan { border-color: var(--nen); }
+
+  /* Thẻ món */
+  .the-mon {
+    background: var(--mat); border: 1px solid var(--vien);
+    transition: transform .12s, border-color .15s, box-shadow .15s;
+  }
+  .the-mon:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(255, 138, 61, .5); box-shadow: 0 8px 24px rgba(255, 77, 79, .15); }
+  .the-mon-anh { background: rgba(0, 0, 0, .3); }
+  /* Chưa chọn bàn: thực đơn vẫn xem rõ được (mặc định button:disabled mờ 50% trông như hỏng) */
+  .cot-thuc-don .the-mon:disabled:not(.het) { opacity: .8; }
+  .the-mon-da-goi { background: var(--nhan-chuyen); box-shadow: 0 0 12px rgba(255, 77, 79, .6); }
+
+  /* Trang nhúng (đơn ở cột phải, trang quản lý ở vùng chính): nằm trong luồng, không phủ màn hình */
+  .trang.trang-nhung {
+    position: static; inset: auto; width: auto; height: auto; flex: 1; min-height: 0;
+    border: 0; box-shadow: none; animation: none; background: transparent;
+  }
+  .trang-dau { background: transparent; border-color: var(--vien); padding-left: 12px; }
+  .trang-nhung .trang-dau .nut-icon:first-child { font-size: 18px; }
+  .trang-dau-giua h1 { font-size: 20px; letter-spacing: .01em; }
+  .trang-chan { background: rgba(8, 12, 24, .85); border-color: var(--vien); box-shadow: none; }
+  .tong-ket .tong { font-size: 22px; }
+  /* Trang quản lý: giới hạn bề rộng nội dung cho dễ đọc trên màn rất rộng */
+  .vung-chinh > .trang-nhung .trang-than { padding: 20px 24px; }
+  .vung-chinh > .trang-nhung .trang-than > * { max-width: 1200px; margin-left: auto; margin-right: auto; }
+  .vung-chinh > .trang-nhung .trang-dau { padding: 8px 24px 0; min-height: 64px; }
+  .vung-chinh > .trang-nhung .trang-dau-giua h1 { font-size: 24px; }
+
+  .dong-mon { border-left-color: var(--cyan); }
+  /* Cột đơn hẹp (320px ở màn 1025): nút −/+ nhỏ lại cho tên món đủ chỗ — PC bấm bằng chuột */
+  .cot-don .nut-tron { width: 34px; height: 34px; min-width: 34px; font-size: 18px; }
+  .cot-don .bo-dem { gap: 2px; }
+  .cot-don .dong-mon-ten .the-nho { white-space: nowrap; }
+  .cot-gio-thanh { background: linear-gradient(180deg, #ff8a3d, #ff3d5a); box-shadow: 0 0 12px rgba(255, 77, 79, .35); }
+  .thanh-ngang-nen > div { background: linear-gradient(90deg, #ff3d5a, #ff8a3d); }
+  .thanh-tien-do > div { background: linear-gradient(90deg, #22d39a, #22e3ff); }
+  .dong-mon.da-gui { border-left-color: var(--vien); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .the-ban-chinh, .the-mon, .muc-ben { transition: none; }
+    .the-ban-chinh:hover, .the-mon:hover:not(:disabled) { transform: none; }
+  }
+}
+
+/* ============================================================================
+   📊 SUẤT BÁN HÔM NAY (components/SuatBan.tsx) — viên trên thanh đầu (điện thoại), đầu cột thực đơn (PC)
+   ========================================================================== */
+.thanh-dau-phai { display: flex; align-items: center; gap: 4px; }
+.dai-suat {
+  margin: 0 0 12px; padding: 10px 12px; border-radius: var(--bo);
+  background: var(--mat); border: 1px solid var(--vien);
+}
+.dai-suat-dau { font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--chu-phu); margin-bottom: 8px; }
+.dai-suat-ds { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.suat-o { --mau: var(--xanh); }
+.suat-o.muc-sap_het { --mau: var(--cam); }
+.suat-o.muc-het { --mau: var(--do); }
+.suat-o-dong { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 14px; }
+.suat-o-dong span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suat-o-dong b { color: var(--mau); font-size: 18px; font-variant-numeric: tabular-nums; }
+.suat-o-dong small { color: var(--chu-phu); font-size: 12px; font-weight: 600; }
+.suat-thanh { height: 6px; margin-top: 4px; border-radius: 3px; background: var(--vien); overflow: hidden; }
+.suat-thanh > div { height: 100%; border-radius: inherit; background: var(--mau); transition: width .4s; }
+
+/* Viên trên thanh đầu đỏ (điện thoại). Cao 32px nhưng vùng chạm 44px nhờ padding dọc của nút. */
+.chip-suat-vo { position: relative; }
+.chip-suat {
+  min-height: var(--cham); padding: 0 10px; border: 0; background: transparent; color: #fff;
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+}
+.chip-suat span { padding: 4px 8px; border-radius: 999px; background: rgba(255, 255, 255, .18); white-space: nowrap; }
+.chip-suat b { font-size: 15px; font-variant-numeric: tabular-nums; }
+.chip-suat.muc-sap_het span { background: rgba(255, 196, 0, .35); }
+.chip-suat.muc-het span { background: #fff; color: var(--do); }
+.chip-suat-nen { position: fixed; inset: 0; z-index: 40; }
+.chip-suat-bang {
+  position: absolute; right: -48px; top: calc(100% + 4px); z-index: 41; width: min(320px, calc(100vw - 32px));
+  color: var(--chu); box-shadow: 0 12px 32px rgba(0, 0, 0, .18); border-radius: var(--bo);
+}
+.chip-suat-bang .dai-suat { margin: 0; }
+
+@media (min-width: 1025px) {
+  .dai-suat { background: rgba(255, 255, 255, .03); }
+  .suat-o-dong b { text-shadow: 0 0 12px color-mix(in srgb, var(--mau) 60%, transparent); }
+  .suat-thanh { background: rgba(255, 255, 255, .06); }
+  .suat-thanh > div { box-shadow: 0 0 10px var(--mau); }
+  /* Cột thực đơn chỉ còn ~200px ở 1025px: mỗi ô cần ≥150px, không đủ thì 2 món xếp chồng */
+  .cot-thuc-don .dai-suat-ds { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; }
 }

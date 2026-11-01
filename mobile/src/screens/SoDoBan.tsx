@@ -25,7 +25,8 @@ export function soPhut(tu: number | null | undefined, bayGio: number): number | 
 
 type BoLoc = 'tat_ca' | 'co_khach' | 'trong';
 
-export function SoDoBan({ moBan }: { moBan: (id: number) => void }) {
+/** dangChon: bàn đang mở ở cột đơn (chỉ dùng trên PC, để tô viền). */
+export function SoDoBan({ moBan, dangChon = null }: { moBan: (id: number) => void; dangChon?: number | null }) {
   const { ban, donTheoBan, phieuBep, dangTai, loi } = useDuLieuQuan();
   const [boLoc, setBoLoc] = useState<BoLoc>('tat_ca');
   const bayGio = useBayGio();
@@ -51,6 +52,7 @@ export function SoDoBan({ moBan }: { moBan: (id: number) => void }) {
       bepDaXong={phieuBep.some((p) => String(p.tableId) === String(b.id)) &&
         phieuBep.filter((p) => String(p.tableId) === String(b.id)).every((p) => p.isDoneByChef)}
       bayGio={bayGio}
+      dangChon={dangChon === b.id}
       onMo={() => moBan(b.id)}
     />
   );
@@ -86,8 +88,8 @@ export function SoDoBan({ moBan }: { moBan: (id: number) => void }) {
   );
 }
 
-function TheBan({ ban, soKhach, bepDaXong, bayGio, onMo }: {
-  ban: Ban; soKhach: number; bepDaXong: boolean; bayGio: number; onMo: () => void;
+function TheBan({ ban, soKhach, bepDaXong, bayGio, dangChon, onMo }: {
+  ban: Ban; soKhach: number; bepDaXong: boolean; bayGio: number; dangChon: boolean; onMo: () => void;
 }) {
   const user = useNguoiDung();
   const { chay } = useThongBao();
@@ -114,8 +116,8 @@ function TheBan({ ban, soKhach, bepDaXong, bayGio, onMo }: {
   };
 
   return (
-    <div className={`the-ban tt-${ban.status}`}>
-      <button className="the-ban-chinh" onClick={onMo} aria-label={`${ban.name}, ${phu}`}>
+    <div className={`the-ban tt-${ban.status} ${dangChon ? 'dang-chon' : ''}`}>
+      <button className="the-ban-chinh" onClick={onMo} aria-label={`${ban.name}, ${phu}`} aria-pressed={dangChon || undefined}>
         <span className="the-ban-ten">{ban.name}</span>
         <span className="the-ban-phu">{ban.customerName || phu}</span>
         {ban.customerName && <span className="the-ban-phu nho">{phu}</span>}

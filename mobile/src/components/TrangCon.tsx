@@ -2,16 +2,19 @@
    đầu cố định có nút quay lại, thân cuộn, nút Back của điện thoại đóng trang. */
 
 import { useState, type ReactNode } from 'react';
+import { useNhung } from '../hooks/useManHinhRong';
 import { useNutQuayLai } from '../hooks/useNutQuayLai';
 
 export function TrangCon({ tieuDe, dong, phai, children, chan }: {
   tieuDe: string; dong: () => void; phai?: ReactNode; children: ReactNode; chan?: ReactNode;
 }) {
-  useNutQuayLai(true, dong);
+  // PC: trang nằm trong vùng chính cạnh thanh bên, chuyển trang bằng thanh bên -> không cần nút quay lại
+  const nhung = useNhung();
+  useNutQuayLai(!nhung, dong);
   return (
-    <div className="trang">
+    <div className={`trang ${nhung ? 'trang-nhung' : ''}`}>
       <header className="trang-dau">
-        <button className="nut-icon" onClick={dong} aria-label="Quay lại">‹</button>
+        {!nhung && <button className="nut-icon" onClick={dong} aria-label="Quay lại">‹</button>}
         <div className="trang-dau-giua"><h1>{tieuDe}</h1></div>
         {phai ?? <span className="nut-icon-cho" />}
       </header>
