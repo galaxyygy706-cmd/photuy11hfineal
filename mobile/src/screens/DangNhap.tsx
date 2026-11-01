@@ -1,13 +1,20 @@
 import { useState, type FormEvent } from 'react';
 import { useXacThuc } from '../auth/XacThuc';
+import { DUNG_EMULATOR } from '../firebase/khoiTao';
 
 function thongDiepLoi(e: unknown): string {
   const ma = (e as { code?: string }).code ?? '';
   if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found', 'auth/invalid-email'].includes(ma))
-    return 'Sai tên đăng nhập hoặc mật khẩu.';
+    return DUNG_EMULATOR
+      ? 'Sai tên đăng nhập hoặc mật khẩu. Bản demo dùng: quanly / thungan / phucvu / daubep, mật khẩu 123456.'
+      : 'Sai tên đăng nhập hoặc mật khẩu. Lưu ý: tài khoản demo (quanly, phucvu…) KHÔNG có trên hệ thống thật.';
   if (ma === 'auth/too-many-requests') return 'Nhập sai quá nhiều lần. Thử lại sau ít phút.';
-  if (ma === 'auth/network-request-failed') return 'Không có mạng. Kiểm tra Wi-Fi/4G rồi thử lại.';
-  return 'Không đăng nhập được. Thử lại.';
+  if (ma === 'auth/network-request-failed')
+    return DUNG_EMULATOR ? 'Không kết nối được máy chủ demo (Firebase Emulator chưa chạy?).' : 'Không có mạng. Kiểm tra Wi-Fi/4G rồi thử lại.';
+  // Project chưa bật Email/Password trong Firebase Console
+  if (ma === 'auth/operation-not-allowed' || ma === 'auth/configuration-not-found')
+    return 'Hệ thống thật chưa bật đăng nhập Email/Password trong Firebase Console (xem mobile/README.md).';
+  return `Không đăng nhập được (${ma || 'lỗi không rõ'}).`;
 }
 
 export function DangNhap() {
@@ -36,6 +43,10 @@ export function DangNhap() {
       <img src="/m/icons/icon.svg" alt="" className="dang-nhap-logo" />
       <h1>Phở Túy</h1>
       <p className="mo-ta">Đăng nhập để vào ca</p>
+      {/* Cho biết đang nối vào đâu — tài khoản demo chỉ tồn tại ở bản DEMO */}
+      <p className={`nhan-moi-truong ${DUNG_EMULATOR ? 'demo' : 'that'}`}>
+        {DUNG_EMULATOR ? 'BẢN DEMO · dữ liệu giả trên máy này' : 'HỆ THỐNG THẬT · dữ liệu quán'}
+      </p>
       <form onSubmit={gui} className="dang-nhap-form">
         <label>
           Tên đăng nhập

@@ -158,7 +158,10 @@ a { color: inherit; text-decoration: none; }
 }
 .dang-nhap-logo { width: 88px; height: 88px; border-radius: 22px; margin-bottom: 8px; }
 .dang-nhap h1 { font-size: 26px; }
-.mo-ta { color: var(--chu-phu); margin: 0 0 20px; }
+.mo-ta { color: var(--chu-phu); margin: 0 0 8px; }
+.nhan-moi-truong { margin: 0 0 16px; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.nhan-moi-truong.demo { background: #fef3c7; color: #92400e; }
+.nhan-moi-truong.that { background: #dcfce7; color: #166534; }
 .dang-nhap-form { width: 100%; display: flex; flex-direction: column; gap: 14px; text-align: left; }
 .dang-nhap-form label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 14px; }
 .dang-nhap-form input, .o-tim, .form-tk input {
