@@ -4,7 +4,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { get, ref, update } from 'firebase/database';
-import { auth, db, emailTuTenDangNhap } from '../firebase/khoiTao';
+import { db } from '../firebase/khoiTao';
+import { auth, emailTuTenDangNhap } from '../firebase/xacThuc';
 import { tinhQuyen, type NguoiDung } from '../quyen/phanQuyen';
 import type { NhanSu, TaiKhoan } from '../types/duLieu';
 

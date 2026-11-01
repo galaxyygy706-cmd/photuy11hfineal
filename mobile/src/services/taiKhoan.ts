@@ -5,7 +5,8 @@
 import { deleteApp, initializeApp } from 'firebase/app';
 import { createUserWithEmailAndPassword, getAuth, signOut } from 'firebase/auth';
 import { ref, set } from 'firebase/database';
-import { db, emailTuTenDangNhap, firebaseConfig, ketNoiEmulatorAuth } from '../firebase/khoiTao';
+import { db, firebaseConfig } from '../firebase/khoiTao';
+import { emailTuTenDangNhap, ketNoiEmulatorAuth } from '../firebase/xacThuc';
 import { batBuocQuyen, type NguoiDung } from '../quyen/phanQuyen';
 import type { NhanSu } from '../types/duLieu';
 
