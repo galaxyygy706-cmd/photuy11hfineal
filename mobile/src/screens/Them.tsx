@@ -5,13 +5,32 @@ import { useThongBao } from '../components/ThongBao';
 import { useGiaTri } from '../hooks/useGiaTri';
 import { coQuyen } from '../quyen/phanQuyen';
 import { taoTaiKhoanChoNhanSu } from '../services/taiKhoan';
+import { chamCong } from '../services/quanLy';
 import type { NhanSu, TaiKhoan } from '../types/duLieu';
+import { Kho } from './quanly/Kho';
+import { ThuChi } from './quanly/ThuChi';
+import { BaoCao } from './quanly/BaoCao';
+import { HoiVienQL } from './quanly/HoiVienQL';
+import { NhanSuQL } from './quanly/NhanSuQL';
+
+type TrangQL = 'bao_cao' | 'thu_chi' | 'kho' | 'hoi_vien' | 'nhan_su';
 
 export function Them() {
   const user = useNguoiDung();
   const { dangXuat } = useXacThuc();
   const { xacNhan } = useThongBao();
   const [moTaiKhoan, setMoTaiKhoan] = useState(false);
+  const [trang, setTrang] = useState<TrangQL | null>(null);
+  const dongTrang = () => setTrang(null);
+
+  // Menu hiện theo quyền (ẩn nút chỉ là lớp phụ — mỗi hàm service vẫn tự kiểm tra quyền)
+  const menu: [TrangQL, string, boolean][] = [
+    ['bao_cao', '📊 Báo cáo doanh thu', coQuyen(user, 'view_history')],
+    ['thu_chi', '💰 Thu chi', coQuyen(user, 'manage_expense')],
+    ['kho', '📦 Kho nguyên liệu', coQuyen(user, 'manage_stock')],
+    ['hoi_vien', '⭐ Hội viên', coQuyen(user, 'order') || coQuyen(user, 'manage_member')],
+    ['nhan_su', '🧑‍🍳 Nhân sự & chấm công', coQuyen(user, 'manage_staff')],
+  ];
 
   return (
     <div className="them">
@@ -25,20 +44,53 @@ export function Them() {
         </div>
       </section>
 
+      <ChamCongCuaToi />
+
       <div className="ds-lua-chon">
+        {menu.filter(([, , duoc]) => duoc).map(([k, ten]) => (
+          <button key={k} className="lua-chon" onClick={() => setTrang(k)}>{ten}<span aria-hidden>›</span></button>
+        ))}
         {coQuyen(user, 'manage_staff') && (
-          <button className="lua-chon" onClick={() => setMoTaiKhoan(true)}>👥 Tài khoản nhân viên</button>
+          <button className="lua-chon" onClick={() => setMoTaiKhoan(true)}>🔑 Tài khoản đăng nhập</button>
         )}
-        {/* Các chức năng chưa chuyển sang app mới (GĐ 4) vẫn dùng ở app cũ. */}
-        <a className="lua-chon" href="/">🗂️ Mở app đầy đủ (kho, thu chi, báo cáo, nhân sự…)</a>
         <button className="lua-chon nguy-hiem" onClick={async () => {
-          if (await xacNhan('Kết thúc ca và đăng xuất?', { nutDongY: 'Đăng xuất', nguyHiem: true })) await dangXuat();
+          if (await xacNhan('Đăng xuất khỏi app?', { nutDongY: 'Đăng xuất', nguyHiem: true })) await dangXuat();
         }}>🚪 Đăng xuất</button>
       </div>
-      <p className="phien-ban">Phở Túy POS mobile · v0.1.0</p>
+      <p className="phien-ban">Phở Túy POS mobile · v0.2.0 · <a href="/">mở app cũ</a></p>
 
       <TaiKhoanNhanVien mo={moTaiKhoan} dong={() => setMoTaiKhoan(false)} />
+      {trang === 'kho' && <Kho dong={dongTrang} />}
+      {trang === 'thu_chi' && <ThuChi dong={dongTrang} />}
+      {trang === 'bao_cao' && <BaoCao dong={dongTrang} />}
+      {trang === 'hoi_vien' && <HoiVienQL dong={dongTrang} />}
+      {trang === 'nhan_su' && <NhanSuQL dong={dongTrang} />}
     </div>
+  );
+}
+
+/** Mỗi nhân viên tự vào ca / tan ca cho chính mình. */
+function ChamCongCuaToi() {
+  const user = useNguoiDung();
+  const { chay } = useThongBao();
+  const { giaTri: ns } = useGiaTri<{ daVaoCa?: boolean; daTanCa?: boolean }>(`NhanSu/${user.nhanSuId}`);
+  const [dangGui, setDangGui] = useState(false);
+  const dangLam = !!ns?.daVaoCa && !ns?.daTanCa;
+  return (
+    <section className={`the-cham-cong ${dangLam ? 'dang-lam' : ''}`}>
+      <div>
+        <div className="dong-chinh">{dangLam ? '🟢 Đang trong ca' : '⚪ Chưa vào ca'}</div>
+        <div className="phu">Chấm công của bạn</div>
+      </div>
+      <button className={`nut ${dangLam ? 'nut-phu' : 'nut-xanh'}`} disabled={dangGui || !ns} onClick={async () => {
+        setDangGui(true);
+        await chay(async () => {
+          const gio = await chamCong(user, user.nhanSuId, dangLam ? 'ra' : 'vao');
+          return gio;
+        }, dangLam ? 'Đã tan ca' : 'Đã vào ca');
+        setDangGui(false);
+      }}>{dangLam ? 'Tan ca' : 'Vào ca'}</button>
+    </section>
   );
 }
 

@@ -36,7 +36,7 @@ window.addEventListener('DOMContentLoaded', () => {
 const PERMISSIONS_BY_ROLE = {
     "Đại sứ Minh Bạch": ["full_control"],                                          // Thu ngân
     "Đại sứ Ngoại Giao": ["order", "print", "print_kitchen", "view_table", "payment", "discount"], // Phục vụ
-    "Đại sứ Hương Vị": ["view_kitchen", "confirm_done", "order", "print"],          // Đầu bếp
+    "Đại sứ Hương Vị": ["view_kitchen", "confirm_done", "order", "print", "manage_stock"], // Đầu bếp (manage_stock: nhập/xuất kho — app mobile kiểm tra, app cũ chưa)
     "Đại sứ Đón Tiếp": ["view_table", "status_check"],                             // Bảo vệ
     "Đại sứ Sạch Sẽ": ["clear_table", "clear_table_status"]                        // Vệ sinh
 };

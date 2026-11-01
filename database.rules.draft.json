@@ -2,30 +2,48 @@
   "rules": {
     ".read": false,
     ".write": false,
-
     "tai_khoan": {
-      ".read": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
+      ".read": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
-        ".validate": "newData.hasChildren(['nhanSuId']) && root.child('NhanSu').child(newData.child('nhanSuId').val()).exists()"
+        ".write": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
+        ".validate": "!newData.exists() || (newData.hasChildren(['nhanSuId']) && root.child('NhanSu').child(newData.child('nhanSuId').val()).exists())"
       }
     },
-
     "NhanSu": {
       ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
-      ".write": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
+      ".write": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
       "$id": {
         "isOnline": {
           ".write": "auth != null && root.child('tai_khoan').child(auth.uid).child('nhanSuId').val() === $id",
           ".validate": "newData.isBoolean()"
+        },
+        "daVaoCa": {
+          ".write": "auth != null && root.child('tai_khoan').child(auth.uid).child('nhanSuId').val() === $id",
+          ".validate": "newData.isBoolean()"
+        },
+        "daTanCa": {
+          ".write": "auth != null && root.child('tai_khoan').child(auth.uid).child('nhanSuId').val() === $id",
+          ".validate": "newData.isBoolean()"
+        },
+        "lastCheckInDate": {
+          ".write": "auth != null && root.child('tai_khoan').child(auth.uid).child('nhanSuId').val() === $id",
+          ".validate": "newData.isString()"
         }
       }
     },
-
+    "ChamCong": {
+      ".read": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
+      "$ngay": {
+        "$nsId": {
+          ".read": "auth != null && root.child('tai_khoan').child(auth.uid).child('nhanSuId').val() === $nsId",
+          ".write": "auth != null && root.child('tai_khoan').child(auth.uid).child('nhanSuId').val() === $nsId || (auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch'))"
+        }
+      }
+    },
     "menu": {
       ".read": true,
-      ".write": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
+      ".write": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
       "$i": {
         "soldToday": {
           ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
@@ -33,38 +51,74 @@
         }
       }
     },
-
     "tables": {
       ".read": true,
       ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
     },
-
     "pending_qr_orders": {
       ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
       "$id": {
-        ".write": "(!data.exists() && newData.exists()) || (auth != null && root.child('tai_khoan').child(auth.uid).exists())"
+        ".write": "(!data.exists() && newData.exists()) || (auth != null && root.child('tai_khoan').child(auth.uid).exists())",
+        ".validate": "!newData.exists() || newData.hasChildren(['tableId', 'items', 'timestamp'])"
       }
     },
-
     "history_orders": {
-      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".read": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
       "$id": {
-        ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists() && (!data.exists() || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN')",
-        ".validate": "newData.hasChildren(['total', 'timestamp', 'items']) || !newData.exists()"
+        ".write": "(auth != null && root.child('tai_khoan').child(auth.uid).exists() && !data.exists()) || (auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch'))",
+        ".validate": "!newData.exists() || newData.hasChildren(['total', 'timestamp', 'items'])"
       }
     },
-
-    "orders":          { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "kitchen_orders":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "eating_history":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "members":         { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "kho":             { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "lich_su_kho":     { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "last_reset_date": { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-
-    "thu_chi":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "expenses": { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "chitieu":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
-    "hoivien":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" }
+    "thu_chi": {
+      ".read": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
+      ".write": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')"
+    },
+    "expenses": {
+      ".read": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
+      ".write": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')"
+    },
+    "chitieu": {
+      ".read": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
+      ".write": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')"
+    },
+    "lich_su_kho": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch')",
+      "$id": {
+        ".write": "(auth != null && root.child('tai_khoan').child(auth.uid).exists() && !data.exists()) || (auth != null && (root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN' || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('vaiTro').val() === 'Đại sứ Minh Bạch'))"
+      }
+    },
+    "orders": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+    "kitchen_orders": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+    "eating_history": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+    "members": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+    "hoivien": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+    "kho": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+    "last_reset_date": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+    "notifications": {
+      ".read": true,
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    }
   }
 }

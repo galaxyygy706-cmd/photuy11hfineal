@@ -2,16 +2,21 @@
 
 App bán hàng tối ưu cho điện thoại (PWA, cài được lên màn hình chính). Chạy tại `/m/`, song song với app cũ ở `/`, dùng chung database Firebase.
 
-**Đã có (GĐ 0–3):** đăng nhập bằng Firebase Auth, sơ đồ bàn, gọi món, ghi chú, gửi bếp (trừ suất + trừ kho), xác nhận bếp xong / đã giao, thanh toán (tiền mặt / VietQR), dọn bàn, giảm giá, gắn hội viên + tích điểm, gộp bàn, tách món, reset suất 05:00, cấp tài khoản cho nhân viên, **màn hình bếp** (phiếu theo giờ, đồng hồ đổi màu, nút Xong, chuông khi có phiếu mới), **duyệt đơn QR** của khách (chuông + số đơn trên thanh đầu).
-**Chưa có (vẫn dùng app cũ):** kho, thu chi, báo cáo, nhân sự & chấm công. Trang khách đặt món `khach.html` giữ nguyên.
+**Đã có (GĐ 0–4) — đủ chức năng của app cũ:**
+- Bán hàng: đăng nhập Firebase Auth, sơ đồ bàn, gọi món, ghi chú, gửi bếp (trừ suất + trừ kho), xác nhận bếp xong / đã giao, thanh toán (tiền mặt / VietQR), dọn bàn, giảm giá, hội viên + tích điểm, gộp bàn, tách món, reset suất 05:00.
+- Bếp & QR: màn hình bếp (đồng hồ đổi màu, nút Xong, chuông), duyệt đơn QR của khách. Trang khách `khach.html` giữ nguyên.
+- Quản lý (tab **Thêm**, hiện theo quyền): báo cáo doanh thu (theo kỳ, so kỳ trước, theo giờ, món bán chạy, chi tiết đơn, CSV), thu chi (thêm/sửa có lịch sử/xoá, theo danh mục, CSV), kho (nhập/xuất, định mức, nhật ký, CSV), hội viên (thêm/sửa/xoá, chống trùng SĐT, xếp hạng, lịch sử ăn), nhân sự (hồ sơ + tạo tài khoản, chấm công hộ, giờ công & lương tạm tính, CSV), tự chấm công cho mọi nhân viên.
+
+**Quyền mới `manage_stock`** (nhập/xuất kho, định mức): Thu ngân (full_control) và đầu bếp. App cũ để ai cũng sửa kho được. Đã thêm vào cả hai bảng quyền.
 
 ## Lệnh
 
 ```bash
 npm install
 npm run dev         # chạy thử, kết nối database THẬT
-npm test            # test nghiệp vụ (tính tiền, tích điểm, gộp/tách, trừ kho, phân quyền)
+npm test            # test nghiệp vụ (tính tiền, tích điểm, gộp/tách, trừ kho, thu chi, báo cáo, giờ công, phân quyền)
 npm run build       # xuất ra ../m/ để deploy
+node scripts/sinh-rules.mjs   # sinh lại ../database.rules.draft.json (sửa rule ở script, KHÔNG sửa tay file JSON)
 ```
 
 Chạy thử trên database giả lập (an toàn, không đụng dữ liệu quán): xem mục 8 trong `../CLAUDE.md`.
@@ -42,3 +47,11 @@ Chạy thử trên database giả lập (an toàn, không đụng dữ liệu qu
 | Món khách gọi thêm qua QR bị cộng vào dòng đã gửi bếp → không xuống bếp | Chỉ cộng vào dòng chưa gửi, cùng món, cùng ghi chú |
 | Chuông đơn QR trỏ tới `https://mixkit.co` (không phải file âm thanh) → không bao giờ kêu | Tự tạo tiếng chuông bằng Web Audio + rung |
 | Duyệt đơn QR ghi thêm `notifications/{bàn}` | Không ghi — không có chỗ nào đọc node này (kể cả `khach.html`) |
+| Thu chi ghi giờ trước ngày (`"09:05:07 28/4/2026"`) khi không chọn ngày → bộ lọc Hôm nay/Tuần/Tháng **bỏ sót** những khoản này | Đọc được cả hai dạng; ghi dạng app cũ lọc được + thêm `timestamp` |
+| Kho, thu chi ghi người thực hiện cố định "Nguyễn Kim Anh" | Ghi đúng người đang đăng nhập |
+| Thêm/sửa thu chi, nhập/xuất kho không kiểm tra quyền | `manage_expense` / `manage_stock` |
+| Ai cũng chấm công hộ được người khác | Tự chấm cho mình; chấm hộ cần `manage_staff` (và Security Rules chặn ở server) |
+| Ca tối 17:00–00:00 tan ca sau nửa đêm báo "Không tìm thấy ca" | Tìm ca theo ngày vào ca; giờ công tính đúng qua nửa đêm |
+| Tồn kho làm tròn 1 chữ số (nhập 0.25 kg bị lệch) | Làm tròn 2 chữ số |
+| So sánh doanh thu luôn với "hôm qua" dù chọn tháng | So với kỳ trước cùng độ dài |
+| Thêm nhân sự lưu mật khẩu dạng chữ thường vào `NhanSu` | Tạo tài khoản Firebase Auth; **nhân sự tạo ở app mới chưa đăng nhập được app cũ** |

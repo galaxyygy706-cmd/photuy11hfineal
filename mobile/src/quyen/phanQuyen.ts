@@ -19,12 +19,13 @@ export type Quyen =
   | 'manage_member'
   | 'manage_staff'
   | 'manage_expense'
+  | 'manage_stock' // nhập/xuất kho, sửa định mức (mới ở GĐ 4 — app cũ để ai cũng làm được)
   | 'view_history';
 
 export const PERMISSIONS_BY_ROLE: Record<string, readonly Quyen[]> = {
   'Đại sứ Minh Bạch': ['full_control'], // Thu ngân
   'Đại sứ Ngoại Giao': ['order', 'print', 'print_kitchen', 'view_table', 'payment', 'discount'], // Phục vụ
-  'Đại sứ Hương Vị': ['view_kitchen', 'confirm_done', 'order', 'print'], // Đầu bếp
+  'Đại sứ Hương Vị': ['view_kitchen', 'confirm_done', 'order', 'print', 'manage_stock'], // Đầu bếp
   'Đại sứ Đón Tiếp': ['view_table', 'status_check'], // Bảo vệ
   'Đại sứ Sạch Sẽ': ['clear_table', 'clear_table_status'], // Vệ sinh
 };

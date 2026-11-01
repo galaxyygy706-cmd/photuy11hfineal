@@ -407,6 +407,85 @@ a { color: inherit; text-decoration: none; }
 .don-qr-mon li { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; }
 .don-qr-tong { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px dashed var(--vien); margin-bottom: 8px; }
 
+/* ---------------------------------------------------------------- QUẢN LÝ (GĐ 4)
+   Dữ liệu dạng bảng hiển thị thành THẺ / DÒNG xếp dọc, không bắt cuộn ngang (quy tắc CLAUDE.md §4). */
+.xanh { color: var(--xanh); }
+.do { color: var(--do-dam); }
+.hang-icon { display: flex; }
+
+.form { display: flex; flex-direction: column; gap: 12px; }
+.form label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 14px; min-width: 0; }
+.form hr { border: 0; border-top: 1px solid var(--vien); margin: 4px 0; }
+.o-nhap {
+  width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--vien); border-radius: 12px;
+  background: var(--mat); font-size: 16px; font-weight: 400;
+}
+.o-nhap:disabled { background: var(--nen); }
+select.o-nhap { appearance: auto; }
+.hang-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hang-nut .o-nhap { flex: 1; }
+
+/* Ô số liệu */
+.luoi-so { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.o-so {
+  background: var(--mat); border-radius: var(--bo); padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+}
+.o-so > span:first-child { font-size: 13px; color: var(--chu-phu); }
+.o-so b { font-size: 18px; overflow-wrap: anywhere; }
+.o-so.rong { grid-column: 1 / -1; }
+.o-so.lon { margin-bottom: 10px; }
+.o-so.lon b { font-size: 28px; }
+.the-khoi { background: var(--mat); border-radius: var(--bo); padding: 4px 14px 12px; margin-bottom: 12px; }
+
+/* Thanh ngang (chi theo danh mục, món bán chạy) */
+.thanh-ngang { margin: 8px 0; }
+.thanh-ngang-nhan { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; margin-bottom: 4px; }
+.thanh-ngang-nhan span:last-child { color: var(--chu-phu); white-space: nowrap; }
+.thanh-ngang-nen { height: 8px; border-radius: 4px; background: var(--nen); overflow: hidden; }
+.thanh-ngang-nen > div { height: 100%; background: var(--do); border-radius: 4px; }
+
+/* Biểu đồ cột theo giờ (thuần CSS, không cần thư viện biểu đồ) */
+.bieu-do-gio { display: flex; align-items: flex-end; gap: 2px; height: 120px; padding-bottom: 18px; }
+.cot-gio { flex: 1; height: 100%; position: relative; display: flex; align-items: flex-end; }
+.cot-gio-thanh { width: 100%; min-height: 1px; background: var(--do); border-radius: 3px 3px 0 0; }
+.cot-gio span { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--chu-phu); }
+
+/* Danh sách dòng (thu chi, lịch sử, hội viên, nhân sự) */
+.ds-dong { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.dong {
+  width: 100%; min-height: 56px; padding: 10px 14px; border: 0; border-radius: var(--bo); background: var(--mat);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
+}
+button.dong:active { background: #fafafa; }
+.dong > div:first-child { min-width: 0; }
+.dong-chinh { font-weight: 700; overflow-wrap: anywhere; }
+.dong-phai { text-align: right; white-space: nowrap; flex-shrink: 0; }
+.dong-ns { padding-right: 8px; }
+.dong-ns-thong-tin { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; border: 0; background: transparent; text-align: left; min-height: var(--cham); padding: 0; }
+.cham-tron { width: 10px; height: 10px; border-radius: 50%; background: var(--vien); flex-shrink: 0; }
+.cham-tron.xanh-nen { background: var(--xanh); }
+
+/* Thẻ kho */
+.ds-the { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.the-kho {
+  border: 0; border-radius: var(--bo); background: var(--mat); padding: 12px; text-align: left;
+  display: flex; flex-direction: column; gap: 2px; border-left: 4px solid var(--xanh); min-height: 88px;
+}
+.the-kho:disabled { opacity: 1; }
+.the-kho.muc-sap_het { border-left-color: var(--cam); background: #fffbeb; }
+.the-kho.muc-het { border-left-color: var(--do); background: var(--do-nhat); }
+.the-kho-ten { font-weight: 700; }
+.the-kho-ton { font-size: 20px; }
+.the-kho-phu { font-size: 12px; color: var(--chu-phu); }
+
+/* Chấm công của tôi */
+.the-cham-cong {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  background: var(--mat); border-radius: var(--bo); padding: 12px 14px; border-left: 4px solid var(--vien);
+}
+.the-cham-cong.dang-lam { border-left-color: var(--xanh); }
+
 /* ---------------------------------------------------------------- THÊM */
 .them { display: flex; flex-direction: column; gap: 16px; }
 .the-ho-so { display: flex; align-items: center; gap: 14px; background: var(--mat); border-radius: var(--bo); padding: 16px; }
@@ -449,6 +528,8 @@ a { color: inherit; text-decoration: none; }
 /* ---------------------------------------------------------------- ĐIỆN THOẠI RẤT NHỎ (≤380px, VD iPhone SE) */
 @media (max-width: 380px) {
   .luoi-ban { grid-template-columns: repeat(2, 1fr); }
+  .hang-2 { grid-template-columns: 1fr; }
+  .o-so b { font-size: 16px; }
   .noi-dung, .trang-than { padding-left: 12px; padding-right: 12px; }
 }
 
@@ -457,6 +538,9 @@ a { color: inherit; text-decoration: none; }
   .luoi-ban { grid-template-columns: repeat(4, 1fr); }
   /* Bếp thường dùng tablet đặt ngang: phiếu xếp 2–3 cột */
   .luoi-phieu { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); align-items: start; }
+  .luoi-so { grid-template-columns: repeat(4, 1fr); }
+  .o-so.rong { grid-column: auto; }
+  .ds-the { grid-template-columns: repeat(3, 1fr); }
   .luoi-mon { grid-template-columns: repeat(3, 1fr); }
   /* Lá sớ thành hộp thoại giữa màn hình thay vì trải hết chiều ngang */
   .la-so-nen { align-items: center; justify-content: center; }
