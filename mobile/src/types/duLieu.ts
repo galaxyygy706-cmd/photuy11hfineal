@@ -84,6 +84,25 @@ export interface PhieuBep {
   isDoneByChef?: boolean;
 }
 
+/** Một món trong đơn khách tự gửi từ khach.html (gioHang, khach.html:890).
+    `gia` do trình duyệt của KHÁCH gửi lên -> không được tin, luôn lấy giá từ menu. */
+export interface MonDonQR {
+  id?: string;
+  ten: string;
+  gia?: number;
+  sl: number;
+  note?: string;
+  desc?: string;
+}
+
+/** Node `pending_qr_orders/{pushKey}` (khach.html:1015). tableId lấy từ URL `?table=` nên là chuỗi. */
+export interface DonQR {
+  tableId: string | number;
+  items: MonDonQR[];
+  timestamp: number;
+  status?: string;
+}
+
 /** Node `history_orders/{pushKey}` (app.js:2908). vat/paidBy là field MỚI, tuỳ chọn. */
 export interface LichSuDon {
   customerId: string | null;

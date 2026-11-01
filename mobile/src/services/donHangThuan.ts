@@ -1,7 +1,7 @@
 /* Các phép biến đổi đơn hàng THUẦN (không đụng Firebase) — dùng trong runTransaction
    và để viết test. Mỗi hàm nhận mảng cũ, trả mảng MỚI (không sửa tại chỗ). */
 
-import type { DongMon, Mon, NguyenLieu } from '../types/duLieu';
+import type { DongMon, Mon, MonDonQR, NguyenLieu } from '../types/duLieu';
 import { RECIPES, soBatCuaMon } from './dinhLuong';
 
 /** RTDB trả mảng thưa thành object -> chuẩn hoá về mảng đặc, bỏ phần tử rỗng. */
@@ -77,6 +77,58 @@ export function tachMotMon(
   if (!dong) return null;
   const chuyen: DongMon = { ...dong, sl: 1, id: now };
   return { goc: botMotMon(goc, idDong), dich: gopDon([chuyen], dich) };
+}
+
+/** Đưa các món khách đặt qua QR vào đơn của bàn (xuLyDonQR ở app cũ).
+    SỬA so với app cũ:
+    - Giá lấy từ MENU, không lấy `gia` khách gửi lên (khách sửa request được -> tự đặt giá 0đ).
+    - Chỉ cộng dồn vào dòng CHƯA gửi bếp, cùng món và cùng ghi chú (app cũ cộng cả vào dòng đã
+      gửi bếp -> món khách gọi thêm không bao giờ xuống bếp).
+    Món không còn trong thực đơn bị bỏ qua và trả về trong `boQua` để báo nhân viên. */
+export function gopDonQR(
+  items: readonly DongMon[],
+  monQR: readonly MonDonQR[],
+  menu: readonly Mon[],
+  now = Date.now(),
+): { items: DongMon[]; boQua: string[] } {
+  const ketQua = items.map((i) => ({ ...i }));
+  const boQua: string[] = [];
+  monQR.forEach((q, k) => {
+    const mon = menu.find((m) => q.id && m.id === q.id) ?? menu.find((m) => m.ten === q.ten);
+    const sl = Math.floor(Number(q.sl));
+    if (!mon || !(sl > 0)) {
+      boQua.push(q.ten || '(không tên)');
+      return;
+    }
+    const ghiChu = (q.note ?? '').trim();
+    const trung = ketQua.find((i) => i.id_mon === mon.id && !i.isReward && i.isSent !== true && (i.note ?? '') === ghiChu);
+    if (trung) {
+      trung.sl += sl;
+      return;
+    }
+    const dong: DongMon = {
+      id: now + k,
+      id_mon: mon.id,
+      ten: mon.ten,
+      gia: Number(mon.gia) || 0,
+      sl,
+      isSent: false,
+      cooked: false,
+      loai: mon.loai,
+    };
+    if (ghiChu) dong.note = ghiChu;
+    if (mon.img) dong.img = mon.img;
+    if (mon.desc) dong.desc = mon.desc;
+    ketQua.push(dong);
+  });
+  return { items: ketQua, boQua };
+}
+
+/** Mức cảnh báo thời gian chờ của phiếu bếp (updateAllTimers ở app cũ): <3 phút / 3–7 phút / ≥7 phút. */
+export function mucChoBep(giay: number): 'on' | 'canh_bao' | 'tre' {
+  if (giay >= 420) return 'tre';
+  if (giay >= 181) return 'canh_bao';
+  return 'on';
 }
 
 /** Số suất mỗi món "gốc" (tuy_tam / tuy_thuong) bị tiêu thụ — app cũ chỉ đếm soldToday cho 2 món này. */

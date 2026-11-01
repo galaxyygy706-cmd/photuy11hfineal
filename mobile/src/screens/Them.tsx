@@ -29,8 +29,8 @@ export function Them() {
         {coQuyen(user, 'manage_staff') && (
           <button className="lua-chon" onClick={() => setMoTaiKhoan(true)}>👥 Tài khoản nhân viên</button>
         )}
-        {/* Các chức năng chưa chuyển sang app mới (GĐ 3–4) vẫn dùng ở app cũ. */}
-        <a className="lua-chon" href="/">🗂️ Mở app đầy đủ (bếp, kho, báo cáo…)</a>
+        {/* Các chức năng chưa chuyển sang app mới (GĐ 4) vẫn dùng ở app cũ. */}
+        <a className="lua-chon" href="/">🗂️ Mở app đầy đủ (kho, thu chi, báo cáo, nhân sự…)</a>
         <button className="lua-chon nguy-hiem" onClick={async () => {
           if (await xacNhan('Kết thúc ca và đăng xuất?', { nutDongY: 'Đăng xuất', nguyHiem: true })) await dangXuat();
         }}>🚪 Đăng xuất</button>

@@ -12,10 +12,10 @@
 import { get, increment, push, ref, runTransaction, update } from 'firebase/database';
 import { db } from '../firebase/khoiTao';
 import { batBuocQuyen, coQuyen, LoiKhongCoQuyen, type NguoiDung, type Quyen } from '../quyen/phanQuyen';
-import type { Ban, DongMon, HoiVien, LichSuAn, LichSuDon, Mon, NguyenLieu, PhieuBep } from '../types/duLieu';
+import type { Ban, DonQR, DongMon, HoiVien, MonDonQR, LichSuAn, LichSuDon, Mon, NguyenLieu, PhieuBep } from '../types/duLieu';
 import { anhMon, demSoBat, soBatCuaMon } from './dinhLuong';
 import {
-  botMotMon, gopDon, suatConLai, suatTieuThu, tachMotMon, themMotMon, truKho, veMang, veMangCoKey,
+  botMotMon, gopDon, gopDonQR, suatConLai, suatTieuThu, tachMotMon, themMotMon, truKho, veMang, veMangCoKey,
 } from './donHangThuan';
 import { xuLyTichDiemKhiBotMon, xuLyTichDiemKhiThemMon, type KetQuaTichDiem } from './tichDiem';
 import { tinhTien } from './tinhTien';
@@ -186,6 +186,49 @@ export async function xacNhanGiaoMon(user: NguoiDung | null, tableId: number): P
   capNhat[`tables/${key}/timeAtBep`] = null;
   await update(ref(db), capNhat);
   return 'da_giao';
+}
+
+/** Nút "Xong" trên màn hình bếp cho MỘT phiếu (app cũ: nút trên thẻ phiếu gọi xacNhanGiaoMon cả bàn).
+    Bàn vẫn ở "Chờ bếp", mốc timeAtBep đặt lại để sơ đồ bàn đếm thời gian chờ bưng. */
+export async function bepXongPhieu(user: NguoiDung | null, keyPhieu: string): Promise<void> {
+  batBuocMotTrong(user, 'confirm_done', 'view_kitchen');
+  const phieu = (await get(ref(db, `kitchen_orders/${keyPhieu}`))).val() as PhieuBep | null;
+  if (!phieu) throw new Error('Phiếu này không còn (có thể phục vụ đã bưng).');
+  const capNhat: Record<string, unknown> = { [`kitchen_orders/${keyPhieu}/isDoneByChef`]: true };
+  const ban = await layBan(phieu.tableId).catch(() => null);
+  if (ban && ban.ban.status === 'waiting') capNhat[`tables/${ban.key}/timeAtBep`] = Date.now();
+  await update(ref(db), capNhat);
+}
+
+// ---------------------------------------------------------------- ĐƠN QR CỦA KHÁCH
+
+/** Duyệt đơn khách tự đặt: đưa món vào đơn của bàn (chưa gửi bếp) và xoá đơn chờ.
+    Trả về tên các món bị bỏ qua vì không còn trong thực đơn. */
+export async function nhanDonQR(user: NguoiDung | null, keyDon: string): Promise<{ tenBan: string; boQua: string[] }> {
+  batBuocQuyen(user, 'order');
+  const don = (await get(ref(db, `pending_qr_orders/${keyDon}`))).val() as DonQR | null;
+  if (!don) throw new Error('Đơn này đã được người khác xử lý.');
+  const tableId = Number(don.tableId);
+  const [{ key, ban }, menuSnap] = await Promise.all([layBan(tableId), get(ref(db, 'menu'))]);
+  if (ban.status === 'paid') throw new Error(`${ban.name} đang chờ dọn — dọn bàn trước rồi mới nhận đơn mới.`);
+  const menu = veMang<Mon>(menuSnap.val());
+
+  let boQua: string[] = [];
+  await runTransaction(ref(db, `orders/${tableId}`), (cu: unknown) => {
+    const kq = gopDonQR(veMang<DongMon>(cu), veMang<MonDonQR>(don.items), menu);
+    boQua = kq.boQua;
+    return kq.items;
+  });
+  await update(ref(db), {
+    [`pending_qr_orders/${keyDon}`]: null,
+    [`tables/${key}/status`]: 'ordering',
+  });
+  return { tenBan: ban.name, boQua };
+}
+
+export async function huyDonQR(user: NguoiDung | null, keyDon: string): Promise<void> {
+  batBuocQuyen(user, 'order');
+  await update(ref(db), { [`pending_qr_orders/${keyDon}`]: null });
 }
 
 // ---------------------------------------------------------------- THANH TOÁN / DỌN BÀN

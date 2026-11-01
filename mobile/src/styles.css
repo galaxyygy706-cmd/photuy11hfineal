@@ -114,10 +114,26 @@ a { color: inherit; text-decoration: none; }
 .thanh-dau {
   height: calc(var(--dau-cao) + var(--an-toan-tren));
   padding: var(--an-toan-tren) 16px 0;
-  display: flex; align-items: center;
+  display: flex; align-items: center; justify-content: space-between;
   background: var(--do); color: #fff; flex-shrink: 0;
 }
 .thanh-dau-logo { font-weight: 800; font-size: 18px; }
+
+/* Nút chuông đơn QR trên thanh đầu — rung nhẹ khi đang có đơn chờ */
+.nut-chuong {
+  position: relative; width: var(--cham); height: var(--cham); margin-right: -6px;
+  border: 0; border-radius: 50%; background: transparent; font-size: 22px;
+}
+.nut-chuong.co-don { animation: lac-chuong 1.6s ease-in-out infinite; }
+@keyframes lac-chuong { 0%, 70%, 100% { transform: rotate(0); } 75% { transform: rotate(14deg); } 85% { transform: rotate(-12deg); } 95% { transform: rotate(6deg); } }
+.nut-chuong-so, .thanh-duoi-so {
+  position: absolute; top: 2px; right: 0; min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 10px; background: #fff; color: var(--do); font-size: 12px; font-weight: 800;
+  display: grid; place-items: center; line-height: 1;
+}
+.thanh-duoi-icon { position: relative; }
+.thanh-duoi-so { top: -6px; right: -14px; background: var(--do); color: #fff; }
+@media (prefers-reduced-motion: reduce) { .nut-chuong.co-don { animation: none; } }
 .noi-dung { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px 24px; }
 
 .thanh-duoi {
@@ -260,6 +276,8 @@ a { color: inherit; text-decoration: none; }
 /* ---------------------------------------------------------------- LÁ SỚ (BOTTOM-SHEET) */
 .la-so-nen {
   position: fixed; inset: 0; z-index: 40;
+  /* Lá sớ có thể được render bên trong thanh đầu (chữ trắng) -> đặt lại màu chữ, không thừa hưởng */
+  color: var(--chu); font-weight: 400; font-size: 16px;
   background: rgba(0,0,0,0); transition: background .2s;
   display: flex; align-items: flex-end;
 }
@@ -338,6 +356,57 @@ a { color: inherit; text-decoration: none; }
 .form-tk { display: flex; gap: 6px; }
 .form-tk input { min-height: var(--cham); width: 140px; }
 
+/* ---------------------------------------------------------------- MÀN HÌNH BẾP
+   Màu phiếu theo thời gian chờ như app cũ: xanh <3 phút, cam 3–7 phút, đỏ ≥7 phút. */
+.nut-xanh { background: var(--xanh); color: #fff; }
+.nut-xanh:active { background: #15803d; }
+.bep-tom-tat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 15px; }
+.luoi-phieu { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.phieu {
+  --muc: var(--xanh);
+  background: var(--mat); border-radius: var(--bo); overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08); border: 2px solid transparent;
+  display: flex; flex-direction: column;
+}
+.phieu-canh_bao { --muc: var(--cam); }
+.phieu-tre { --muc: var(--do); border-color: var(--do); }
+.phieu-xong { --muc: #64748b; opacity: .7; }
+.phieu-dau {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 10px 14px; background: var(--muc); color: #fff;
+}
+.phieu-ban { font-size: 20px; font-weight: 800; }
+.phieu-gio { font-size: 12px; opacity: .85; }
+.phieu-dong-ho {
+  font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 800;
+  background: rgba(255,255,255,.2); padding: 4px 10px; border-radius: 10px;
+}
+.phieu-tre .phieu-dong-ho { animation: nhay 1s steps(2) infinite; }
+@keyframes nhay { 50% { background: rgba(255,255,255,.45); } }
+@media (prefers-reduced-motion: reduce) { .phieu-tre .phieu-dong-ho { animation: none; } }
+.phieu-mon { list-style: none; margin: 0; padding: 6px 14px; }
+.phieu-mon li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--vien); }
+.phieu-mon li:last-child { border-bottom: 0; }
+.phieu-mon-anh {
+  width: 48px; height: 48px; border-radius: 10px; overflow: hidden; flex-shrink: 0;
+  background: var(--nen); display: grid; place-items: center; font-size: 22px;
+}
+.phieu-mon-anh img { width: 100%; height: 100%; object-fit: cover; }
+.phieu-mon-ten { flex: 1; font-weight: 700; font-size: 16px; }
+.phieu-ghi-chu { font-weight: 600; font-size: 14px; color: var(--do-dam); }
+.phieu-sl { font-size: 22px; font-weight: 800; min-width: 44px; text-align: right; }
+.phieu > .nut, .phieu-trang-thai { margin: 0 14px 14px; }
+.phieu > .nut { width: auto; } /* .nut-to đặt width:100% -> cộng margin sẽ tràn mép phải */
+.phieu-trang-thai { text-align: center; padding: 12px; border-radius: 12px; background: var(--nen); font-weight: 600; color: var(--chu-phu); }
+
+/* ---------------------------------------------------------------- ĐƠN QR CHỜ DUYỆT */
+.ds-don-qr { display: flex; flex-direction: column; gap: 12px; }
+.don-qr { border: 1px solid var(--vien); border-radius: var(--bo); padding: 12px; }
+.don-qr-dau { display: flex; justify-content: space-between; align-items: baseline; font-size: 17px; margin-bottom: 6px; }
+.don-qr-mon { list-style: none; margin: 0 0 8px; padding: 0; font-size: 15px; }
+.don-qr-mon li { display: flex; justify-content: space-between; gap: 10px; padding: 4px 0; }
+.don-qr-tong { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px dashed var(--vien); margin-bottom: 8px; }
+
 /* ---------------------------------------------------------------- THÊM */
 .them { display: flex; flex-direction: column; gap: 16px; }
 .the-ho-so { display: flex; align-items: center; gap: 14px; background: var(--mat); border-radius: var(--bo); padding: 16px; }
@@ -386,6 +455,8 @@ a { color: inherit; text-decoration: none; }
 /* ---------------------------------------------------------------- TABLET (≥769px) */
 @media (min-width: 769px) {
   .luoi-ban { grid-template-columns: repeat(4, 1fr); }
+  /* Bếp thường dùng tablet đặt ngang: phiếu xếp 2–3 cột */
+  .luoi-phieu { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); align-items: start; }
   .luoi-mon { grid-template-columns: repeat(3, 1fr); }
   /* Lá sớ thành hộp thoại giữa màn hình thay vì trải hết chiều ngang */
   .la-so-nen { align-items: center; justify-content: center; }

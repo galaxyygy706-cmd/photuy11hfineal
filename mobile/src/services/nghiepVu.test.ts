@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { tinhTien } from './tinhTien';
 import { xuLyTichDiemKhiThemMon, xuLyTichDiemKhiBotMon } from './tichDiem';
-import { botMotMon, gopDon, suatConLai, suatTieuThu, tachMotMon, themMotMon, truKho, veMang } from './donHangThuan';
+import {
+  botMotMon, gopDon, gopDonQR, mucChoBep, suatConLai, suatTieuThu, tachMotMon, themMotMon, truKho, veMang,
+} from './donHangThuan';
 import { demSoBat } from './dinhLuong';
 import { coQuyen, tinhQuyen } from '../quyen/phanQuyen';
 import type { DongMon, Mon, NguyenLieu } from '../types/duLieu';
@@ -104,6 +106,37 @@ describe('đơn hàng', () => {
   });
   it('veMang chịu được object thưa từ RTDB', () => {
     expect(veMang({ 0: 'a', 2: 'b' })).toEqual(['a', 'b']);
+  });
+});
+
+describe('đơn QR của khách', () => {
+  const MENU: Mon[] = [TAM, { id: 'tuy_thuong', ten: 'Túy Thượng', gia: 80000, loai: 'don' }];
+
+  it('giá lấy từ menu, KHÔNG lấy giá khách gửi lên', () => {
+    const kq = gopDonQR([], [{ id: 'tuy_thuong', ten: 'Túy Thượng', gia: 0, sl: 2 }], MENU, 5);
+    expect(kq.items[0]).toMatchObject({ id_mon: 'tuy_thuong', gia: 80000, sl: 2, isSent: false });
+  });
+  it('khớp theo tên khi không có id', () => {
+    expect(gopDonQR([], [{ ten: 'Túy Tâm', sl: 1 }], MENU).items[0]?.id_mon).toBe('tuy_tam');
+  });
+  it('cộng dồn vào dòng chưa gửi cùng ghi chú; tách dòng nếu khác ghi chú hoặc đã gửi bếp', () => {
+    const co = [dong({ id: 1, sl: 1 }), dong({ id: 2, sl: 1, isSent: true })];
+    const kq = gopDonQR(co, [
+      { id: 'tuy_tam', ten: 'Túy Tâm', sl: 2 },
+      { id: 'tuy_tam', ten: 'Túy Tâm', sl: 1, note: 'không hành' },
+    ], MENU, 9);
+    expect(kq.items).toHaveLength(3);
+    expect(kq.items[0]?.sl).toBe(3);
+    expect(kq.items[1]?.sl).toBe(1);
+    expect(kq.items[2]).toMatchObject({ sl: 1, note: 'không hành', isSent: false });
+  });
+  it('bỏ qua món không có trong menu và số lượng không hợp lệ', () => {
+    const kq = gopDonQR([], [{ ten: 'Món lạ', sl: 1 }, { id: 'tuy_tam', ten: 'Túy Tâm', sl: -3 }], MENU);
+    expect(kq.items).toHaveLength(0);
+    expect(kq.boQua).toEqual(['Món lạ', 'Túy Tâm']);
+  });
+  it('mức chờ bếp', () => {
+    expect([mucChoBep(60), mucChoBep(200), mucChoBep(420)]).toEqual(['on', 'canh_bao', 'tre']);
   });
 });
 
