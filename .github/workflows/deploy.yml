@@ -42,10 +42,30 @@ jobs:
         working-directory: mobile
         run: npm run build
 
+      # Gọi thẳng firebase-tools (thay cho action-hosting-deploy) để khi lỗi thì đẩy đúng dòng
+      # "Error:" lên mục Annotations của trang tóm tắt — đỡ phải mở log dài để tìm nguyên nhân.
+      # Bản 13.35.1 giống lệnh emulator trong CLAUDE.md; deploy Hosting không cần Java.
       - name: Deploy lên Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PHO_TUY }}
-          projectId: pho-tuy
-          channelId: live
+        env:
+          KHOA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PHO_TUY }}
+        run: |
+          if [ -z "$KHOA_JSON" ]; then
+            echo "::error::Chưa có secret FIREBASE_SERVICE_ACCOUNT_PHO_TUY (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/khoa-firebase.json"
+          printf '%s' "$KHOA_JSON" > "$GOOGLE_APPLICATION_CREDENTIALS"
+          if ! python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print('::notice::Deploy bằng tài khoản', d['client_email'])" "$GOOGLE_APPLICATION_CREDENTIALS"; then
+            echo "::error::Secret không phải file JSON khoá dịch vụ hợp lệ — hãy dán lại TOÀN BỘ nội dung file .json."
+            exit 1
+          fi
+          set +e
+          npx --yes firebase-tools@13.35.1 deploy --only hosting --project pho-tuy --non-interactive 2>&1 | tee deploy.log
+          ma=${PIPESTATUS[0]}
+          rm -f "$GOOGLE_APPLICATION_CREDENTIALS"
+          if [ "$ma" -ne 0 ]; then
+            grep -iE "error|denied|permission|not been used|failed" deploy.log | head -5 | while IFS= read -r dong; do
+              echo "::error::$dong"
+            done
+          fi
+          exit "$ma"
