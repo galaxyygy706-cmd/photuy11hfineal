@@ -1,0 +1,7 @@
+graphify-out/
+node_modules/
+# Log của Firebase Emulator
+*-debug.log
+# Bản build của app mobile (sinh bởi `npm run build` trong mobile/)
+m/
+*.tsbuildinfo

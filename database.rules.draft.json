@@ -1,0 +1,70 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "tai_khoan": {
+      ".read": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
+        ".validate": "newData.hasChildren(['nhanSuId']) && root.child('NhanSu').child(newData.child('nhanSuId').val()).exists()"
+      }
+    },
+
+    "NhanSu": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      ".write": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
+      "$id": {
+        "isOnline": {
+          ".write": "auth != null && root.child('tai_khoan').child(auth.uid).child('nhanSuId').val() === $id",
+          ".validate": "newData.isBoolean()"
+        }
+      }
+    },
+
+    "menu": {
+      ".read": true,
+      ".write": "auth != null && root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN'",
+      "$i": {
+        "soldToday": {
+          ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        }
+      }
+    },
+
+    "tables": {
+      ".read": true,
+      ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()"
+    },
+
+    "pending_qr_orders": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      "$id": {
+        ".write": "(!data.exists() && newData.exists()) || (auth != null && root.child('tai_khoan').child(auth.uid).exists())"
+      }
+    },
+
+    "history_orders": {
+      ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()",
+      "$id": {
+        ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists() && (!data.exists() || root.child('NhanSu').child(root.child('tai_khoan').child(auth.uid).child('nhanSuId').val()).child('capDo').val() === 'ADMIN')",
+        ".validate": "newData.hasChildren(['total', 'timestamp', 'items']) || !newData.exists()"
+      }
+    },
+
+    "orders":          { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "kitchen_orders":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "eating_history":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "members":         { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "kho":             { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "lich_su_kho":     { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "last_reset_date": { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+
+    "thu_chi":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "expenses": { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "chitieu":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" },
+    "hoivien":  { ".read": "auth != null && root.child('tai_khoan').child(auth.uid).exists()", ".write": "auth != null && root.child('tai_khoan').child(auth.uid).exists()" }
+  }
+}

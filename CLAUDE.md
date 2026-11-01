@@ -11,6 +11,7 @@ Tài liệu này định hướng cách làm việc trên codebase này. Đọc 
 - `khach.html` — màn hình dành cho khách (tách riêng khỏi app quản lý chính).
 - Backend: **Firebase Realtime Database** (project `pho-tuy`), khởi tạo qua `firebaseConfig` ở đầu `app.js`. Deploy qua Firebase Hosting, cấu hình trong `firebase.json`.
 - PWA: có `manifest.webmanifest`, `sw.js` (service worker), icon trong `icons/`.
+- **App mobile mới** trong `mobile/` (React + TypeScript + Vite), build ra `m/`, chạy tại `/m/` song song với app cũ — xem mục 8. Các quy tắc "không build tool / không tách file" ở trên chỉ áp dụng cho app cũ.
 
 ## 2. Cách điều hướng file lớn (bắt buộc)
 
@@ -55,3 +56,17 @@ Tài liệu này định hướng cách làm việc trên codebase này. Đọc 
   - Responsive: DevTools ở các mốc 375px / 414px / 768px / 1024px.
   - Phân quyền: đăng nhập lần lượt các vai trò khác nhau, xác nhận đúng hành vi được phép/bị chặn.
 - Theo dõi tab Console/Network của DevTools để phát hiện lỗi Firebase (`permission-denied`, `invalid-api-key`...).
+
+## 8. App mobile mới (`mobile/`)
+
+Ngoại lệ có chủ đích với mục 1/3: người dùng yêu cầu app mobile-first bằng TypeScript + PWA, nên `mobile/` có build tool. App cũ giữ nguyên kiến trúc, hai app **chạy song song trên cùng database** cho tới khi app mới đủ chức năng.
+
+- Stack: Vite + React + TypeScript strict + `vite-plugin-pwa` + Firebase modular SDK. `npm run build` (trong `mobile/`) xuất ra `../m/` (đã gitignore) — Firebase Hosting phục vụ tại `/m/`.
+- Tên hàm/biến/file vẫn tiếng Việt không dấu như app cũ (`themMon`, `ChiTietDon.tsx`...).
+- **Schema dữ liệu**: `mobile/src/types/duLieu.ts` là "hợp đồng" với app cũ — chỉ được THÊM field tuỳ chọn, không đổi tên/kiểu field mà `app.js` đang đọc/ghi. Node `tables`, `menu`, `kho` là MẢNG ghi theo chỉ số: luôn ghi theo key thật (`veMangCoKey`), không theo vị trí sau khi lọc.
+- **Phân quyền**: `mobile/src/quyen/phanQuyen.ts` là bảng quyền duy nhất của app mới, phải giữ GIỐNG HỆT `PERMISSIONS_BY_ROLE` trong `app.js`. Sửa một bên thì sửa cả hai. Mọi hàm trong `mobile/src/services/donHang.ts` gọi `batBuocQuyen` ở dòng đầu.
+- **Đăng nhập**: Firebase Auth email/password; email nội bộ = `<username>@pho-tuy.firebaseapp.com`. Node mới `tai_khoan/{uid} = { nhanSuId }` nối Auth với `NhanSu`; `capDo`/`vaiTro` chỉ nằm ở `NhanSu`. Admin cấp tài khoản ở tab Thêm → Tài khoản nhân viên.
+- **Nghiệp vụ thuần** (tính tiền, tích điểm, gộp/tách, trừ kho) nằm trong `mobile/src/services/*` không đụng DOM/Firebase, có test Vitest (`npm test`). Sửa logic tiền/điểm phải thêm test.
+- **Security Rules**: `database.rules.draft.json` là BẢN NHÁP, cố ý KHÔNG khai báo trong `firebase.json`. Không deploy cho tới khi app cũ cũng đăng nhập bằng Firebase Auth — nếu không app cũ bị `permission-denied` toàn bộ.
+- **Kiểm thử trên Emulator** (không đụng dữ liệu thật): ở thư mục gốc chạy `npx firebase-tools@13.35.1 emulators:start --project demo-pho-tuy --config firebase.emulator.json --only auth,database` (bản 13 vì máy có Java 17; bản mới cần Java 21), rồi trong `mobile/`: `node scripts/nap-du-lieu-emulator.mjs` và `VITE_EMULATOR=1 npm run dev`. Tài khoản mẫu: `quanly` / `phucvu` / `daubep`, mật khẩu `123456` (chỉ tồn tại trong emulator).
+- Khi tự động hoá trình duyệt (Puppeteer) để test: dùng profile tắt trình quản lý mật khẩu — ở chế độ headless, hộp "Lưu mật khẩu?" vô hình sau khi đăng nhập nuốt mọi click/chạm.

@@ -10,7 +10,7 @@
    nhân viên sẽ nhìn thấy sơ đồ bàn / đơn hàng cũ.
    ========================================================================== */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL_CACHE = 'photuy-shell-' + VERSION;   // File của chính app
 const LIB_CACHE = 'photuy-lib-' + VERSION;       // Thư viện tải từ CDN
 
@@ -23,7 +23,8 @@ const SHELL_FILES = [
     './icons/icon.svg',
     './icons/icon-192.png',
     './icons/icon-512.png',
-    './icons/icon-maskable-512.png'
+    './icons/icon-maskable-512.png',
+    './icons/apple-touch-icon-180.png'
 ];
 
 /* Các CDN chứa thư viện tĩnh (Firebase SDK, Chart.js, XLSX, FontAwesome).
@@ -96,13 +97,22 @@ self.addEventListener('fetch', (event) => {
     // 3. DỮ LIỆU FIREBASE -> luôn đi thẳng ra mạng
     if (BYPASS_HOSTS.some((h) => url.hostname === h || url.hostname.endsWith('.' + h))) return;
 
+    // 3b. APP MOBILE MỚI (/m/) có service worker riêng -> SW này không được đụng vào,
+    //     kể cả lần mở đầu tiên khi SW của /m/ chưa kịp cài.
+    if (url.origin === self.location.origin && url.pathname.startsWith('/m/')) return;
+
     // 4. TRANG HTML -> ưu tiên mạng, mất mạng thì lấy bản đã lưu
     if (req.mode === 'navigate') {
+        // Chỉ lưu đè bản offline khi đang mở đúng trang chính. Trước đây mọi trang
+        // (khach.html...) đều bị lưu thành './index.html' -> mất mạng mở ra nhầm trang.
+        const laTrangChinh = url.pathname === '/' || url.pathname.endsWith('/index.html');
         event.respondWith(
             fetch(req)
                 .then((res) => {
-                    const copy = res.clone();
-                    caches.open(SHELL_CACHE).then((c) => c.put('./index.html', copy));
+                    if (laTrangChinh && res.ok) {
+                        const copy = res.clone();
+                        caches.open(SHELL_CACHE).then((c) => c.put('./index.html', copy));
+                    }
                     return res;
                 })
                 .catch(() => caches.match('./index.html').then((r) => r || caches.match('./')))

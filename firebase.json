@@ -3,10 +3,29 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "firebase.emulator.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "mobile/**",
+      "graphify-out/**",
+      "*.md",
+      "*.log",
+      "database.rules*.json"
     ],
     "headers": [
+      {
+        "comment": "App mobile (/m/): sw.js + index.html luôn lấy bản mới; file trong assets/ có hash trong tên nên cache vĩnh viễn",
+        "source": "/m/@(sw.js|index.html|manifest.webmanifest)",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache" }
+        ]
+      },
+      {
+        "source": "/m/assets/**",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      },
       {
         "comment": "sw.js và manifest KHÔNG được cache, nếu không bản cập nhật sẽ không tới được máy nhân viên",
         "source": "/sw.js",
